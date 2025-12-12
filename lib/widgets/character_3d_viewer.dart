@@ -106,7 +106,7 @@ class _Character3DViewerState extends State<Character3DViewer>
       height: widget.size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white,
       ),
       child: ClipOval(
         child: cube.Cube(

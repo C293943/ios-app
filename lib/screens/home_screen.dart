@@ -69,9 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             final size = (constraints.maxWidth * 0.6).clamp(150.0, 220.0);
                             return CharacterDisplay(
                               modelPath3D: 'assets/3d_models/XBot.obj',
-                              animationPath2D: 'assets/animations/character.json',
+                              animationPath2D: 'assets/images/back-0.png',
+                              modelPathLive2D: 'c_9999.model3.json',
                               size: size,
-                              defaultTo3D: true,
+                              defaultMode: DisplayMode.live2D, // 默认使用Live2D模式
                             );
                           },
                         ),
