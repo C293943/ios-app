@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Live2D Model Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: transparent;
+        }
+        
+        #live2d-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="live2d-canvas"></canvas>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>加载 Live2D 模型中...</div>
+    </div>
+
+    <!-- Pixi.js v6 -->
+    <script src="https://unpkg.com/pixi.js@6.5.10/dist/browser/pixi.min.js"></script>
+    
+    <!-- Cubism Core -->
+    <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+    
+    <!-- Cubism Framework -->
+    <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
+    
+    <!-- pixi-live2d-display -->
+    <script crossorigin="anonymous" src="https://unpkg.com/pixi-live2d-display/dist/index.min.js"></script>
+
+    <script>
+        // 等待所有脚本加载完成
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('PIXI version:', PIXI.VERSION);
+            console.log('Live2DCubismCore loaded:', typeof Live2DCubismCore !== 'undefined');
+            console.log('PIXI.live2d available:', typeof PIXI.live2d !== 'undefined');
+            
+            // 设置全局 PIXI
+            window.PIXI = PIXI;
+            
+            // 初始化 Live2D
+            if (PIXI.live2d) {
+                console.log('Live2D initialized successfully!');
+            } else {
+                console.error('Failed to initialize Live2D');
+            }
+        });
+        
+        const app = new PIXI.Application({
+            view: document.getElementById('live2d-canvas'),
+            autoStart: true,
+            backgroundAlpha: 0, // 透明背景
+            resolution: window.devicePixelRatio || 1,
+            autoDensity: true,
+            resizeTo: window
+        });
+
+        let model = null;
+        let modelPath = '../images/Live2d-model-B0E5B3ACE583-112/c_9999.model3.json';
+
+        // 从URL参数获取模型路径
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('model')) {
+            modelPath = urlParams.get('model');
+        }
+
+        // 提供给Flutter调用的更新模型路径方法
+        window.updateModelPath = function(newPath) {
+            console.log('Updating model path to:', newPath);
+            modelPath = newPath;
+            // 如果已经有模型，先移除
+            if (model && app.stage) {
+                app.stage.removeChild(model);
+                model = null;
+            }
+            // 加载新模型
+            loadModel();
+        };
+
+        // 加载 Live2D 模型
+        async function loadModel() {
+            try {
+                console.log('Loading model from:', modelPath);
+                
+                // 检查必需的库是否已加载
+                if (typeof PIXI === 'undefined') {
+                    throw new Error('PIXI.js not loaded');
+                }
+                if (typeof PIXI.live2d === 'undefined') {
+                    throw new Error('pixi-live2d-display plugin not loaded');
+                }
+                
+                // 使用 Live2DModel.from 加载模型
+                model = await PIXI.live2d.Live2DModel.from(modelPath);
+
+                // 隐藏加载提示
+                document.getElementById('loading').style.display = 'none';
+
+                // 设置模型位置和大小
+                model.anchor.set(0.5, 0.5);
+                model.x = app.screen.width / 2;
+                model.y = app.screen.height / 2;
+                
+                // 自动缩放到合适大小
+                const scale = Math.min(
+                    app.screen.width / model.width,
+                    app.screen.height / model.height
+                ) * 0.8;
+                model.scale.set(scale);
+
+                app.stage.addChild(model);
+
+                // 启用交互
+                model.interactive = true;
+                model.buttonMode = true;
+                
+                // 添加点击事件
+                model.on('pointerdown', () => {
+                    console.log('Model clicked!');
+                    // 随机播放一个动作
+                    const motions = ['idle', 'akubi', 'bishou', 'nemui', 'tukareta'];
+                    const randomMotion = motions[Math.floor(Math.random() * motions.length)];
+                    model.motion(randomMotion);
+                });
+
+                // 窗口大小改变时重新调整
+                window.addEventListener('resize', () => {
+                    model.x = app.screen.width / 2;
+                    model.y = app.screen.height / 2;
+                    const scale = Math.min(
+                        app.screen.width / model.width,
+                        app.screen.height / model.height
+                    ) * 0.8;
+                    model.scale.set(scale);
+                });
+
+                console.log('Model loaded successfully!');
+                
+            } catch (error) {
+                console.error('Failed to load model:', error);
+                document.getElementById('loading').innerHTML = 
+                    '<div class="spinner"></div><div>模型加载失败</div><div style="font-size: 12px; margin-top: 10px;">' + 
+                    error.message + '</div>';
+            }
+        }
+
+        // 开始加载
+        loadModel();
+
+        // 暴露给Flutter的接口
+        window.playMotion = function(motionName) {
+            if (model && model.internalModel.motionManager) {
+                model.motion(motionName, 0, 2);
+            }
+        };
+
+        window.setExpression = function(expressionName) {
+            if (model) {
+                model.expression(expressionName);
+            }
+        };
+    </script>
+</body>
+</html>
