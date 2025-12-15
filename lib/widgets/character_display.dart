@@ -103,11 +103,13 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
   }
 
   Widget _buildCurrentViewer() {
+    debugPrint('当前显示模式: $_currentMode');
     switch (_currentMode) {
       case DisplayMode.mode3D:
+        debugPrint('构建 3D 查看器, 模型路径: ${widget.modelPath3D}');
         return Character3DViewer(
           key: const ValueKey('3d'),
-          modelPath: widget.modelPath3D ?? 'assets/3d_models/Meshy_AI_biped/Meshy_AI_Character_output.glb',
+          modelPath: widget.modelPath3D ?? 'assets/3d_models/Meshy_AI_biped/Meshy_AI_Meshy_Merged_Animations.glb',
           size: widget.size,
           autoPlay: true,
         );

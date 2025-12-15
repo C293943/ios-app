@@ -1,123 +1,314 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_cube/flutter_cube.dart' as cube;
+import 'package:flutter_3d_controller/flutter_3d_controller.dart';
 
 /// 3D角色查看器组件
+/// 支持 GLB, GLTF, OBJ 格式，可控制动画
 class Character3DViewer extends StatefulWidget {
   final String modelPath;
   final double size;
-  
+  final bool autoPlay;
+  final String? initialAnimation;
+
   const Character3DViewer({
     super.key,
     required this.modelPath,
     this.size = 250.0,
+    this.autoPlay = true,
+    this.initialAnimation,
   });
 
   @override
-  State<Character3DViewer> createState() => _Character3DViewerState();
+  State<Character3DViewer> createState() => Character3DViewerState();
 }
 
-class _Character3DViewerState extends State<Character3DViewer>
-    with SingleTickerProviderStateMixin {
-  cube.Object? _object;
+class Character3DViewerState extends State<Character3DViewer> {
+  Flutter3DController? _controller;
+  List<String> _availableAnimations = [];
+  String? _currentAnimation;
   bool _isLoading = true;
+  bool _isModelReady = false;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadModel();
+    _controller = Flutter3DController();
+
+    // 监听模型加载状态
+    _controller!.onModelLoaded.addListener(_onControllerModelLoaded);
   }
 
-  Future<void> _loadModel() async {
-    try {
-      // 尝试加载3D模型
-      final object = cube.Object(fileName: widget.modelPath);
+  void _onControllerModelLoaded() {
+    debugPrint('控制器模型加载状态变化: ${_controller!.onModelLoaded.value}');
+    if (_controller!.onModelLoaded.value) {
+      debugPrint('控制器确认模型已加载');
       setState(() {
-        _object = object;
+        _isModelReady = true;
         _isLoading = false;
       });
+      _loadAnimationsAndPlay();
+    }
+  }
+
+  Future<void> _loadAnimationsAndPlay() async {
+    if (!_isModelReady || _controller == null || _isObjFormat) return;
+
+    try {
+      final animations = await _controller!.getAvailableAnimations();
+      debugPrint('可用动画列表: $animations');
+
+      if (mounted) {
+        setState(() {
+          _availableAnimations = animations;
+        });
+
+        // 自动播放初始动画（无限循环）
+        if (widget.autoPlay && animations.isNotEmpty) {
+          final animToPlay = widget.initialAnimation ?? animations.first;
+          debugPrint('准备播放动画: $animToPlay (无限循环)');
+          if (animations.contains(animToPlay)) {
+            // 不传 loopCount 参数表示无限循环
+            _controller!.playAnimation(animationName: animToPlay);
+            debugPrint('动画已开始播放: $animToPlay');
+            setState(() {
+              _currentAnimation = animToPlay;
+            });
+          }
+        } else if (animations.isEmpty) {
+          debugPrint('模型没有可用的动画');
+        }
+      }
     } catch (e) {
+      debugPrint('获取动画列表失败: $e');
+    }
+  }
+
+  /// 获取所有可用的动画列表
+  List<String> get availableAnimations => _availableAnimations;
+
+  /// 获取当前播放的动画名称
+  String? get currentAnimation => _currentAnimation;
+
+  /// 模型是否已加载完成
+  bool get isModelReady => _isModelReady;
+
+  /// 播放指定动画
+  void playAnimation(String animationName) {
+    if (!_isModelReady || _controller == null) return;
+    if (_availableAnimations.contains(animationName)) {
+      _controller!.playAnimation(animationName: animationName);
       setState(() {
-        _isLoading = false;
-        _errorMessage = '模型加载失败: $e';
+        _currentAnimation = animationName;
       });
     }
+  }
+
+  /// 播放动画（指定循环次数）
+  void playAnimationWithLoop(String animationName, int loopCount) {
+    if (!_isModelReady || _controller == null) return;
+    if (_availableAnimations.contains(animationName)) {
+      _controller!.playAnimation(
+        animationName: animationName,
+        loopCount: loopCount,
+      );
+      setState(() {
+        _currentAnimation = animationName;
+      });
+    }
+  }
+
+  /// 暂停当前动画
+  void pauseAnimation() {
+    if (!_isModelReady) return;
+    _controller?.pauseAnimation();
+  }
+
+  /// 重置动画到初始状态并重新播放
+  void resetAnimation() {
+    if (!_isModelReady) return;
+    _controller?.resetAnimation();
+  }
+
+  /// 停止动画
+  void stopAnimation() {
+    if (!_isModelReady) return;
+    _controller?.stopAnimation();
+    setState(() {
+      _currentAnimation = null;
+    });
+  }
+
+  /// 开始旋转模型
+  void startRotation({int rotationSpeed = 10}) {
+    if (!_isModelReady) return;
+    _controller?.startRotation(rotationSpeed: rotationSpeed);
+  }
+
+  /// 暂停旋转
+  void pauseRotation() {
+    if (!_isModelReady) return;
+    _controller?.pauseRotation();
+  }
+
+  /// 停止旋转并重置
+  void stopRotation() {
+    if (!_isModelReady) return;
+    _controller?.stopRotation();
+  }
+
+  /// 设置相机轨道（旋转视角）
+  void setCameraOrbit(double theta, double phi, double radius) {
+    if (!_isModelReady) return;
+    _controller?.setCameraOrbit(theta, phi, radius);
+  }
+
+  /// 重置相机轨道
+  void resetCameraOrbit() {
+    if (!_isModelReady) return;
+    _controller?.resetCameraOrbit();
+  }
+
+  /// 设置相机目标
+  void setCameraTarget(double x, double y, double z) {
+    if (!_isModelReady) return;
+    _controller?.setCameraTarget(x, y, z);
+  }
+
+  /// 重置相机到默认位置
+  void resetCameraTarget() {
+    if (!_isModelReady) return;
+    _controller?.resetCameraTarget();
+  }
+
+  void _onModelLoaded() {
+    debugPrint('onLoad 回调触发，模型加载完成');
+    setState(() {
+      _isLoading = false;
+      _isModelReady = true;
+    });
+    // 直接在这里也尝试加载动画
+    _loadAnimationsAndPlay();
+  }
+
+  void _onModelError(String error) {
+    debugPrint('3D模型加载错误: $error');
+    setState(() {
+      _isLoading = false;
+      _errorMessage = '模型加载失败: $error';
+    });
+  }
+
+  /// 判断是否为 OBJ 格式
+  bool get _isObjFormat {
+    return widget.modelPath.toLowerCase().endsWith('.obj');
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Container(
-        width: widget.size,
-        height: widget.size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.2),
-        ),
-        child: const Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
-          ),
-        ),
-      );
-    }
-
     if (_errorMessage != null) {
-      return Container(
-        width: widget.size,
-        height: widget.size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.2),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.5),
-            width: 3,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 60,
-                color: Colors.white.withOpacity(0.7),
-              ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  _errorMessage!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildErrorWidget();
     }
 
     return Container(
       width: widget.size,
       height: widget.size,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withValues(alpha: 0.1),
       ),
-      child: ClipOval(
-        child: cube.Cube(
-          onSceneCreated: (cube.Scene scene) {
-            if (_object != null) {
-              scene.world.add(_object!);
-            }
-            // 调整相机位置和缩放,让模型显示更大
-            scene.camera.position.setValues(0, 0, 6);  // 相机靠近模型
-            scene.camera.zoom = 0.1;  // 减小zoom值(zoom值越小,模型越大)
-          },
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // 3D 查看器需要占满整个容器
+          Positioned.fill(
+            child: _isObjFormat ? _buildObjViewer() : _buildGlbViewer(),
+          ),
+          if (_isLoading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.3),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建 GLB/GLTF 查看器（支持动画）
+  Widget _buildGlbViewer() {
+    debugPrint('加载 GLB 模型: ${widget.modelPath}');
+    return Flutter3DViewer(
+      controller: _controller,
+      src: widget.modelPath,
+      enableTouch: true,
+      activeGestureInterceptor: true,  // 防止手势冲突
+      progressBarColor: Colors.orange,
+      onLoad: (modelAddress) {
+        debugPrint('GLB 模型加载成功: $modelAddress');
+        _onModelLoaded();
+      },
+      onError: (error) => _onModelError(error),
+      onProgress: (progress) {
+        debugPrint('GLB 加载进度: $progress');
+      },
+    );
+  }
+
+  /// 构建 OBJ 查看器（静态模型）
+  Widget _buildObjViewer() {
+    return Flutter3DViewer.obj(
+      src: widget.modelPath,
+      scale: 10,
+      cameraX: 0,
+      cameraY: 2,
+      cameraZ: 0,
+      onLoad: (modelAddress) => _onModelLoaded(),
+      onError: (error) => _onModelError(error),
+      onProgress: (progress) {
+        // 可以在这里处理加载进度
+      },
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Container(
+      width: widget.size,
+      height: widget.size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: 0.2),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.5),
+          width: 3,
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 60,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -125,6 +316,8 @@ class _Character3DViewerState extends State<Character3DViewer>
 
   @override
   void dispose() {
+    _controller?.onModelLoaded.removeListener(_onControllerModelLoaded);
+    _controller = null;
     super.dispose();
   }
 }

@@ -68,11 +68,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder: (context, constraints) {
                             final size = (constraints.maxWidth * 0.6).clamp(150.0, 220.0);
                             return CharacterDisplay(
-                              modelPath3D: 'assets/3d_models/XBot.obj',
+                              modelPath3D: 'assets/3d_models/Meshy_AI_biped/Meshy_AI_Meshy_Merged_Animations.glb',
                               animationPath2D: 'assets/images/back-1.png',
                               modelPathLive2D: 'c_9999.model3.json',
                               size: size,
-                              defaultMode: DisplayMode.live2D, // 默认使用Live2D模式
+                              defaultMode: DisplayMode.mode3D, // 默认使用3D模式测试
                             );
                           },
                         ),
