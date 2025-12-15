@@ -223,6 +223,7 @@ class Character3DViewerState extends State<Character3DViewer> {
           Positioned.fill(
             child: _isObjFormat ? _buildObjViewer() : _buildGlbViewer(),
           ),
+          // 加载指示器
           if (_isLoading)
             Positioned.fill(
               child: Container(
@@ -239,12 +240,90 @@ class Character3DViewerState extends State<Character3DViewer> {
     );
   }
 
+  /// 构建独立的动画选择器（供外部调用）
+  Widget buildAnimationSelector() {
+    if (_availableAnimations.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return _buildAnimationSelector();
+  }
+
+  /// 构建动画选择器
+  Widget _buildAnimationSelector() {
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        itemCount: _availableAnimations.length,
+        itemBuilder: (context, index) {
+          final anim = _availableAnimations[index];
+          final isSelected = anim == _currentAnimation;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: GestureDetector(
+              onTap: () => playAnimation(anim),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.purple.shade400
+                      : Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  _formatAnimationName(anim),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// 格式化动画名称（去掉前缀，美化显示）
+  String _formatAnimationName(String name) {
+    // 去掉常见前缀如 "Armature|"
+    if (name.contains('|')) {
+      name = name.split('|').last;
+    }
+    // 将下划线替换为空格
+    return name.replaceAll('_', ' ');
+  }
+
+  /// 获取正确的模型路径（处理外部文件）
+  String get _effectiveModelPath {
+    final path = widget.modelPath;
+    // 如果是 assets 路径，直接返回
+    if (path.startsWith('assets/')) {
+      return path;
+    }
+    // 如果已经是 file:// 协议，直接返回
+    if (path.startsWith('file://')) {
+      return path;
+    }
+    // 外部文件路径需要添加 file:// 协议
+    return 'file://$path';
+  }
+
   /// 构建 GLB/GLTF 查看器（支持动画）
   Widget _buildGlbViewer() {
-    debugPrint('加载 GLB 模型: ${widget.modelPath}');
+    final modelSrc = _effectiveModelPath;
+    debugPrint('加载 GLB 模型: $modelSrc');
     return Flutter3DViewer(
       controller: _controller,
-      src: widget.modelPath,
+      src: modelSrc,
       enableTouch: true,
       activeGestureInterceptor: true,  // 防止手势冲突
       progressBarColor: Colors.orange,
@@ -261,8 +340,10 @@ class Character3DViewerState extends State<Character3DViewer> {
 
   /// 构建 OBJ 查看器（静态模型）
   Widget _buildObjViewer() {
+    final modelSrc = _effectiveModelPath;
+    debugPrint('加载 OBJ 模型: $modelSrc');
     return Flutter3DViewer.obj(
-      src: widget.modelPath,
+      src: modelSrc,
       scale: 10,
       cameraX: 0,
       cameraY: 2,

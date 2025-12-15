@@ -13,6 +13,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // 模型区域占屏幕高度的 60%
+    final modelHeight = screenHeight * 0.6;
+    final modelWidth = screenWidth * 0.9;
+    final modelSize = modelWidth < modelHeight ? modelWidth : modelHeight;
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -31,14 +39,14 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // 顶部栏
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       '鸿初元灵',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -46,102 +54,57 @@ class _HomeScreenState extends State<HomeScreen> {
                     IconButton(
                       icon: const Icon(Icons.settings, color: Colors.white),
                       onPressed: () {
-                        // TODO: 打开设置页面
+                        Navigator.of(context).pushNamed(AppRoutes.settings);
                       },
                     ),
                   ],
                 ),
               ),
-              
-              // 3D形象展示区 - 使用Flexible防止溢出
-              Flexible(
-                flex: 3,
+
+              // 3D 模型展示区 - 占主要空间
+              Expanded(
+                flex: 5,
                 child: Center(
-                  child: SingleChildScrollView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 3D/2D角色显示组件
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final size = (constraints.maxWidth * 0.6).clamp(150.0, 220.0);
-                            return CharacterDisplay(
-                              modelPath3D: 'assets/3d_models/Meshy_AI_biped/Meshy_AI_Meshy_Merged_Animations.glb',
-                              animationPath2D: 'assets/images/back-1.png',
-                              modelPathLive2D: 'c_9999.model3.json',
-                              size: size,
-                              defaultMode: DisplayMode.mode3D, // 默认使用3D模式测试
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          '您的专属元灵',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '五行属性:木火相生',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.white.withOpacity(0.8),
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: CharacterDisplay(
+                    animationPath2D: 'assets/images/back-1.png',
+                    modelPathLive2D: 'c_9999.model3.json',
+                    size: modelSize,
+                    defaultMode: DisplayMode.mode3D,
                   ),
                 ),
               ),
-              
-              // 功能按钮区 - 使用SingleChildScrollView防止溢出
-              Flexible(
-                flex: 2,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(32),
-                      topRight: Radius.circular(32),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, -5),
-                      ),
-                    ],
+
+              // 底部功能区
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(28),
+                    topRight: Radius.circular(28),
                   ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          '开启您的心灵之旅',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        
-                        // 主要功能按钮
-                        ElevatedButton(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 主要功能按钮
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
                           onPressed: () {
                             Navigator.of(context).pushNamed(AppRoutes.chat);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.purple.shade700,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 14,
-                              horizontal: 42,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
                             ),
@@ -150,49 +113,43 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.chat_bubble_outline, size: 22),
-                              SizedBox(width: 10),
+                              Icon(Icons.chat_bubble_outline, size: 20),
+                              SizedBox(width: 8),
                               Text(
                                 '开始对话',
                                 style: TextStyle(
-                                  fontSize: 17,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        
-                        // 次要功能按钮
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildFeatureButton(
-                              icon: Icons.person_outline,
-                              label: '我的信息',
-                              onTap: () {
-                                // TODO: 查看个人信息
-                              },
-                            ),
-                            _buildFeatureButton(
-                              icon: Icons.auto_awesome,
-                              label: '每日运势',
-                              onTap: () {
-                                // TODO: 查看每日运势
-                              },
-                            ),
-                            _buildFeatureButton(
-                              icon: Icons.history,
-                              label: '对话历史',
-                              onTap: () {
-                                // TODO: 查看对话历史
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 次要功能按钮
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildFeatureButton(
+                            icon: Icons.person_outline,
+                            label: '我的信息',
+                            onTap: () {},
+                          ),
+                          _buildFeatureButton(
+                            icon: Icons.auto_awesome,
+                            label: '每日运势',
+                            onTap: () {},
+                          ),
+                          _buildFeatureButton(
+                            icon: Icons.history,
+                            label: '对话历史',
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -221,11 +178,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Icon(
               icon,
-              size: 24,
+              size: 22,
               color: Colors.purple.shade700,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
