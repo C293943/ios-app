@@ -107,8 +107,9 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
       case DisplayMode.mode3D:
         return Character3DViewer(
           key: const ValueKey('3d'),
-          modelPath: widget.modelPath3D ?? 'assets/3d_models/default.obj',
+          modelPath: widget.modelPath3D ?? 'assets/3d_models/Meshy_AI_biped/Meshy_AI_Character_output.glb',
           size: widget.size,
+          autoPlay: true,
         );
       case DisplayMode.mode2D:
         return Character2DViewer(
