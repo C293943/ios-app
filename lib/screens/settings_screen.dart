@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
+import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/glass_container.dart';
 
 /// 设置页面
 class SettingsScreen extends StatefulWidget {
@@ -17,74 +21,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('设置'),
-        backgroundColor: Colors.purple.shade700,
-        foregroundColor: Colors.white,
+        title: Text(
+          '设置',
+          style: GoogleFonts.notoSerifSc(
+            color: AppTheme.deepVoidBlue,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.deepVoidBlue),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      body: Consumer<ModelManagerService>(
-        builder: (context, modelManager, child) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // 显示模式设置
-              _buildSectionTitle('显示模式'),
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
+      body: MysticBackground(
+        child: Consumer<ModelManagerService>(
+          builder: (context, modelManager, child) {
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
+              children: [
+                // 显示模式设置
+                _buildSectionTitle('显示模式'),
+                const SizedBox(height: 12),
+                GlassContainer(
+                  borderRadius: BorderRadius.circular(20),
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      _buildModeOption(modelManager, DisplayMode.mode3D, '3D 元灵', Icons.view_in_ar),
+                      _buildModeOption(modelManager, DisplayMode.mode2D, '2D 平面', Icons.image),
+                      _buildModeOption(modelManager, DisplayMode.live2D, 'Live2D', Icons.face),
+                    ],
+                  ),
                 ),
-                padding: const EdgeInsets.all(4),
-                child: Row(
-                  children: [
-                    _buildModeOption(modelManager, DisplayMode.mode3D, '3D 元灵', Icons.view_in_ar),
-                    _buildModeOption(modelManager, DisplayMode.mode2D, '2D 平面', Icons.image),
-                    _buildModeOption(modelManager, DisplayMode.live2D, 'Live2D', Icons.face),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // 3D 模型设置
-              _buildSectionTitle('3D 模型管理'),
-              const SizedBox(height: 12),
+                // 3D 模型设置
+                _buildSectionTitle('3D 模型管理'),
+                const SizedBox(height: 12),
 
-              // 添加模型按钮
-              _buildAddModelButton(modelManager),
-              const SizedBox(height: 16),
-
-              // 内置模型
-              _buildSubSectionTitle('内置模型'),
-              const SizedBox(height: 8),
-              ...ModelManagerService.builtInModels.map(
-                (model) => _buildModelCard(model, modelManager, isBuiltIn: true),
-              ),
-
-              // 自定义模型
-              if (modelManager.customModels.isNotEmpty) ...[
+                // 添加模型按钮
+                _buildAddModelButton(modelManager),
                 const SizedBox(height: 16),
-                _buildSubSectionTitle('自定义模型'),
+
+                // 内置模型
+                _buildSubSectionTitle('内置模型'),
                 const SizedBox(height: 8),
-                ...modelManager.customModels.map(
-                  (model) => _buildModelCard(model, modelManager, isBuiltIn: false),
+                ...ModelManagerService.builtInModels.map(
+                  (model) => _buildModelCard(model, modelManager, isBuiltIn: true),
+                ),
+
+                // 自定义模型
+                if (modelManager.customModels.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildSubSectionTitle('自定义模型'),
+                  const SizedBox(height: 8),
+                  ...modelManager.customModels.map(
+                    (model) => _buildModelCard(model, modelManager, isBuiltIn: false),
+                  ),
+                ],
+
+                const SizedBox(height: 24),
+
+                // 关于
+                _buildSectionTitle('关于'),
+                const SizedBox(height: 12),
+                _buildSettingTile(
+                  icon: Icons.info_outline,
+                  title: '版本',
+                  subtitle: '1.0.0',
+                  onTap: null,
                 ),
               ],
-
-              const SizedBox(height: 24),
-
-              // 关于
-              _buildSectionTitle('关于'),
-              const SizedBox(height: 12),
-              _buildSettingTile(
-                icon: Icons.info_outline,
-                title: '版本',
-                subtitle: '1.0.0',
-                onTap: null,
-              ),
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -92,10 +107,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.purple.shade700,
+      style: GoogleFonts.notoSerifSc(
+        fontSize: 18,
+        fontWeight: FontWeight.bold, // Bolder
+        color: AppTheme.deepVoidBlue, 
+        letterSpacing: 1.0,
       ),
     );
   }
@@ -103,10 +119,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildSubSectionTitle(String title) {
     return Text(
       title,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        color: Colors.grey.shade600,
+      style: GoogleFonts.notoSerifSc(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppTheme.deepVoidBlue.withOpacity(0.8), // Darker
+        letterSpacing: 1.0,
       ),
     );
   }
@@ -121,27 +138,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Expanded(
       child: GestureDetector(
         onTap: () => modelManager.setDisplayMode(mode),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.purple.shade400 : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            color: isSelected ? AppTheme.jadeGreen.withOpacity(0.9) : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+               color: isSelected ? Colors.transparent : AppTheme.deepVoidBlue.withOpacity(0.1),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 icon,
-                color: isSelected ? Colors.white : Colors.grey.shade600,
+                color: isSelected ? Colors.white : AppTheme.deepVoidBlue.withOpacity(0.7),
                 size: 24,
               ),
               const SizedBox(height: 4),
               Text(
                 label,
-                style: TextStyle(
+                style: GoogleFonts.notoSerifSc(
                   fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Colors.white : Colors.grey.shade600,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? Colors.white : AppTheme.deepVoidBlue.withOpacity(0.8),
                 ),
               ),
             ],
@@ -152,69 +173,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAddModelButton(ModelManagerService modelManager) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        onTap: _isLoading ? null : () => _pickAndAddModel(modelManager),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.purple.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: _isLoading
-                    ? SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.purple.shade400,
-                        ),
-                      )
-                    : Icon(
-                        Icons.add,
-                        color: Colors.purple.shade400,
-                        size: 24,
-                      ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '添加 3D 模型',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
+    return GlassContainer(
+      width: double.infinity,
+      borderRadius: BorderRadius.circular(20),
+      onTap: _isLoading ? null : () => _pickAndAddModel(modelManager),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.jadeGreen.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: _isLoading
+                ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppTheme.jadeGreen,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '支持 .glb, .gltf, .obj 格式',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.file_upload_outlined,
-                color: Colors.grey.shade400,
-              ),
-            ],
+                  )
+                : Icon(
+                    Icons.add,
+                    color: AppTheme.jadeGreen,
+                    size: 24,
+                  ),
           ),
-        ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '添加 3D 模型',
+                  style: GoogleFonts.notoSerifSc(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.deepVoidBlue,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '支持 .glb, .gltf, .obj 格式',
+                  style: GoogleFonts.notoSerifSc(
+                    fontSize: 12,
+                    color: AppTheme.deepVoidBlue.withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.file_upload_outlined,
+            color: AppTheme.deepVoidBlue.withOpacity(0.5),
+          ),
+        ],
       ),
     );
   }
@@ -227,112 +241,108 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isSelected = modelManager.selectedModelId == model.id ||
         (modelManager.selectedModelId == null && model.id == 'builtin_1');
 
-    return Card(
-      elevation: isSelected ? 3 : 1,
-      margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isSelected ? Colors.purple.shade400 : Colors.transparent,
-          width: 2,
-        ),
-      ),
-      child: InkWell(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
         onTap: () => modelManager.setSelectedModel(model.id),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // 选中指示器
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.purple.shade100
-                      : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  isSelected ? Icons.check_circle : Icons.view_in_ar,
-                  color: isSelected
-                      ? Colors.purple.shade400
-                      : Colors.grey.shade400,
-                  size: 22,
+        child: Row(
+          children: [
+            // 选中指示器
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppTheme.jadeGreen.withOpacity(0.2)
+                    : AppTheme.deepVoidBlue.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isSelected ? AppTheme.jadeGreen : Colors.transparent,
                 ),
               ),
-              const SizedBox(width: 12),
+              child: Icon(
+                isSelected ? Icons.check_circle : Icons.view_in_ar,
+                color: isSelected
+                    ? AppTheme.jadeGreen
+                    : AppTheme.deepVoidBlue.withOpacity(0.4),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 16),
 
-              // 模型信息
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      model.name,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w500,
-                      ),
+            // 模型信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    model.name,
+                    style: GoogleFonts.notoSerifSc(
+                      fontSize: 15,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: AppTheme.deepVoidBlue,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      _buildTag(
+                        model.defaultAnimation != null ? '带动画' : '静态',
+                        model.defaultAnimation != null
+                            ? AppTheme.jadeGreen
+                            : AppTheme.fluidGold,
+                      ),
+                      const SizedBox(width: 6),
+                      _buildTag(
+                        isBuiltIn ? '内置' : '自定义',
+                        isBuiltIn ? AppTheme.celestialCyan : AppTheme.lotusPink,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // 操作按钮
+            if (!isBuiltIn)
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert, color: AppTheme.deepVoidBlue.withOpacity(0.5)),
+                color: Colors.white.withOpacity(0.9),
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                onSelected: (value) {
+                  if (value == 'rename') {
+                    _showRenameDialog(model, modelManager);
+                  } else if (value == 'delete') {
+                    _showDeleteConfirmDialog(model, modelManager);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'rename',
+                    child: Row(
                       children: [
-                        _buildTag(
-                          model.defaultAnimation != null ? '带动画' : '静态',
-                          model.defaultAnimation != null
-                              ? Colors.green
-                              : Colors.orange,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildTag(
-                          isBuiltIn ? '内置' : '自定义',
-                          isBuiltIn ? Colors.blue : Colors.purple,
-                        ),
+                        const Icon(Icons.edit, size: 18),
+                        const SizedBox(width: 8),
+                        Text('重命名', style: GoogleFonts.notoSerifSc()),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete, size: 18, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Text('删除', style: GoogleFonts.notoSerifSc(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-
-              // 操作按钮
-              if (!isBuiltIn)
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: Colors.grey.shade400),
-                  onSelected: (value) {
-                    if (value == 'rename') {
-                      _showRenameDialog(model, modelManager);
-                    } else if (value == 'delete') {
-                      _showDeleteConfirmDialog(model, modelManager);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'rename',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 18),
-                          SizedBox(width: 8),
-                          Text('重命名'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 18, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('删除', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -340,21 +350,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildTag(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
         text,
-        style: TextStyle(
+        style: GoogleFonts.notoSerifSc(
           fontSize: 10,
-          color: color,
-          fontWeight: FontWeight.w500,
+          color: color, 
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
-  }
+  } 
+
+// ... inside _buildSettingTile ...
 
   Widget _buildSettingTile({
     required IconData icon,
@@ -362,17 +375,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String subtitle,
     VoidCallback? onTap,
   }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.purple.shade400),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: onTap != null ? const Icon(Icons.chevron_right) : null,
-        onTap: onTap,
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.deepVoidBlue.withOpacity(0.1), // Darker bg
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: AppTheme.deepVoidBlue, size: 24), // Full opacity
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.notoSerifSc(
+                    fontSize: 15, 
+                    fontWeight: FontWeight.bold, // Bolder
+                    color: AppTheme.deepVoidBlue,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.notoSerifSc(
+                    fontSize: 12,
+                    color: AppTheme.deepVoidBlue.withOpacity(0.7), // Darker
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onTap != null) Icon(Icons.chevron_right, color: AppTheme.deepVoidBlue.withOpacity(0.5)),
+        ],
       ),
     );
   }
@@ -420,7 +460,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('模型 "$name" 添加成功'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppTheme.jadeGreen,
                 ),
               );
             }
@@ -451,7 +491,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('模型名称'),
+        backgroundColor: Colors.white,
+        title: Text('模型名称', style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue)),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
@@ -467,7 +508,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('确定'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.jadeGreen),
+            child: const Text('确定', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -483,7 +525,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final newName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('重命名模型'),
+        backgroundColor: Colors.white,
+        title: Text('重命名模型', style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue)),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
@@ -499,7 +542,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('确定'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.jadeGreen),
+            child: const Text('确定', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -511,7 +555,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(success ? '重命名成功' : '重命名失败'),
-            backgroundColor: success ? Colors.green : Colors.red,
+            backgroundColor: success ? AppTheme.jadeGreen : Colors.red,
           ),
         );
       }
@@ -525,7 +569,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('删除模型'),
+        backgroundColor: Colors.white,
+        title: Text('删除模型', style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue)),
         content: Text('确定要删除模型 "${model.name}" 吗？\n此操作不可恢复。'),
         actions: [
           TextButton(
@@ -535,7 +580,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('删除'),
+            child: const Text('删除', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -547,7 +592,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(success ? '删除成功' : '删除失败'),
-            backgroundColor: success ? Colors.green : Colors.red,
+            backgroundColor: success ? AppTheme.jadeGreen : Colors.red,
           ),
         );
       }

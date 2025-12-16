@@ -44,11 +44,13 @@ class ModelManagerService extends ChangeNotifier {
   static const String _storageKey = 'custom_3d_models';
   static const String _selectedModelKey = 'selected_model_id';
   static const String _displayModeKey = 'display_mode';
+  static const String _userBaziKey = 'user_bazi_data';
 
   List<Model3DConfig> _customModels = [];
   String? _selectedModelId;
   DisplayMode _displayMode = DisplayMode.mode3D;
   bool _isInitialized = false;
+  Map<String, dynamic>? _userBaziData;
 
   /// 内置模型列表
   static final List<Model3DConfig> builtInModels = [
@@ -109,6 +111,12 @@ class ModelManagerService extends ChangeNotifier {
   /// 获取当前选中的模型 ID
   String? get selectedModelId => _selectedModelId;
 
+  /// 获取用户八字数据
+  Map<String, dynamic>? get userBaziData => _userBaziData;
+
+  /// 是否已完成首次设置（已填写生辰信息）
+  bool get hasCompletedSetup => _userBaziData != null;
+
   /// 初始化
   Future<void> init() async {
     if (_isInitialized) return;
@@ -135,6 +143,16 @@ class ModelManagerService extends ChangeNotifier {
     final modeIndex = prefs.getInt(_displayModeKey);
     if (modeIndex != null && modeIndex >= 0 && modeIndex < DisplayMode.values.length) {
       _displayMode = DisplayMode.values[modeIndex];
+    }
+
+    // 加载用户八字数据
+    final baziJson = prefs.getString(_userBaziKey);
+    if (baziJson != null) {
+      try {
+        _userBaziData = jsonDecode(baziJson) as Map<String, dynamic>;
+      } catch (e) {
+        debugPrint('加载用户八字数据失败: $e');
+      }
     }
 
     _isInitialized = true;
@@ -262,6 +280,30 @@ class ModelManagerService extends ChangeNotifier {
     _displayMode = mode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_displayModeKey, mode.index);
+    notifyListeners();
+  }
+
+  /// 保存用户八字数据
+  Future<void> saveUserBaziData(Map<String, dynamic> baziData) async {
+    // 转换 DateTime 和 TimeOfDay 为可序列化格式
+    final serializableData = <String, dynamic>{
+      'gender': baziData['gender'],
+      'date': (baziData['date'] as DateTime).toIso8601String(),
+      'hour': (baziData['time'] as dynamic).hour,
+      'minute': (baziData['time'] as dynamic).minute,
+    };
+
+    _userBaziData = serializableData;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userBaziKey, jsonEncode(serializableData));
+    notifyListeners();
+  }
+
+  /// 清除用户数据（用于重置）
+  Future<void> clearUserData() async {
+    _userBaziData = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userBaziKey);
     notifyListeners();
   }
 

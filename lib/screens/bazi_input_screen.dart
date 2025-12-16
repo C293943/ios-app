@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
-import 'package:primordial_spirit/widgets/common/background_container.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 
 /// 八字输入页面
@@ -34,9 +36,9 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: AppTheme.accentJade),
+        automaticallyImplyLeading: false, // 移除返回按钮
       ),
-      body: BackgroundContainer(
+      body: MysticBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 80.0),
           child: Column(
@@ -44,26 +46,28 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
               // Header Text
               Text(
                 '请输入生辰信息',
-                style: TextStyle(
+                style: GoogleFonts.notoSerifSc(
                   fontSize: 24,
-                  fontWeight: FontWeight.w200,
-                  color: Colors.white,
+                  fontWeight: FontWeight.w300,
+                  color: AppTheme.deepVoidBlue,
                   letterSpacing: 2,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 '唤醒您的五行守护灵',
-                style: TextStyle(
+                style: GoogleFonts.notoSerifSc(
                   fontSize: 14,
-                  color: AppTheme.accentJade.withOpacity(0.7),
+                  color: AppTheme.deepVoidBlue.withOpacity(0.6),
                   letterSpacing: 1,
                 ),
               ),
               const SizedBox(height: 40),
 
               // Form Area
-              _buildGlassCard(
+              GlassContainer(
+                borderRadius: BorderRadius.circular(20),
+                padding: const EdgeInsets.all(24),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -123,28 +127,15 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     );
   }
 
-  Widget _buildGlassCard({required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceGlass,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.accentJade.withOpacity(0.2),
-          width: 0.5,
-        ),
-      ),
-      child: child,
-    );
-  }
+  // _buildGlassCard removed/replaced by GlassContainer class usage
 
   Widget _buildSectionLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         text,
-        style: TextStyle(
-          color: AppTheme.accentGold.withOpacity(0.8),
+        style: GoogleFonts.notoSerifSc(
+          color: AppTheme.deepVoidBlue.withOpacity(0.8),
           fontSize: 12,
           fontWeight: FontWeight.w600,
           letterSpacing: 1,
@@ -162,24 +153,25 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected 
-              ? AppTheme.accentJade.withOpacity(0.2) 
+              ? AppTheme.accentJade.withOpacity(0.3) 
               : Colors.transparent,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: isSelected ? AppTheme.accentJade : Colors.white12,
+            color: isSelected ? AppTheme.accentJade : AppTheme.deepVoidBlue.withOpacity(0.1),
           ),
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              color: isSelected ? AppTheme.accentJade : Colors.white38,
+              color: isSelected ? AppTheme.deepVoidBlue : AppTheme.deepVoidBlue.withOpacity(0.4),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white38,
+              style: GoogleFonts.notoSerifSc(
+                color: isSelected ? AppTheme.deepVoidBlue : AppTheme.deepVoidBlue.withOpacity(0.4),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],
@@ -199,21 +191,24 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.black12,
+          color: AppTheme.deepVoidBlue.withOpacity(0.08), // Slightly darker for contrast
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.white24),
+          border: Border.all(color: AppTheme.deepVoidBlue.withOpacity(0.2)), // Stronger border
         ),
         child: Row(
           children: [
             Text(
               value,
-              style: TextStyle(
-                color: value.contains('选择') ? Colors.white38 : Colors.white,
+              style: GoogleFonts.notoSerifSc(
+                color: value.contains('选择') 
+                    ? AppTheme.deepVoidBlue.withOpacity(0.6) 
+                    : AppTheme.deepVoidBlue,
                 fontSize: 16,
+                fontWeight: value.contains('选择') ? FontWeight.normal : FontWeight.w500,
               ),
             ),
             const Spacer(),
-            Icon(icon, color: AppTheme.accentJade, size: 20),
+            Icon(icon, color: AppTheme.deepVoidBlue.withOpacity(0.8), size: 20),
           ],
         ),
       ),
@@ -226,19 +221,6 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: AppTheme.mysticTheme.copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppTheme.accentJade,
-              onPrimary: Colors.black,
-              surface: AppTheme.primaryDeepIndigo,
-              onSurface: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -249,19 +231,6 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      builder: (context, child) {
-        return Theme(
-          data: AppTheme.mysticTheme.copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppTheme.accentJade,
-              onPrimary: Colors.black,
-              surface: AppTheme.primaryDeepIndigo,
-              onSurface: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (picked != null) {
       setState(() => _selectedTime = picked);

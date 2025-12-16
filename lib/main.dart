@@ -22,6 +22,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 根据是否已完成首次设置决定初始路由
+    final initialRoute = modelManager.hasCompletedSetup
+        ? AppRoutes.home
+        : AppRoutes.baziInput;
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: modelManager),
@@ -30,7 +35,7 @@ class MyApp extends StatelessWidget {
         title: AppConfig.appName,
         theme: AppTheme.mysticTheme,
         debugShowCheckedModeBanner: false,
-        initialRoute: AppRoutes.home,
+        initialRoute: initialRoute,
         routes: AppRoutes.getRoutes(),
         onGenerateRoute: AppRoutes.onGenerateRoute,
       ),

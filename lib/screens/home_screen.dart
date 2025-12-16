@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:primordial_spirit/widgets/liquid_avatar.dart';
+import 'package:primordial_spirit/widgets/character_display.dart';
+import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/chat_overlay.dart';
@@ -18,22 +19,64 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isChatMode = false;
 
+  void _openSettings() {
+    Navigator.of(context).pushNamed(AppRoutes.settings);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: MysticBackground(
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Layer 0: 灵体 (Liquid Avatar) - Positioned upper center
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              top: _isChatMode ? screenHeight * 0.15 : screenHeight * 0.2, // Move up slightly in chat mode
-              child: LiquidAvatar(isTalking: _isChatMode), // Simple logic: talking when in chat mode for now
+            // 设置按钮（右上角）
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              right: 16,
+              child: AnimatedOpacity(
+                opacity: _isChatMode ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 300),
+                child: IgnorePointer(
+                  ignoring: _isChatMode,
+                  child: GestureDetector(
+                    onTap: _openSettings,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.15),
+                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      ),
+                      child: Icon(
+                        Icons.settings,
+                        color: AppTheme.deepVoidBlue.withOpacity(0.8),
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Layer 0: 3D 灵体展示区 (Unity/3D)
+            Positioned.fill(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                padding: _isChatMode 
+                    ? const EdgeInsets.only(top: 80, bottom: 200) // 聊天时留出空间
+                    : EdgeInsets.only(top: 100, bottom: screenHeight * 0.3), // 默认留出底部面板空间
+                child: const CharacterDisplay(
+                  animationPath2D: 'assets/images/back-1.png',
+                  modelPathLive2D: 'c_9999.model3.json',
+                  size: 600, 
+                  showBottomControls: false,
+                ),
+              ),
             ),
             
             // Layer 1: Dashboard UI (Fade out when Chat Mode)
