@@ -70,6 +70,20 @@
     <script crossorigin="anonymous" src="https://unpkg.com/pixi-live2d-display/dist/index.min.js"></script>
 
     <script>
+        // 等待Flutter bridge准备就绪
+        function waitForFlutterBridge(callback, maxAttempts = 50) {
+            let attempts = 0;
+            const check = setInterval(() => {
+                if (window.flutter_inappwebview?.callHandler) {
+                    clearInterval(check);
+                    callback();
+                } else if (++attempts >= maxAttempts) {
+                    clearInterval(check);
+                    console.log('Flutter bridge not available');
+                }
+            }, 100);
+        }
+
         // 等待所有脚本加载完成
         window.addEventListener('DOMContentLoaded', () => {
             console.log('PIXI version:', PIXI.VERSION);
@@ -176,12 +190,22 @@
                 });
 
                 console.log('Model loaded successfully!');
-                
+
+                // 通知Flutter模型加载成功
+                waitForFlutterBridge(() => {
+                    window.flutter_inappwebview.callHandler('onModelLoaded', true);
+                });
+
             } catch (error) {
                 console.error('Failed to load model:', error);
-                document.getElementById('loading').innerHTML = 
-                    '<div class="spinner"></div><div>模型加载失败</div><div style="font-size: 12px; margin-top: 10px;">' + 
+                document.getElementById('loading').innerHTML =
+                    '<div class="spinner"></div><div>模型加载失败</div><div style="font-size: 12px; margin-top: 10px;">' +
                     error.message + '</div>';
+
+                // 通知Flutter模型加载失败
+                waitForFlutterBridge(() => {
+                    window.flutter_inappwebview.callHandler('onModelLoaded', false);
+                });
             }
         }
 
