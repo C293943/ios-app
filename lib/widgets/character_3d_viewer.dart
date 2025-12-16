@@ -339,6 +339,7 @@ class Character3DViewerState extends State<Character3DViewer> {
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(), // 确保可以滚动
         padding: const EdgeInsets.symmetric(horizontal: 8),
         itemCount: _availableAnimations.length,
         itemBuilder: (context, index) {
@@ -347,6 +348,7 @@ class Character3DViewerState extends State<Character3DViewer> {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque, // 确保点击事件被正确捕获
               onTap: () => playAnimation(anim),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -401,6 +403,7 @@ class Character3DViewerState extends State<Character3DViewer> {
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(), // 确保可以滚动
         padding: const EdgeInsets.symmetric(horizontal: 8),
         itemCount: _availableTextures.length,
         itemBuilder: (context, index) {
@@ -409,6 +412,7 @@ class Character3DViewerState extends State<Character3DViewer> {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque, // 确保点击事件被正确捕获
               onTap: () => setTexture(texture),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),

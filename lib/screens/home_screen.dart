@@ -18,9 +18,26 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isChatMode = false;
+  final GlobalKey<CharacterDisplayState> _characterDisplayKey = GlobalKey();
+  List<String> _animations = [];
+  String? _currentAnimation;
 
   void _openSettings() {
     Navigator.of(context).pushNamed(AppRoutes.settings);
+  }
+
+  void _onAnimationsChanged(List<String> animations, String? currentAnimation) {
+    setState(() {
+      _animations = animations;
+      _currentAnimation = currentAnimation;
+    });
+  }
+
+  void _onAnimationSelected(String animation) {
+    _characterDisplayKey.currentState?.playAnimation(animation);
+    setState(() {
+      _currentAnimation = animation;
+    });
   }
 
   @override
@@ -70,11 +87,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 padding: _isChatMode 
                     ? const EdgeInsets.only(top: 80, bottom: 200) // 聊天时留出空间
                     : EdgeInsets.only(top: 100, bottom: screenHeight * 0.3), // 默认留出底部面板空间
-                child: const CharacterDisplay(
+                child: CharacterDisplay(
+                  key: _characterDisplayKey,
                   animationPath2D: 'assets/images/back-1.png',
                   modelPathLive2D: 'c_9999.model3.json',
-                  size: 600, 
-                  showBottomControls: false,
+                  size: 600,
+                  showControls: false, // 不再在 CharacterDisplay 中显示控件
+                  onAnimationsChanged: _onAnimationsChanged,
                 ),
               ),
             ),
@@ -167,6 +186,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       _isChatMode = false;
                     });
                   },
+                  animations: _animations,
+                  currentAnimation: _currentAnimation,
+                  onAnimationSelected: _onAnimationSelected,
                 ),
               ),
           ],

@@ -5,8 +5,17 @@ import 'package:primordial_spirit/widgets/common/glass_container.dart';
 
 class ChatOverlay extends StatefulWidget {
   final VoidCallback onBack;
+  final List<String> animations;
+  final String? currentAnimation;
+  final Function(String)? onAnimationSelected;
 
-  const ChatOverlay({super.key, required this.onBack});
+  const ChatOverlay({
+    super.key,
+    required this.onBack,
+    this.animations = const [],
+    this.currentAnimation,
+    this.onAnimationSelected,
+  });
 
   @override
   State<ChatOverlay> createState() => _ChatOverlayState();
@@ -45,6 +54,8 @@ class _ChatOverlayState extends State<ChatOverlay> {
                },
              ),
            ),
+           // 动画选择器（在输入框上方）
+           if (widget.animations.isNotEmpty) _buildAnimationSelector(),
            _buildInputArea(),
         ],
       ),
@@ -136,6 +147,66 @@ class _ChatOverlayState extends State<ChatOverlay> {
         ],
       ),
     );
+  }
+
+  /// 构建动画选择器
+  Widget _buildAnimationSelector() {
+    return Container(
+      height: 44,
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(22),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          itemCount: widget.animations.length,
+          itemBuilder: (context, index) {
+            final anim = widget.animations[index];
+            final isSelected = anim == widget.currentAnimation;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  widget.onAnimationSelected?.call(anim);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppTheme.jadeGreen
+                        : AppTheme.deepVoidBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? Colors.transparent : AppTheme.deepVoidBlue.withOpacity(0.2),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _formatAnimationName(anim),
+                    style: GoogleFonts.notoSerifSc(
+                      color: isSelected ? Colors.white : AppTheme.deepVoidBlue,
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// 格式化动画名称
+  String _formatAnimationName(String name) {
+    if (name.contains('|')) {
+      name = name.split('|').last;
+    }
+    return name.replaceAll('_', ' ');
   }
 
   Widget _buildInputArea() {

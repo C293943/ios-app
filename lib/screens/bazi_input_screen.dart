@@ -48,7 +48,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                 '请输入生辰信息',
                 style: GoogleFonts.notoSerifSc(
                   fontSize: 24,
-                  fontWeight: FontWeight.w300,
+                  fontWeight: FontWeight.w400, // Slightly bolder
                   color: AppTheme.deepVoidBlue,
                   letterSpacing: 2,
                 ),

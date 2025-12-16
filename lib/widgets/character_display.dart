@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/character_3d_viewer.dart';
 import 'package:primordial_spirit/widgets/character_2d_viewer.dart';
 import 'package:primordial_spirit/widgets/character_live2d_viewer.dart';
@@ -11,9 +14,8 @@ class CharacterDisplay extends StatefulWidget {
   final String? animationPath2D;
   final String? modelPathLive2D;
   final double size;
-  // defaultMode is no longer needed as we use provider, but keeping for compatibility or initial override?
-  // Actually let's just ignore it or remove it if safely possible.
-  // I'll keep the signature to avoid breaking other callers immediately, but mark it deprecated conceptually.
+  final bool showControls;
+  final Function(List<String> animations, String? currentAnimation)? onAnimationsChanged;
 
   const CharacterDisplay({
     super.key,
@@ -21,16 +23,15 @@ class CharacterDisplay extends StatefulWidget {
     this.animationPath2D,
     this.modelPathLive2D,
     this.size = 250.0,
-    @Deprecated('Use ModelManagerService.displayMode')
-    DisplayMode? defaultMode, // made optional/nullable
-    bool? showBottomControls, // deprecated
+    this.showControls = false, // Default to hidden
+    this.onAnimationsChanged,
   });
 
   @override
-  State<CharacterDisplay> createState() => _CharacterDisplayState();
+  State<CharacterDisplay> createState() => CharacterDisplayState();
 }
 
-class _CharacterDisplayState extends State<CharacterDisplay> {
+class CharacterDisplayState extends State<CharacterDisplay> {
   // late DisplayMode _currentMode; // Managed by Service now
   bool _showModelSelector = false;
   GlobalKey<Character3DViewerState> _viewer3DKey = GlobalKey();
@@ -39,13 +40,28 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
   List<String> _textures = [];
   String? _currentTexture;
 
+  /// 获取当前可用的动画列表
+  List<String> get animations => _animations;
+
+  /// 获取当前播放的动画
+  String? get currentAnimation => _currentAnimation;
+
+  /// 播放指定动画
+  void playAnimation(String animation) {
+    final viewerState = _viewer3DKey.currentState;
+    if (viewerState != null) {
+      viewerState.playAnimation(animation);
+      setState(() {
+        _currentAnimation = animation;
+      });
+      widget.onAnimationsChanged?.call(_animations, _currentAnimation);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    // _currentMode = widget.defaultMode;
   }
-
-  // _switchMode is removed
 
   void _toggleModelSelector() {
     setState(() {
@@ -82,26 +98,22 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
                     },
                     child: _buildCurrentViewer(selectedModel, currentMode),
                   ),
-
-                  // Model selectors removed as requested (moved to settings)
                 ],
               ),
             ),
 
             const SizedBox(height: 8),
 
-            // 动画选择器（仅3D模式且有动画时显示）
-            if (currentMode == DisplayMode.mode3D)
+            // 动画选择器（仅3D模式且有动画时显示，且 showControls 为 true）
+            if (widget.showControls && currentMode == DisplayMode.mode3D)
               _buildAnimationSelectorWrapper(),
 
-            // 纹理选择器（仅3D模式且有纹理时显示）
-            if (currentMode == DisplayMode.mode3D && _textures.isNotEmpty)
+            // 纹理选择器（仅3D模式且有纹理时显示，且 showControls 为 true）
+            if (widget.showControls && currentMode == DisplayMode.mode3D && _textures.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: _buildTextureSelectorWrapper(),
               ),
-
-             // Mode Buttons removed as requested (moved to settings)
           ],
         );
       },
@@ -137,6 +149,8 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
                     _currentAnimation = animations.first;
                  }
                });
+               // 通知父组件动画列表已更新
+               widget.onAnimationsChanged?.call(_animations, _currentAnimation);
              }
           },
           onTexturesLoaded: (textures) {
@@ -187,52 +201,57 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
     }
 
     return Container(
-      height: 36,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: _animations.length,
-        itemBuilder: (context, index) {
-          final anim = _animations[index];
-          final isSelected = anim == _currentAnimation;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            child: GestureDetector(
-              onTap: () {
-                final viewerState = _viewer3DKey.currentState;
-                if (viewerState != null) {
-                  viewerState.playAnimation(anim);
-                  setState(() {
-                    _currentAnimation = anim;
-                  });
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.purple.shade400
-                      : Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  _formatAnimationName(anim),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      height: 44, // Slightly taller for glass effect
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(22),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(), // 确保可以滚动
+          itemCount: _animations.length,
+          itemBuilder: (context, index) {
+            final anim = _animations[index];
+            final isSelected = anim == _currentAnimation;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque, // 确保点击事件被正确捕获
+                onTap: () {
+                  final viewerState = _viewer3DKey.currentState;
+                  if (viewerState != null) {
+                    viewerState.playAnimation(anim);
+                    setState(() {
+                      _currentAnimation = anim;
+                    });
+                  }
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppTheme.jadeGreen
+                        : AppTheme.deepVoidBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? Colors.transparent : AppTheme.deepVoidBlue.withOpacity(0.2),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _formatAnimationName(anim),
+                    style: GoogleFonts.notoSerifSc(
+                      color: isSelected ? Colors.white : AppTheme.deepVoidBlue,
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -279,6 +298,7 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(), // 确保可以滚动
               padding: const EdgeInsets.symmetric(horizontal: 4),
               itemCount: _textures.length,
               itemBuilder: (context, index) {
@@ -287,6 +307,7 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   child: GestureDetector(
+                    behavior: HitTestBehavior.opaque, // 确保点击事件被正确捕获
                     onTap: () {
                       final viewerState = _viewer3DKey.currentState;
                       if (viewerState != null) {

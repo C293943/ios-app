@@ -142,10 +142,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.jadeGreen.withOpacity(0.9) : Colors.transparent,
+            color: isSelected ? AppTheme.jadeGreen.withOpacity(0.95) : Colors.transparent, // More solid
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-               color: isSelected ? Colors.transparent : AppTheme.deepVoidBlue.withOpacity(0.1),
+               color: isSelected ? AppTheme.jadeGreen : AppTheme.deepVoidBlue.withOpacity(0.1), // Solid border when selected
+               width: isSelected ? 2 : 1,
             ),
           ),
           child: Column(
@@ -153,7 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Icon(
                 icon,
-                color: isSelected ? Colors.white : AppTheme.deepVoidBlue.withOpacity(0.7),
+                color: isSelected ? Colors.white : AppTheme.deepVoidBlue, // Full opacity unselected
                 size: 24,
               ),
               const SizedBox(height: 4),
@@ -161,8 +162,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 label,
                 style: GoogleFonts.notoSerifSc(
                   fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? Colors.white : AppTheme.deepVoidBlue.withOpacity(0.8),
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600, // Bolder
+                  color: isSelected ? Colors.white : AppTheme.deepVoidBlue.withOpacity(0.9), // Darker unselected
                 ),
               ),
             ],
@@ -254,18 +255,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               height: 44,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppTheme.jadeGreen.withOpacity(0.2)
+                    ? AppTheme.jadeGreen.withOpacity(0.25)
                     : AppTheme.deepVoidBlue.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: isSelected ? AppTheme.jadeGreen : Colors.transparent,
+                  width: isSelected ? 2.5 : 0, // Solid thick border
                 ),
               ),
               child: Icon(
                 isSelected ? Icons.check_circle : Icons.view_in_ar,
                 color: isSelected
                     ? AppTheme.jadeGreen
-                    : AppTheme.deepVoidBlue.withOpacity(0.4),
+                    : AppTheme.deepVoidBlue.withOpacity(0.5),
                 size: 22,
               ),
             ),
