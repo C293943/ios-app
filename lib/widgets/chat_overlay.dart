@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
-import 'package:primordial_spirit/services/model_manager_service.dart';
+import 'package:primordial_spirit/widgets/common/glass_container.dart';
 
 class ChatOverlay extends StatefulWidget {
   final VoidCallback onBack;
@@ -29,87 +29,47 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black.withOpacity(0.3), 
-      child: SafeArea(
-        child: Column(
-          children: [
-             _buildHeader(context),
-             Expanded(
-               child: ListView.builder(
-                 controller: _scrollController,
-                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                 itemCount: _messages.length,
-                 itemBuilder: (context, index) {
-                   final message = _messages[index];
-                   return _buildMessageBubble(message);
-                 },
-               ),
+    // Transparent background, relying on HomeScreen's MysticBackground
+    return SafeArea(
+      child: Column(
+        children: [
+           _buildHeader(context),
+           Expanded(
+             child: ListView.builder(
+               controller: _scrollController,
+               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+               itemCount: _messages.length,
+               itemBuilder: (context, index) {
+                 final message = _messages[index];
+                 return _buildMessageBubble(message);
+               },
              ),
-             _buildInputArea(),
-          ],
-        ),
+           ),
+           _buildInputArea(),
+        ],
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white70),
-            onPressed: widget.onBack,
+          // Minimalist Back Button
+          GestureDetector(
+            onTap: widget.onBack,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.keyboard_arrow_down, color: AppTheme.deepVoidBlue, size: 28),
+            ),
           ),
           const Spacer(),
-          Column(
-            children: [
-              Text(
-                '深度对话',
-                style: TextStyle(
-                  color: AppTheme.accentJade,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  shadows: const [Shadow(color: Colors.black45, blurRadius: 4)],
-                ),
-              ),
-              Container(
-                 margin: const EdgeInsets.only(top: 4),
-                 width: 120,
-                 height: 4,
-                 decoration: BoxDecoration(
-                   color: Colors.white24,
-                   borderRadius: BorderRadius.circular(2),
-                 ),
-                 child: Row(
-                   children: [
-                     Container(
-                       width: 80,
-                       decoration: BoxDecoration(
-                         gradient: LinearGradient(
-                           colors: [AppTheme.primaryDeepIndigo, AppTheme.accentJade],
-                         ),
-                         borderRadius: BorderRadius.circular(2),
-                       ),
-                     ),
-                   ],
-                 ),
-              ),
-              const SizedBox(height: 2),
-               Text(
-                '元神羁绊值',
-                 style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 10),
-               )
-            ],
-          ),
-          // const Spacer(), // Removed right action
-          // Model Switch Button
-          // IconButton(
-          //   icon: const Icon(Icons.change_circle_outlined, color: Colors.white70),
-          //   tooltip: '切换元灵',
-          //   onPressed: () => _showModelSelectionDialog(context),
-          // ),
+          // Optional: Subtle indicator or title if absolutely needed, otherwise keep clean
         ],
       ),
     );
@@ -117,52 +77,58 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   Widget _buildMessageBubble(ChatMessage message) {
     final isUser = message.isUser;
+    // Organic shapes: "Water Drop" feel
+    final borderRadius = isUser 
+        ? const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(4), // Point of origin
+          )
+        : const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+            bottomLeft: Radius.circular(4), // Point of origin
+            bottomRight: Radius.circular(24),
+          );
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 24.0),
       child: Row(
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+           if (!isUser) ...[
+             // Avatar placeholder or small dot if needed, currently just bubble
+             const SizedBox(width: 0), 
+           ],
            Flexible(
             child: Container(
-              margin: isUser 
-                  ? const EdgeInsets.only(left: 60) 
-                  : const EdgeInsets.only(right: 60),
-              padding: const EdgeInsets.all(16),
+              constraints: const BoxConstraints(maxWidth: 280), // Limit width for readability
               decoration: BoxDecoration(
-                // Enhanced Glass effect
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isUser 
-                      ? [AppTheme.accentJade.withOpacity(0.2), AppTheme.accentJade.withOpacity(0.05)]
-                      : [Colors.white.withOpacity(0.2), Colors.white.withOpacity(0.05)],
-                ),
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(isUser ? 20 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 20),
-                ),
+                color: isUser 
+                  ? AppTheme.jadeGreen.withOpacity(0.2) 
+                  : Colors.white.withOpacity(0.25),
+                borderRadius: borderRadius,
                 border: Border.all(
-                  color: isUser 
-                      ? AppTheme.accentJade.withOpacity(0.3)
-                      : Colors.white.withOpacity(0.2),
-                  width: 1.0,
+                  color: Colors.white.withOpacity(0.3),
+                  width: 0.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppTheme.deepVoidBlue.withOpacity(0.05),
                     blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Text(
                 message.text,
-                style: const TextStyle(
-                  color: Colors.white, 
-                  fontSize: 15,
-                  height: 1.4,
-                  shadows: [Shadow(color: Colors.black45, blurRadius: 2)],
+                style: GoogleFonts.notoSerifSc(
+                  color: AppTheme.deepVoidBlue, 
+                  fontSize: 16,
+                  height: 1.6,
                 ),
               ),
             ),
@@ -173,51 +139,41 @@ class _ChatOverlayState extends State<ChatOverlay> {
   }
 
   Widget _buildInputArea() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceGlass.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-          )
-        ]
-      ),
-      child: Row(
-        children: [
-           Icon(Icons.edit, color: Colors.white.withOpacity(0.6)),
-           const SizedBox(width: 12),
-           Expanded(
-             child: TextField(
-               controller: _messageController,
-               style: const TextStyle(color: Colors.white),
-               cursorColor: AppTheme.accentJade,
-               decoration: InputDecoration(
-                 hintText: '支持文字输入与语音输入',
-                 hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-                 border: InputBorder.none,
-                 isDense: true,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(32),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        child: Row(
+          children: [
+             Icon(Icons.mic_none, color: AppTheme.deepVoidBlue.withOpacity(0.6)),
+             const SizedBox(width: 12),
+             Expanded(
+               child: TextField(
+                 controller: _messageController,
+                 style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue),
+                 cursorColor: AppTheme.deepVoidBlue,
+                 decoration: InputDecoration(
+                   hintText: '向元灵倾诉...',
+                   hintStyle: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue.withOpacity(0.4)),
+                   border: InputBorder.none,
+                   isDense: true,
+                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                 ),
+                 onSubmitted: (_) => _sendMessage(),
                ),
-               onSubmitted: (_) => _sendMessage(),
              ),
-           ),
-           Container(
-             height: 24,
-             width: 1, 
-             color: Colors.white24,
-             margin: const EdgeInsets.symmetric(horizontal: 8),
-           ),
-           Icon(Icons.grid_view, color: Colors.white.withOpacity(0.6)),
-           const SizedBox(width: 8),
-           GestureDetector(
-             onTap: _sendMessage,
-             child: Icon(Icons.mic, color: Colors.white.withOpacity(0.6)),
-           ),
-        ],
+             const SizedBox(width: 8),
+             GestureDetector(
+               onTap: _sendMessage,
+               child: CircleAvatar(
+                 radius: 18,
+                 backgroundColor: AppTheme.deepVoidBlue.withOpacity(0.1),
+                 child: Icon(Icons.arrow_upward, color: AppTheme.deepVoidBlue, size: 20),
+               ),
+             ),
+          ],
+        ),
       ),
     );
   }
@@ -238,11 +194,11 @@ class _ChatOverlayState extends State<ChatOverlay> {
     _scrollToBottom();
 
     // Mock AI Response
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _messages.add(ChatMessage(
-            text: '元神的经过的瞬息，意不如型诚语...', 
+            text: '我听到了你的心声... \n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。', 
             isUser: false,
             timestamp: DateTime.now(),
           ));

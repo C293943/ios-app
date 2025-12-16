@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         title: AppConfig.appName,
         theme: AppTheme.mysticTheme,
         debugShowCheckedModeBanner: false,
-        initialRoute: AppRoutes.splash,
+        initialRoute: AppRoutes.home,
         routes: AppRoutes.getRoutes(),
         onGenerateRoute: AppRoutes.onGenerateRoute,
       ),

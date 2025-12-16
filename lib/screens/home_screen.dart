@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
-import 'package:primordial_spirit/widgets/character_display.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:primordial_spirit/widgets/liquid_avatar.dart';
+import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/chat_overlay.dart';
-import 'package:primordial_spirit/widgets/common/background_container.dart';
-import 'package:primordial_spirit/services/model_manager_service.dart';
-import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 
 /// 主页 - 核心祭坛
 class HomeScreen extends StatefulWidget {
@@ -24,52 +24,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     
     return Scaffold(
       extendBodyBehindAppBar: true,
-      // 如果需要保留AppBar在非聊天模式，可以根据_isChatMode显示/隐藏
-      // 这里为了沉浸式，可以在Dashboard模式下显示，Chat模式下隐藏
-      appBar: _isChatMode ? null : AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          '鸿初元灵',
-          style: TextStyle(
-            color: AppTheme.accentJade,
-            letterSpacing: 2.0,
-            fontWeight: FontWeight.w300,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings_outlined, color: AppTheme.accentJade),
-            onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
-          ),
-        ],
-      ),
-      body: BackgroundContainer(
+      body: MysticBackground(
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Layer 0: 3D 灵体展示区 (Unity/3D)
-            // 在聊天模式下，可能需要调整模型位置或缩放（可选）
-            // 这里简单处理：全屏显示
-             Positioned.fill(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                // 可以根据需要在Chat模式调整padding或transform
-                padding: _isChatMode 
-                    ? const EdgeInsets.only(top: 100, bottom: 200) // 聊天时留出空间
-                    : EdgeInsets.only(top: 100, bottom: screenHeight * 0.3), // 默认留出底部面板空间
-                child: CharacterDisplay(
-                  animationPath2D: 'assets/images/back-1.png',
-                  modelPathLive2D: 'c_9999.model3.json',
-                  // size属性在Positioned.fill中有时候可能不起作用，取决于内部实现
-                  // 但CharacterDisplay似乎用了size来决定内部容器。
-                  // 我们给它一个相对较大的值，或者修改CharacterDisplay适配布局
-                  size: 600, 
-                  defaultMode: DisplayMode.mode3D,
-                  showBottomControls: false, // 隐藏底部控制，避免被Dashboard遮挡
-                ),
-              ),
+            // Layer 0: 灵体 (Liquid Avatar) - Positioned upper center
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              top: _isChatMode ? screenHeight * 0.15 : screenHeight * 0.2, // Move up slightly in chat mode
+              child: LiquidAvatar(isTalking: _isChatMode), // Simple logic: talking when in chat mode for now
             ),
             
             // Layer 1: Dashboard UI (Fade out when Chat Mode)
@@ -80,66 +44,72 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ignoring: _isChatMode,
                 child: Column(
                   children: [
-                    const Spacer(flex: 6),
-                    // 底部控制台 (玻璃拟态)
-                    Expanded(
-                      flex: 3,
-                      child: Container(
+                    const Spacer(),
+                    // 底部控制台 (Floating Glass Card)
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: GlassContainer(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              AppTheme.surfaceGlass.withOpacity(0.1),
-                              AppTheme.primaryBlack.withOpacity(0.8),
-                            ],
-                          ),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(30),
-                            topRight: Radius.circular(30),
-                          ),
-                          border: Border(
-                            top: BorderSide(
-                              color: AppTheme.accentJade.withOpacity(0.2),
-                              width: 1,
+                        borderRadius: BorderRadius.circular(32),
+                        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Greeting / Title
+                            Text(
+                              '鸿初元灵',
+                              style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                fontSize: 24,
+                                color: AppTheme.deepVoidBlue,
+                                fontWeight: FontWeight.normal,
+                              ),
                             ),
-                          ),
-                        ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // 主对话按钮
-                              SizedBox(
-                                width: double.infinity,
-                                child: MysticButton(
-                                  text: '聆听天命',
-                                  onPressed: () {
-                                    setState(() {
-                                      _isChatMode = true;
-                                    });
-                                  },
+                            const SizedBox(height: 32),
+                            
+                            // 主对话按钮
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.jadeGreen.withOpacity(0.8),
+                                  foregroundColor: AppTheme.primaryBlack,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isChatMode = true;
+                                  });
+                                },
+                                child: Text(
+                                  '聆听天命',
+                                  style: GoogleFonts.notoSerifSc(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                              
-                              const SizedBox(height: 20),
-                              
-                              // 次要功能区
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  _buildMysticIconBtn(context, Icons.fingerprint, '命格'),
-                                  _buildMysticIconBtn(context, Icons.auto_awesome, '运势'),
-                                  _buildMysticIconBtn(context, Icons.history_edu, '灵迹'),
-                                ],
-                              ),
-                            ],
-                          ),
+                            ),
+                            
+                            const SizedBox(height: 32),
+                            
+                            // 次要功能区
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildMysticIconBtn(context, Icons.fingerprint, '命格'),
+                                _buildMysticIconBtn(context, Icons.auto_awesome, '运势'),
+                                _buildMysticIconBtn(context, Icons.history_edu, '灵迹'),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ),
+                    const SizedBox(height: 48), // Bottom padding
                   ],
                 ),
               ),
@@ -169,16 +139,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppTheme.accentJade.withOpacity(0.3)),
-            color: AppTheme.surfaceGlass,
+            color: Colors.white.withOpacity(0.2),
+            border: Border.all(color: Colors.white.withOpacity(0.3)),
           ),
-          child: Icon(icon, color: AppTheme.accentJade, size: 24),
+          child: Icon(icon, color: AppTheme.deepVoidBlue, size: 24),
         ),
         const SizedBox(height: 8),
         Text(
           label,
           style: TextStyle(
-            color: Colors.white60,
+            color: AppTheme.deepVoidBlue.withOpacity(0.7),
             fontSize: 12,
             letterSpacing: 1.2,
           ),

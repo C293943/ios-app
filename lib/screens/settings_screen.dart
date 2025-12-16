@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 padding: const EdgeInsets.all(4),
