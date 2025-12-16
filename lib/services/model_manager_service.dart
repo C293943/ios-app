@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum DisplayMode { mode3D, mode2D, live2D }
+
 /// 3D 模型配置
 class Model3DConfig {
   final String id;
@@ -41,13 +43,21 @@ class Model3DConfig {
 class ModelManagerService extends ChangeNotifier {
   static const String _storageKey = 'custom_3d_models';
   static const String _selectedModelKey = 'selected_model_id';
+  static const String _displayModeKey = 'display_mode';
 
   List<Model3DConfig> _customModels = [];
   String? _selectedModelId;
+  DisplayMode _displayMode = DisplayMode.mode3D;
   bool _isInitialized = false;
 
   /// 内置模型列表
   static final List<Model3DConfig> builtInModels = [
+    Model3DConfig(
+      id: 'builtin_texture',
+      name: '多纹理角色',
+      path: 'assets/3d_models/Meshy_AI_Ethereal_Enchantment_1216033315_texture.glb',
+      isAsset: true,
+    ),
     Model3DConfig(
       id: 'builtin_1',
       name: '动画角色 1',
@@ -81,6 +91,9 @@ class ModelManagerService extends ChangeNotifier {
 
   /// 获取自定义模型
   List<Model3DConfig> get customModels => _customModels;
+
+  /// 获取当前显示模式
+  DisplayMode get displayMode => _displayMode;
 
   /// 获取当前选中的模型
   Model3DConfig? get selectedModel {
@@ -117,6 +130,12 @@ class ModelManagerService extends ChangeNotifier {
 
     // 加载选中的模型
     _selectedModelId = prefs.getString(_selectedModelKey);
+    
+    // 加载显示模式
+    final modeIndex = prefs.getInt(_displayModeKey);
+    if (modeIndex != null && modeIndex >= 0 && modeIndex < DisplayMode.values.length) {
+      _displayMode = DisplayMode.values[modeIndex];
+    }
 
     _isInitialized = true;
     notifyListeners();
@@ -235,6 +254,14 @@ class ModelManagerService extends ChangeNotifier {
     _selectedModelId = modelId;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_selectedModelKey, modelId);
+    notifyListeners();
+  }
+
+  /// 设置显示模式
+  Future<void> setDisplayMode(DisplayMode mode) async {
+    _displayMode = mode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_displayModeKey, mode.index);
     notifyListeners();
   }
 

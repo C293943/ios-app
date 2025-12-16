@@ -5,15 +5,15 @@ import 'package:primordial_spirit/widgets/character_2d_viewer.dart';
 import 'package:primordial_spirit/widgets/character_live2d_viewer.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 
-enum DisplayMode { mode3D, mode2D, live2D }
-
 /// 角色显示组件 - 支持3D、2D和Live2D模式切换
 class CharacterDisplay extends StatefulWidget {
   final String? modelPath3D;
   final String? animationPath2D;
   final String? modelPathLive2D;
   final double size;
-  final DisplayMode defaultMode;
+  // defaultMode is no longer needed as we use provider, but keeping for compatibility or initial override?
+  // Actually let's just ignore it or remove it if safely possible.
+  // I'll keep the signature to avoid breaking other callers immediately, but mark it deprecated conceptually.
 
   const CharacterDisplay({
     super.key,
@@ -21,7 +21,9 @@ class CharacterDisplay extends StatefulWidget {
     this.animationPath2D,
     this.modelPathLive2D,
     this.size = 250.0,
-    this.defaultMode = DisplayMode.live2D,
+    @Deprecated('Use ModelManagerService.displayMode')
+    DisplayMode? defaultMode, // made optional/nullable
+    bool? showBottomControls, // deprecated
   });
 
   @override
@@ -29,34 +31,21 @@ class CharacterDisplay extends StatefulWidget {
 }
 
 class _CharacterDisplayState extends State<CharacterDisplay> {
-  late DisplayMode _currentMode;
+  // late DisplayMode _currentMode; // Managed by Service now
   bool _showModelSelector = false;
   GlobalKey<Character3DViewerState> _viewer3DKey = GlobalKey();
   List<String> _animations = [];
   String? _currentAnimation;
+  List<String> _textures = [];
+  String? _currentTexture;
 
   @override
   void initState() {
     super.initState();
-    _currentMode = widget.defaultMode;
+    // _currentMode = widget.defaultMode;
   }
 
-  void _switchMode(DisplayMode mode) {
-    setState(() {
-      _currentMode = mode;
-      _showModelSelector = false;
-    });
-  }
-
-  void _switchModel(ModelManagerService modelManager, String modelId) {
-    modelManager.setSelectedModel(modelId);
-    setState(() {
-      _showModelSelector = false;
-      _animations = [];
-      _currentAnimation = null;
-      _viewer3DKey = GlobalKey();
-    });
-  }
+  // _switchMode is removed
 
   void _toggleModelSelector() {
     setState(() {
@@ -69,6 +58,7 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
     return Consumer<ModelManagerService>(
       builder: (context, modelManager, child) {
         final selectedModel = modelManager.selectedModel;
+        final currentMode = modelManager.displayMode;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -90,25 +80,10 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
                         ),
                       );
                     },
-                    child: _buildCurrentViewer(selectedModel),
+                    child: _buildCurrentViewer(selectedModel, currentMode),
                   ),
 
-                  // 模型选择器弹出层（仅3D模式显示）
-                  if (_currentMode == DisplayMode.mode3D && _showModelSelector)
-                    Positioned(
-                      top: 50,
-                      left: 16,
-                      right: 16,
-                      child: _buildModelSelector(modelManager),
-                    ),
-
-                  // 顶部模型切换按钮（仅3D模式显示）
-                  if (_currentMode == DisplayMode.mode3D)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: _buildModelSwitchButton(),
-                    ),
+                  // Model selectors removed as requested (moved to settings)
                 ],
               ),
             ),
@@ -116,21 +91,25 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
             const SizedBox(height: 8),
 
             // 动画选择器（仅3D模式且有动画时显示）
-            if (_currentMode == DisplayMode.mode3D)
+            if (currentMode == DisplayMode.mode3D)
               _buildAnimationSelectorWrapper(),
 
-            const SizedBox(height: 8),
+            // 纹理选择器（仅3D模式且有纹理时显示）
+            if (currentMode == DisplayMode.mode3D && _textures.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _buildTextureSelectorWrapper(),
+              ),
 
-            // 底部模式切换按钮
-            _buildModeButtons(),
+             // Mode Buttons removed as requested (moved to settings)
           ],
         );
       },
     );
   }
 
-  Widget _buildCurrentViewer(Model3DConfig? selectedModel) {
-    switch (_currentMode) {
+  Widget _buildCurrentViewer(Model3DConfig? selectedModel, DisplayMode currentMode) {
+    switch (currentMode) {
       case DisplayMode.mode3D:
         final modelPath = widget.modelPath3D ?? selectedModel?.path ?? '';
         if (modelPath.isEmpty) {
@@ -147,6 +126,30 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
           size: widget.size,
           autoPlay: true,
           initialAnimation: selectedModel?.defaultAnimation,
+          onAnimationsLoaded: (animations) {
+             if (mounted) {
+               setState(() {
+                 _animations = animations;
+                 // 如果有默认动画，也更新当前动画状态
+                 if (selectedModel?.defaultAnimation != null && animations.contains(selectedModel!.defaultAnimation)) {
+                   _currentAnimation = selectedModel!.defaultAnimation;
+                 } else if (animations.isNotEmpty) {
+                    _currentAnimation = animations.first;
+                 }
+               });
+             }
+          },
+          onTexturesLoaded: (textures) {
+            if (mounted) {
+              setState(() {
+                _textures = textures;
+                if (textures.isNotEmpty) {
+                  _currentTexture = textures.first;
+                }
+              });
+              debugPrint('模型纹理已加载: $textures');
+            }
+          },
         );
       case DisplayMode.mode2D:
         return Character2DViewer(
@@ -179,11 +182,6 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
 
   /// 构建动画选择器包装器
   Widget _buildAnimationSelectorWrapper() {
-    // 延迟检查动画列表
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateAnimations();
-    });
-
     if (_animations.isEmpty) {
       return const SizedBox(height: 36);
     }
@@ -247,139 +245,74 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
     return name.replaceAll('_', ' ');
   }
 
-  /// 构建模型切换按钮
-  Widget _buildModelSwitchButton() {
-    return GestureDetector(
-      onTap: _toggleModelSelector,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _showModelSelector ? Icons.close : Icons.swap_horiz,
-              color: Colors.white,
+  /// 构建纹理选择器包装器
+  Widget _buildTextureSelectorWrapper() {
+    return Container(
+      height: 36,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          // 纹理图标标签
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Icon(
+              Icons.palette,
+              color: Colors.teal.shade300,
               size: 16,
             ),
-            const SizedBox(width: 4),
-            const Text(
-              '模型',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 构建模型选择器
-  Widget _buildModelSelector(ModelManagerService modelManager) {
-    final allModels = modelManager.allModels;
-
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 300),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                '选择模型',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${allModels.length} 个模型',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: 11,
-                ),
-              ),
-            ],
           ),
-          const SizedBox(height: 12),
-          Flexible(
+          const SizedBox(width: 4),
+          Text(
+            '皮肤',
+            style: TextStyle(
+              color: Colors.teal.shade300,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 8),
+          // 纹理列表
+          Expanded(
             child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: allModels.length,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              itemCount: _textures.length,
               itemBuilder: (context, index) {
-                final model = allModels[index];
-                final isSelected = modelManager.selectedModelId == model.id ||
-                    (modelManager.selectedModelId == null && index == 0);
-
-                return GestureDetector(
-                  onTap: () => _switchModel(modelManager, model.id),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    margin: const EdgeInsets.only(bottom: 6),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Colors.purple.shade400
-                          : Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                model.name,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                model.isAsset ? '内置' : '自定义',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
+                final texture = _textures[index];
+                final isSelected = texture == _currentTexture;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  child: GestureDetector(
+                    onTap: () {
+                      final viewerState = _viewer3DKey.currentState;
+                      if (viewerState != null) {
+                        viewerState.setTexture(texture);
+                        setState(() {
+                          _currentTexture = texture;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Colors.teal.shade400
+                            : Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _formatTextureName(texture),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
-                        if (model.defaultAnimation != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              '动画',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                              ),
-                            ),
-                          ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -391,79 +324,14 @@ class _CharacterDisplayState extends State<CharacterDisplay> {
     );
   }
 
-  /// 构建模式切换按钮组
-  Widget _buildModeButtons() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildModeButton(
-            mode: DisplayMode.mode3D,
-            icon: Icons.view_in_ar,
-            label: '3D',
-          ),
-          const SizedBox(width: 4),
-          _buildModeButton(
-            mode: DisplayMode.mode2D,
-            icon: Icons.animation,
-            label: '2D',
-          ),
-          const SizedBox(width: 4),
-          _buildModeButton(
-            mode: DisplayMode.live2D,
-            icon: Icons.face,
-            label: 'Live2D',
-          ),
-        ],
-      ),
-    );
+  /// 格式化纹理名称
+  String _formatTextureName(String name) {
+    // 去掉文件扩展名
+    if (name.contains('.')) {
+      name = name.substring(0, name.lastIndexOf('.'));
+    }
+    // 将下划线替换为空格
+    return name.replaceAll('_', ' ');
   }
 
-  Widget _buildModeButton({
-    required DisplayMode mode,
-    required IconData icon,
-    required String label,
-  }) {
-    final isActive = _currentMode == mode;
-    return GestureDetector(
-      onTap: () => _switchMode(mode),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive
-              ? Colors.white.withValues(alpha: 0.3)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 14,
-              color: Colors.white.withValues(alpha: 0.9),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

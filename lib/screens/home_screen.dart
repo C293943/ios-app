@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/character_display.dart';
+import 'package:primordial_spirit/widgets/chat_overlay.dart';
+import 'package:primordial_spirit/widgets/common/background_container.dart';
+import 'package:primordial_spirit/services/model_manager_service.dart';
+import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 
-/// 主页
+/// 主页 - 核心祭坛
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -10,188 +15,175 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  bool _isChatMode = false;
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // 模型区域占屏幕高度的 60%
-    final modelHeight = screenHeight * 0.6;
-    final modelWidth = screenWidth * 0.9;
-    final modelSize = modelWidth < modelHeight ? modelWidth : modelHeight;
-
+    
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple.shade700,
-              Colors.purple.shade500,
-              Colors.pink.shade300,
-            ],
+      extendBodyBehindAppBar: true,
+      // 如果需要保留AppBar在非聊天模式，可以根据_isChatMode显示/隐藏
+      // 这里为了沉浸式，可以在Dashboard模式下显示，Chat模式下隐藏
+      appBar: _isChatMode ? null : AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          '鸿初元灵',
+          style: TextStyle(
+            color: AppTheme.accentJade,
+            letterSpacing: 2.0,
+            fontWeight: FontWeight.w300,
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // 顶部栏
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings_outlined, color: AppTheme.accentJade),
+            onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+          ),
+        ],
+      ),
+      body: BackgroundContainer(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Layer 0: 3D 灵体展示区 (Unity/3D)
+            // 在聊天模式下，可能需要调整模型位置或缩放（可选）
+            // 这里简单处理：全屏显示
+             Positioned.fill(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                // 可以根据需要在Chat模式调整padding或transform
+                padding: _isChatMode 
+                    ? const EdgeInsets.only(top: 100, bottom: 200) // 聊天时留出空间
+                    : EdgeInsets.only(top: 100, bottom: screenHeight * 0.3), // 默认留出底部面板空间
+                child: CharacterDisplay(
+                  animationPath2D: 'assets/images/back-1.png',
+                  modelPathLive2D: 'c_9999.model3.json',
+                  // size属性在Positioned.fill中有时候可能不起作用，取决于内部实现
+                  // 但CharacterDisplay似乎用了size来决定内部容器。
+                  // 我们给它一个相对较大的值，或者修改CharacterDisplay适配布局
+                  size: 600, 
+                  defaultMode: DisplayMode.mode3D,
+                  showBottomControls: false, // 隐藏底部控制，避免被Dashboard遮挡
+                ),
+              ),
+            ),
+            
+            // Layer 1: Dashboard UI (Fade out when Chat Mode)
+            AnimatedOpacity(
+              opacity: _isChatMode ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              child: IgnorePointer(
+                ignoring: _isChatMode,
+                child: Column(
                   children: [
-                    const Text(
-                      '鸿初元灵',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.settings, color: Colors.white),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(AppRoutes.settings);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-              // 3D 模型展示区 - 占主要空间
-              Expanded(
-                flex: 5,
-                child: Center(
-                  child: CharacterDisplay(
-                    animationPath2D: 'assets/images/back-1.png',
-                    modelPathLive2D: 'c_9999.model3.json',
-                    size: modelSize,
-                    defaultMode: DisplayMode.mode3D,
-                  ),
-                ),
-              ),
-
-              // 底部功能区
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(28),
-                    topRight: Radius.circular(28),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // 主要功能按钮
-                      SizedBox(
+                    const Spacer(flex: 6),
+                    // 底部控制台 (玻璃拟态)
+                    Expanded(
+                      flex: 3,
+                      child: Container(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pushNamed(AppRoutes.chat);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple.shade700,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            elevation: 3,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppTheme.surfaceGlass.withOpacity(0.1),
+                              AppTheme.primaryBlack.withOpacity(0.8),
+                            ],
                           ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(30),
+                            topRight: Radius.circular(30),
+                          ),
+                          border: Border(
+                            top: BorderSide(
+                              color: AppTheme.accentJade.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              Icon(Icons.chat_bubble_outline, size: 20),
-                              SizedBox(width: 8),
-                              Text(
-                                '开始对话',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                              // 主对话按钮
+                              SizedBox(
+                                width: double.infinity,
+                                child: MysticButton(
+                                  text: '聆听天命',
+                                  onPressed: () {
+                                    setState(() {
+                                      _isChatMode = true;
+                                    });
+                                  },
                                 ),
+                              ),
+                              
+                              const SizedBox(height: 20),
+                              
+                              // 次要功能区
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildMysticIconBtn(context, Icons.fingerprint, '命格'),
+                                  _buildMysticIconBtn(context, Icons.auto_awesome, '运势'),
+                                  _buildMysticIconBtn(context, Icons.history_edu, '灵迹'),
+                                ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-
-                      // 次要功能按钮
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildFeatureButton(
-                            icon: Icons.person_outline,
-                            label: '我的信息',
-                            onTap: () {},
-                          ),
-                          _buildFeatureButton(
-                            icon: Icons.auto_awesome,
-                            label: '每日运势',
-                            onTap: () {},
-                          ),
-                          _buildFeatureButton(
-                            icon: Icons.history,
-                            label: '对话历史',
-                            onTap: () {},
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+
+            // Layer 2: Chat Overlay (Fade in when Chat Mode)
+            if (_isChatMode)
+              Positioned.fill(
+                child: ChatOverlay(
+                  onBack: () {
+                    setState(() {
+                      _isChatMode = false;
+                    });
+                  },
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFeatureButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.purple.shade50,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              size: 22,
-              color: Colors.purple.shade700,
-            ),
+  Widget _buildMysticIconBtn(BuildContext context, IconData icon, String label) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppTheme.accentJade.withOpacity(0.3)),
+            color: AppTheme.surfaceGlass,
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade700,
-            ),
+          child: Icon(icon, color: AppTheme.accentJade, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white60,
+            fontSize: 12,
+            letterSpacing: 1.2,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

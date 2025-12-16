@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/widgets/common/background_container.dart';
+import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 
 /// 八字输入页面
 class BaziInputScreen extends StatefulWidget {
@@ -11,8 +14,6 @@ class BaziInputScreen extends StatefulWidget {
 
 class _BaziInputScreenState extends State<BaziInputScreen> {
   final _formKey = GlobalKey<FormState>();
-  
-  // 年月日时输入控制器
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String _gender = '男';
@@ -20,171 +21,200 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('输入生辰八字'),
-        backgroundColor: Colors.purple.shade700,
+        title: Text(
+          '开启命轮',
+          style: TextStyle(
+            color: AppTheme.accentJade,
+            fontWeight: FontWeight.w300,
+            letterSpacing: 1.5,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: AppTheme.accentJade),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
+      body: BackgroundContainer(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 80.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                '请输入您的出生信息',
+              // Header Text
+              Text(
+                '请输入生辰信息',
                 style: TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w200,
+                  color: Colors.white,
+                  letterSpacing: 2,
                 ),
-                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
-                '我们将根据您的八字生成专属数字人',
+                '唤醒您的五行守护灵',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              
-              // 性别选择
-              const Text(
-                '性别',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  color: AppTheme.accentJade.withOpacity(0.7),
+                  letterSpacing: 1,
                 ),
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: const Text('男'),
-                      value: '男',
-                      groupValue: _gender,
-                      onChanged: (value) {
-                        setState(() {
-                          _gender = value!;
-                        });
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: const Text('女'),
-                      value: '女',
-                      groupValue: _gender,
-                      onChanged: (value) {
-                        setState(() {
-                          _gender = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              
-              // 出生日期选择
-              const Text(
-                '出生日期',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: _selectDate,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const SizedBox(height: 40),
+
+              // Form Area
+              _buildGlassCard(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        _selectedDate == null
-                            ? '请选择日期'
+                      _buildSectionLabel('阴阳 (Gender)'),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildGenderOption('男', Icons.male),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildGenderOption('女', Icons.female),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      _buildSectionLabel('天干 (Date)'),
+                      _buildMysticInput(
+                        value: _selectedDate == null
+                            ? '选择出生日期'
                             : '${_selectedDate!.year}年${_selectedDate!.month}月${_selectedDate!.day}日',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: _selectedDate == null
-                              ? Colors.grey.shade600
-                              : Colors.black,
-                        ),
+                        icon: Icons.calendar_today,
+                        onTap: _selectDate,
                       ),
-                      Icon(Icons.calendar_today, color: Colors.grey.shade600),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // 出生时间选择
-              const Text(
-                '出生时间',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: _selectTime,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _selectedTime == null
-                            ? '请选择时间'
+                      const SizedBox(height: 24),
+
+                      _buildSectionLabel('地支 (Time)'),
+                      _buildMysticInput(
+                        value: _selectedTime == null
+                            ? '选择出生时辰'
                             : '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: _selectedTime == null
-                              ? Colors.grey.shade600
-                              : Colors.black,
-                        ),
+                        icon: Icons.access_time,
+                        onTap: _selectTime,
                       ),
-                      Icon(Icons.access_time, color: Colors.grey.shade600),
                     ],
                   ),
                 ),
               ),
+
               const SizedBox(height: 48),
-              
-              // 提交按钮
-              ElevatedButton(
-                onPressed: _onSubmit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple.shade700,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  '生成数字人',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                child: MysticButton(
+                  text: '凝 聚 灵 体',
+                  onPressed: _onSubmit,
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassCard({required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceGlass,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.accentJade.withOpacity(0.2),
+          width: 0.5,
+        ),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildSectionLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: AppTheme.accentGold.withOpacity(0.8),
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderOption(String value, IconData icon) {
+    final isSelected = _gender == value;
+    return InkWell(
+      onTap: () => setState(() => _gender = value),
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppTheme.accentJade.withOpacity(0.2) 
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: isSelected ? AppTheme.accentJade : Colors.white12,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppTheme.accentJade : Colors.white38,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.white38,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMysticInput({
+    required String value,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.black12,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                color: value.contains('选择') ? Colors.white38 : Colors.white,
+                fontSize: 16,
+              ),
+            ),
+            const Spacer(),
+            Icon(icon, color: AppTheme.accentJade, size: 20),
+          ],
         ),
       ),
     );
@@ -196,11 +226,22 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: AppTheme.mysticTheme.copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppTheme.accentJade,
+              onPrimary: Colors.black,
+              surface: AppTheme.primaryDeepIndigo,
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
+      setState(() => _selectedDate = picked);
     }
   }
 
@@ -208,38 +249,45 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: AppTheme.mysticTheme.copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppTheme.accentJade,
+              onPrimary: Colors.black,
+              surface: AppTheme.primaryDeepIndigo,
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
-      setState(() {
-        _selectedTime = picked;
-      });
+      setState(() => _selectedTime = picked);
     }
   }
 
   void _onSubmit() {
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请完整填写出生日期和时间')),
+        const SnackBar(
+          content: Text('请完整填写出生时间，以便推算命格'),
+          backgroundColor: AppTheme.primaryDeepIndigo,
+        ),
       );
       return;
     }
 
-    // 准备八字数据
     final baziData = {
       'gender': _gender,
       'date': _selectedDate,
       'time': _selectedTime,
     };
 
-    // 导航到形象生成页面
     Navigator.of(context).pushNamed(
       AppRoutes.avatarGeneration,
       arguments: {'baziData': baziData},
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

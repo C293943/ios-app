@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 
 void main() async {
@@ -27,22 +28,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: AppConfig.appName,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.purple,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          fontFamily: 'PingFang SC',
-        ),
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.purple,
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-          fontFamily: 'PingFang SC',
-        ),
+        theme: AppTheme.mysticTheme,
         debugShowCheckedModeBanner: false,
         initialRoute: AppRoutes.splash,
         routes: AppRoutes.getRoutes(),

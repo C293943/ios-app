@@ -8,6 +8,8 @@ class Character3DViewer extends StatefulWidget {
   final double size;
   final bool autoPlay;
   final String? initialAnimation;
+  final Function(List<String>)? onAnimationsLoaded;
+  final Function(List<String>)? onTexturesLoaded;
 
   const Character3DViewer({
     super.key,
@@ -15,6 +17,8 @@ class Character3DViewer extends StatefulWidget {
     this.size = 250.0,
     this.autoPlay = true,
     this.initialAnimation,
+    this.onAnimationsLoaded,
+    this.onTexturesLoaded,
   });
 
   @override
@@ -24,7 +28,9 @@ class Character3DViewer extends StatefulWidget {
 class Character3DViewerState extends State<Character3DViewer> {
   Flutter3DController? _controller;
   List<String> _availableAnimations = [];
+  List<String> _availableTextures = [];
   String? _currentAnimation;
+  String? _currentTexture;
   bool _isLoading = true;
   bool _isModelReady = false;
   String? _errorMessage;
@@ -57,12 +63,15 @@ class Character3DViewerState extends State<Character3DViewer> {
       final animations = await _controller!.getAvailableAnimations();
       debugPrint('可用动画列表: $animations');
 
-      if (mounted) {
-        setState(() {
-          _availableAnimations = animations;
-        });
+        if (mounted) {
+          setState(() {
+            _availableAnimations = animations;
+          });
+          
+          // 通知父组件动画已加载
+          widget.onAnimationsLoaded?.call(animations);
 
-        // 自动播放初始动画（无限循环）
+          // 自动播放初始动画（无限循环）
         if (widget.autoPlay && animations.isNotEmpty) {
           final animToPlay = widget.initialAnimation ?? animations.first;
           debugPrint('准备播放动画: $animToPlay (无限循环)');
@@ -81,16 +90,60 @@ class Character3DViewerState extends State<Character3DViewer> {
     } catch (e) {
       debugPrint('获取动画列表失败: $e');
     }
+
+    // 加载纹理列表
+    await _loadTextures();
+  }
+
+  /// 加载可用纹理列表
+  Future<void> _loadTextures() async {
+    debugPrint('开始加载纹理列表... isModelReady=$_isModelReady, controller=${_controller != null}');
+    if (!_isModelReady || _controller == null) {
+      debugPrint('纹理加载跳过: 模型未就绪或控制器为空');
+      return;
+    }
+
+    try {
+      debugPrint('正在调用 getAvailableTextures...');
+      final textures = await _controller!.getAvailableTextures();
+      debugPrint('可用纹理列表: $textures (共 ${textures.length} 个)');
+
+      if (mounted) {
+        setState(() {
+          _availableTextures = textures;
+          if (textures.isNotEmpty) {
+            _currentTexture = textures.first;
+          }
+        });
+
+        // 通知父组件纹理已加载
+        widget.onTexturesLoaded?.call(textures);
+      }
+    } catch (e, stackTrace) {
+      debugPrint('获取纹理列表失败: $e');
+      debugPrint('堆栈: $stackTrace');
+      // 即使失败也通知父组件（空列表）
+      widget.onTexturesLoaded?.call([]);
+    }
   }
 
   /// 获取所有可用的动画列表
   List<String> get availableAnimations => _availableAnimations;
 
+  /// 获取所有可用的纹理列表
+  List<String> get availableTextures => _availableTextures;
+
   /// 获取当前播放的动画名称
   String? get currentAnimation => _currentAnimation;
 
+  /// 获取当前使用的纹理名称
+  String? get currentTexture => _currentTexture;
+
   /// 模型是否已加载完成
   bool get isModelReady => _isModelReady;
+
+  /// 是否支持换肤（模型包含多个纹理）
+  bool get supportsTextureSwitching => _availableTextures.length > 1;
 
   /// 播放指定动画
   void playAnimation(String animationName) {
@@ -136,6 +189,34 @@ class Character3DViewerState extends State<Character3DViewer> {
     setState(() {
       _currentAnimation = null;
     });
+  }
+
+  /// 切换纹理/皮肤
+  void setTexture(String textureName) {
+    if (!_isModelReady || _controller == null) return;
+    if (_availableTextures.contains(textureName)) {
+      _controller!.setTexture(textureName: textureName);
+      setState(() {
+        _currentTexture = textureName;
+      });
+      debugPrint('已切换纹理: $textureName');
+    }
+  }
+
+  /// 切换到下一个纹理
+  void nextTexture() {
+    if (_availableTextures.isEmpty || _currentTexture == null) return;
+    final currentIndex = _availableTextures.indexOf(_currentTexture!);
+    final nextIndex = (currentIndex + 1) % _availableTextures.length;
+    setTexture(_availableTextures[nextIndex]);
+  }
+
+  /// 切换到上一个纹理
+  void previousTexture() {
+    if (_availableTextures.isEmpty || _currentTexture == null) return;
+    final currentIndex = _availableTextures.indexOf(_currentTexture!);
+    final prevIndex = (currentIndex - 1 + _availableTextures.length) % _availableTextures.length;
+    setTexture(_availableTextures[prevIndex]);
   }
 
   /// 开始旋转模型
@@ -297,6 +378,68 @@ class Character3DViewerState extends State<Character3DViewer> {
     // 去掉常见前缀如 "Armature|"
     if (name.contains('|')) {
       name = name.split('|').last;
+    }
+    // 将下划线替换为空格
+    return name.replaceAll('_', ' ');
+  }
+
+  /// 构建独立的纹理选择器（供外部调用）
+  Widget buildTextureSelector() {
+    if (_availableTextures.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return _buildTextureSelector();
+  }
+
+  /// 构建纹理选择器
+  Widget _buildTextureSelector() {
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        itemCount: _availableTextures.length,
+        itemBuilder: (context, index) {
+          final texture = _availableTextures[index];
+          final isSelected = texture == _currentTexture;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: GestureDetector(
+              onTap: () => setTexture(texture),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.teal.shade400
+                      : Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  _formatTextureName(texture),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// 格式化纹理名称
+  String _formatTextureName(String name) {
+    // 去掉文件扩展名
+    if (name.contains('.')) {
+      name = name.substring(0, name.lastIndexOf('.'));
     }
     // 将下划线替换为空格
     return name.replaceAll('_', ' ');

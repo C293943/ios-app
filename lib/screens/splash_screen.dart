@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/widgets/common/background_container.dart';
 
 /// 启动页
 class SplashScreen extends StatefulWidget {
@@ -9,70 +11,91 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    
+    _controller.forward();
     _navigateToNext();
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<void> _navigateToNext() async {
-    // 模拟加载
-    await Future.delayed(const Duration(seconds: 2));
-    
+    await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
-    
-    // 导航到八字输入页面
     Navigator.of(context).pushReplacementNamed(AppRoutes.baziInput);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.purple.shade900,
-              Colors.purple.shade600,
-              Colors.pink.shade400,
-            ],
-          ),
-        ),
+      body: BackgroundContainer(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo或图标
-              Icon(
-                Icons.auto_awesome,
-                size: 100,
-                color: Colors.white.withOpacity(0.9),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                '鸿初元灵',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '命理数字人情感陪伴',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withOpacity(0.8),
-                ),
-              ),
-              const SizedBox(height: 48),
-              CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.white.withOpacity(0.8),
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.accentJade.withOpacity(0.2),
+                            blurRadius: 40,
+                            spreadRadius: 10,
+                          ),
+                        ],
+                        border: Border.all(
+                          color: AppTheme.accentJade.withOpacity(0.5),
+                          width: 1,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.spa, // Leaf/Cycle symbol suitable for "Wood"
+                        size: 80,
+                        color: AppTheme.accentJade,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Text(
+                      '鸿初元灵',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w300,
+                        color: AppTheme.accentJade,
+                        letterSpacing: 8,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'CONNECTING TO SPIRIT...',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white30,
+                        letterSpacing: 4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

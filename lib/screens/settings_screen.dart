@@ -27,6 +27,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              // 显示模式设置
+              _buildSectionTitle('显示模式'),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    _buildModeOption(modelManager, DisplayMode.mode3D, '3D 元灵', Icons.view_in_ar),
+                    _buildModeOption(modelManager, DisplayMode.mode2D, '2D 平面', Icons.image),
+                    _buildModeOption(modelManager, DisplayMode.live2D, 'Live2D', Icons.face),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // 3D 模型设置
               _buildSectionTitle('3D 模型管理'),
               const SizedBox(height: 12),
@@ -88,6 +107,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
         fontSize: 13,
         fontWeight: FontWeight.w500,
         color: Colors.grey.shade600,
+      ),
+    );
+  }
+
+  Widget _buildModeOption(
+    ModelManagerService modelManager,
+    DisplayMode mode,
+    String label,
+    IconData icon,
+  ) {
+    final isSelected = modelManager.displayMode == mode;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => modelManager.setDisplayMode(mode),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.purple.shade400 : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? Colors.white : Colors.grey.shade600,
+                size: 24,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? Colors.white : Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
