@@ -19,6 +19,13 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String _gender = '男';
+  String _city = '北京';
+
+  // 常用城市列表
+  static const List<String> _cities = [
+    '北京', '上海', '广州', '深圳', '杭州', '南京', '成都', '重庆',
+    '武汉', '西安', '天津', '苏州', '郑州', '长沙', '青岛', '大连',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +111,14 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                             : '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
                         icon: Icons.access_time,
                         onTap: _selectTime,
+                      ),
+                      const SizedBox(height: 24),
+
+                      _buildSectionLabel('出生地 (City)'),
+                      _buildMysticInput(
+                        value: _city,
+                        icon: Icons.location_on,
+                        onTap: _selectCity,
                       ),
                     ],
                   ),
@@ -237,6 +252,83 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     }
   }
 
+  Future<void> _selectCity() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                '选择出生城市',
+                style: GoogleFonts.notoSerifSc(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.deepVoidBlue,
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            SizedBox(
+              height: 300,
+              child: GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  childAspectRatio: 2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: _cities.length,
+                itemBuilder: (context, index) {
+                  final city = _cities[index];
+                  final isSelected = city == _city;
+                  return InkWell(
+                    onTap: () => Navigator.pop(context, city),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppTheme.accentJade.withOpacity(0.3)
+                            : AppTheme.deepVoidBlue.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppTheme.accentJade
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: Text(
+                        city,
+                        style: GoogleFonts.notoSerifSc(
+                          fontSize: 14,
+                          color: AppTheme.deepVoidBlue,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+    if (selected != null) {
+      setState(() => _city = selected);
+    }
+  }
+
   void _onSubmit() {
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -252,6 +344,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       'gender': _gender,
       'date': _selectedDate,
       'time': _selectedTime,
+      'city': _city,
     };
 
     Navigator.of(context).pushNamed(

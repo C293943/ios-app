@@ -2,10 +2,15 @@
 class AppConfig {
   // 应用名称
   static const String appName = '鸿初元灵';
-  
+
   // API配置
-  static const String baseUrl = 'https://api.example.com';
-  static const String aiApiEndpoint = '/api/v1/chat';
+  static const String baseUrl = 'http://localhost:8000';
+  static const String calculateEndpoint = '/api/v1/calculate';
+  static const String fortuneEndpoint = '/api/v1/fortune';
+  static const String fortuneStreamEndpoint = '/api/v1/fortune/stream';
+
+  // 默认语言
+  static const String defaultLanguage = '中文';
   
   // 八字配置
   static const List<String> heavenlyStems = [

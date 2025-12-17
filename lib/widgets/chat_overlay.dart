@@ -1,6 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/models/fortune_models.dart';
+import 'package:primordial_spirit/services/fortune_api_service.dart';
+import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 
 class ChatOverlay extends StatefulWidget {
@@ -25,6 +31,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
+  final FortuneApiService _apiService = FortuneApiService();
+
+  bool _isLoading = false;
+  StreamSubscription<String>? _streamSubscription;
 
   @override
   void initState() {
@@ -251,7 +261,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   void _sendMessage() {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _isLoading) return;
 
     setState(() {
       _messages.add(ChatMessage(
@@ -259,20 +269,105 @@ class _ChatOverlayState extends State<ChatOverlay> {
         isUser: true,
         timestamp: DateTime.now(),
       ));
+      _isLoading = true;
     });
 
     _messageController.clear();
     _scrollToBottom();
 
-    // Mock AI Response
+    // 获取命盘数据
+    final modelManager = context.read<ModelManagerService>();
+    final fortuneData = modelManager.fortuneData;
+
+    if (fortuneData != null) {
+      // 有命盘数据，调用流式API
+      _callFortuneStreamApi(text, fortuneData);
+    } else {
+      // 没有命盘数据，使用模拟回复
+      _mockResponse();
+    }
+  }
+
+  /// 调用流式算命API
+  void _callFortuneStreamApi(String userMessage, FortuneData fortuneData) {
+    // 构建消息历史
+    final messages = <ChatMessageModel>[];
+    for (final msg in _messages) {
+      messages.add(ChatMessageModel(
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.text,
+      ));
+    }
+
+    // 构建请求
+    final request = FortuneRequest(
+      birthInfo: fortuneData.birthInfo,
+      baziInfo: fortuneData.baziInfo,
+      ziweiInfo: fortuneData.ziweiInfo,
+      messages: messages,
+      language: AppConfig.defaultLanguage,
+    );
+
+    // 添加一个空的AI消息用于流式填充
+    final aiMessageIndex = _messages.length;
+    setState(() {
+      _messages.add(ChatMessage(
+        text: '',
+        isUser: false,
+        timestamp: DateTime.now(),
+      ));
+    });
+
+    // 调用流式API
+    final stream = _apiService.fortuneStream(request);
+    final buffer = StringBuffer();
+
+    _streamSubscription = stream.listen(
+      (chunk) {
+        if (!mounted) return;
+        buffer.write(chunk);
+        setState(() {
+          _messages[aiMessageIndex] = ChatMessage(
+            text: buffer.toString(),
+            isUser: false,
+            timestamp: DateTime.now(),
+          );
+        });
+        _scrollToBottom();
+      },
+      onDone: () {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      },
+      onError: (error) {
+        if (!mounted) return;
+        setState(() {
+          _messages[aiMessageIndex] = ChatMessage(
+            text: '抱歉，我暂时无法回应。请稍后再试。',
+            isUser: false,
+            timestamp: DateTime.now(),
+          );
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      },
+    );
+  }
+
+  /// 模拟回复（当没有命盘数据时使用）
+  void _mockResponse() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _messages.add(ChatMessage(
-            text: '我听到了你的心声... \n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。', 
+            text: '我听到了你的心声... \n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。',
             isUser: false,
             timestamp: DateTime.now(),
           ));
+          _isLoading = false;
         });
         _scrollToBottom();
       }
@@ -291,8 +386,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
     });
   }
 
-   @override
+  @override
   void dispose() {
+    _streamSubscription?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();

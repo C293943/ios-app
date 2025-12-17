@@ -17,7 +17,7 @@ class AppRoutes {
     return {
       home: (context) => const HomeScreen(),
       baziInput: (context) => const BaziInputScreen(),
-      avatarGeneration: (context) => const AvatarGenerationScreen(),
+      // avatarGeneration 需要参数，通过 onGenerateRoute 处理
       chat: (context) => const ChatScreen(),
       settings: (context) => const SettingsScreen(),
     };

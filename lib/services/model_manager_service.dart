@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:primordial_spirit/models/fortune_models.dart';
 
 enum DisplayMode { mode3D, mode2D, live2D }
 
@@ -45,12 +46,14 @@ class ModelManagerService extends ChangeNotifier {
   static const String _selectedModelKey = 'selected_model_id';
   static const String _displayModeKey = 'display_mode';
   static const String _userBaziKey = 'user_bazi_data';
+  static const String _fortuneDataKey = 'fortune_data';
 
   List<Model3DConfig> _customModels = [];
   String? _selectedModelId;
   DisplayMode _displayMode = DisplayMode.mode3D;
   bool _isInitialized = false;
   Map<String, dynamic>? _userBaziData;
+  FortuneData? _fortuneData;
 
   /// 内置模型列表
   static final List<Model3DConfig> builtInModels = [
@@ -114,8 +117,11 @@ class ModelManagerService extends ChangeNotifier {
   /// 获取用户八字数据
   Map<String, dynamic>? get userBaziData => _userBaziData;
 
+  /// 获取完整命盘数据
+  FortuneData? get fortuneData => _fortuneData;
+
   /// 是否已完成首次设置（已填写生辰信息）
-  bool get hasCompletedSetup => _userBaziData != null;
+  bool get hasCompletedSetup => _fortuneData != null || _userBaziData != null;
 
   /// 初始化
   Future<void> init() async {
@@ -152,6 +158,16 @@ class ModelManagerService extends ChangeNotifier {
         _userBaziData = jsonDecode(baziJson) as Map<String, dynamic>;
       } catch (e) {
         debugPrint('加载用户八字数据失败: $e');
+      }
+    }
+
+    // 加载完整命盘数据
+    final fortuneJson = prefs.getString(_fortuneDataKey);
+    if (fortuneJson != null) {
+      try {
+        _fortuneData = FortuneData.fromJsonString(fortuneJson);
+      } catch (e) {
+        debugPrint('加载命盘数据失败: $e');
       }
     }
 
@@ -299,11 +315,21 @@ class ModelManagerService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 保存完整命盘数据（包含八字和紫薇计算结果）
+  Future<void> saveFortuneData(FortuneData data) async {
+    _fortuneData = data;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_fortuneDataKey, data.toJsonString());
+    notifyListeners();
+  }
+
   /// 清除用户数据（用于重置）
   Future<void> clearUserData() async {
     _userBaziData = null;
+    _fortuneData = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userBaziKey);
+    await prefs.remove(_fortuneDataKey);
     notifyListeners();
   }
 
