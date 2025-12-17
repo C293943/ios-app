@@ -65,37 +65,7 @@ class FortuneApiService {
     }
   }
 
-  /// 步骤2：算命（非流式）
-  /// POST /api/v1/fortune
-  Future<FortuneResponse> fortune(FortuneRequest request) async {
-    try {
-      final url = Uri.parse('${AppConfig.baseUrl}/api/v1/fortune');
-      final response = await _client.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(request.toJson()),
-      );
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body) as Map<String, dynamic>;
-        return FortuneResponse.fromJson(json);
-      } else {
-        debugPrint('Fortune API error: ${response.statusCode} - ${response.body}');
-        return FortuneResponse(
-          success: false,
-          message: '请求失败: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      debugPrint('Fortune API exception: $e');
-      return FortuneResponse(
-        success: false,
-        message: '网络错误: $e',
-      );
-    }
-  }
-
-  /// 步骤3：算命（流式）
+  /// 步骤2：算命（流式）
   /// POST /api/v1/fortune/stream
   /// 返回一个Stream，逐字返回AI回复
   Stream<String> fortuneStream(FortuneRequest request) async* {
@@ -110,7 +80,7 @@ class FortuneApiService {
       if (streamedResponse.statusCode == 200) {
         // 处理SSE流
         await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
-          // SSE格式: data: {"chunk": "文字"} 或 data: {"done": true}
+          // SSE格式: data: {"chunk": "文字"} 或 data: {"done": true} 或 data: {"error": "..."}
           final lines = chunk.split('\n');
           for (final line in lines) {
             if (line.startsWith('data: ')) {
@@ -123,6 +93,11 @@ class FortuneApiService {
                   yield json['chunk'] as String;
                 } else if (json['done'] == true) {
                   // 流结束
+                  return;
+                } else if (json.containsKey('error')) {
+                  // 后端返回错误
+                  debugPrint('Fortune stream API error from server: ${json['error']}');
+                  yield '\n[服务器错误] ${json['error']}';
                   return;
                 }
               } catch (e) {

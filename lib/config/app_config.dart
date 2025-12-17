@@ -22,7 +22,6 @@ class AppConfig {
     return 'http://localhost:8000';
   }
   static const String calculateEndpoint = '/api/v1/calculate';
-  static const String fortuneEndpoint = '/api/v1/fortune';
   static const String fortuneStreamEndpoint = '/api/v1/fortune/stream';
 
   // 默认语言

@@ -97,6 +97,11 @@ class BaziInfo {
   }
 
   Map<String, dynamic> toJson() {
+    // 优先使用 rawData（包含完整数据，包括 dayun, liunian 等后端需要的字段）
+    if (rawData != null) {
+      return Map<String, dynamic>.from(rawData!);
+    }
+    // 否则构建基本结构
     final json = <String, dynamic>{};
     json['year_pillar'] = yearPillar;
     json['month_pillar'] = monthPillar;
@@ -172,48 +177,167 @@ class PatternInfo {
   final String patternCode;
   final String patternName;
   final String description;
+  final bool isFormed;
+  final double formationScore;
+  final List<String> formationDetails;
+  final String level;
+  final String levelName;
+  final int levelScore;
+  final int finalScore;
+  final List<String> levelFeatures;
+  final Map<String, dynamic>? coreFeatures;
+  final Map<String, dynamic>? favorable;
+  final Map<String, dynamic>? unfavorable;
 
   PatternInfo({
     required this.patternCode,
     required this.patternName,
     required this.description,
+    this.isFormed = false,
+    this.formationScore = 0.0,
+    this.formationDetails = const [],
+    this.level = '',
+    this.levelName = '',
+    this.levelScore = 0,
+    this.finalScore = 0,
+    this.levelFeatures = const [],
+    this.coreFeatures,
+    this.favorable,
+    this.unfavorable,
   });
+
+  /// 获取核心含义
+  String? get coreMeaning => coreFeatures?['core_meaning'] as String?;
+
+  /// 获取适合领域
+  List<String> get suitableFields {
+    final fields = coreFeatures?['suitable_fields'];
+    if (fields is List) {
+      return fields.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+
+  /// 获取性格特征
+  List<String> get traits {
+    final t = coreFeatures?['traits'];
+    if (t is List) {
+      return t.map((e) => e.toString()).toList();
+    } else if (t is String) {
+      return [t];
+    }
+    return [];
+  }
 
   Map<String, dynamic> toJson() => {
         'pattern_code': patternCode,
         'pattern_name': patternName,
         'description': description,
+        'is_formed': isFormed,
+        'formation_score': formationScore,
+        'formation_details': formationDetails,
+        'level': level,
+        'level_name': levelName,
+        'level_score': levelScore,
+        'final_score': finalScore,
+        'level_features': levelFeatures,
+        if (coreFeatures != null) 'core_features': coreFeatures,
+        if (favorable != null) 'favorable': favorable,
+        if (unfavorable != null) 'unfavorable': unfavorable,
       };
 
   factory PatternInfo.fromJson(Map<String, dynamic> json) => PatternInfo(
         patternCode: json['pattern_code'] as String? ?? '',
         patternName: json['pattern_name'] as String? ?? '',
         description: json['description'] as String? ?? '',
+        isFormed: json['is_formed'] as bool? ?? false,
+        formationScore: (json['formation_score'] as num?)?.toDouble() ?? 0.0,
+        formationDetails: (json['formation_details'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ?? [],
+        level: json['level'] as String? ?? '',
+        levelName: json['level_name'] as String? ?? '',
+        levelScore: json['level_score'] as int? ?? 0,
+        finalScore: json['final_score'] as int? ?? 0,
+        levelFeatures: (json['level_features'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ?? [],
+        coreFeatures: json['core_features'] as Map<String, dynamic>?,
+        favorable: json['favorable'] as Map<String, dynamic>?,
+        unfavorable: json['unfavorable'] as Map<String, dynamic>?,
       );
 }
 
 /// 紫薇斗数信息
 class ZiweiInfo {
   final String mingGong;
+  final String shenGong;
+  final Map<String, Map<String, dynamic>>? palaces;
+  final Map<String, List<String>>? majorStars;
+  final Map<String, dynamic>? sihua;
+  final Map<String, dynamic>? daxian;
+  final Map<String, dynamic>? liunian;
+  final Map<String, dynamic>? liuyue;
   final Map<String, dynamic>? rawData;
 
   ZiweiInfo({
     required this.mingGong,
+    this.shenGong = '',
+    this.palaces,
+    this.majorStars,
+    this.sihua,
+    this.daxian,
+    this.liunian,
+    this.liuyue,
     this.rawData,
   });
 
   Map<String, dynamic> toJson() {
-    final json = rawData != null
-        ? Map<String, dynamic>.from(rawData!)
-        : <String, dynamic>{};
-    json['ming_gong'] = mingGong;
-    return json;
+    // 优先使用 rawData（包含完整数据），否则构建基本结构
+    if (rawData != null) {
+      return Map<String, dynamic>.from(rawData!);
+    }
+    return {
+      'ming_gong': mingGong,
+      'shen_gong': shenGong,
+      if (palaces != null) 'palaces': palaces,
+      if (majorStars != null) 'major_stars': majorStars,
+      if (sihua != null) 'sihua': sihua,
+      if (daxian != null) 'daxian': daxian,
+      if (liunian != null) 'liunian': liunian,
+      if (liuyue != null) 'liuyue': liuyue,
+    };
   }
 
-  factory ZiweiInfo.fromJson(Map<String, dynamic> json) => ZiweiInfo(
-        mingGong: json['ming_gong'] as String? ?? '',
-        rawData: json,
+  factory ZiweiInfo.fromJson(Map<String, dynamic> json) {
+    // 解析十二宫
+    Map<String, Map<String, dynamic>>? palaces;
+    if (json['palaces'] != null && json['palaces'] is Map) {
+      palaces = (json['palaces'] as Map<String, dynamic>).map(
+        (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)),
       );
+    }
+
+    // 解析主星
+    Map<String, List<String>>? majorStars;
+    if (json['major_stars'] != null && json['major_stars'] is Map) {
+      majorStars = (json['major_stars'] as Map<String, dynamic>).map(
+        (k, v) => MapEntry(k, (v as List).map((e) => e.toString()).toList()),
+      );
+    }
+
+    return ZiweiInfo(
+      mingGong: json['ming_gong'] as String? ?? '',
+      shenGong: json['shen_gong'] as String? ?? '',
+      palaces: palaces,
+      majorStars: majorStars,
+      sihua: json['sihua'] as Map<String, dynamic>?,
+      daxian: json['daxian'] as Map<String, dynamic>?,
+      liunian: json['liunian'] as Map<String, dynamic>?,
+      liuyue: json['liuyue'] as Map<String, dynamic>?,
+      rawData: json,
+    );
+  }
 }
 
 /// 计算结果响应
@@ -299,30 +423,6 @@ class FortuneRequest {
         'messages': messages.map((m) => m.toJson()).toList(),
         'language': language,
       };
-}
-
-/// 算命响应（非流式）
-class FortuneResponse {
-  final bool success;
-  final String message;
-  final String? content;
-
-  FortuneResponse({
-    required this.success,
-    required this.message,
-    this.content,
-  });
-
-  factory FortuneResponse.fromJson(Map<String, dynamic> json) =>
-      FortuneResponse(
-        success: json['success'] as bool? ?? false,
-        message: json['message'] as String? ?? '',
-        // 后端返回 data.answer，兼容 data.content 和 content
-        content: json['data']?['answer'] as String? ??
-                 json['data']?['content'] as String? ??
-                 json['answer'] as String? ??
-                 json['content'] as String?,
-      );
 }
 
 /// 命盘数据（包含所有计算结果，用于本地存储）
