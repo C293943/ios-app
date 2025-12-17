@@ -256,73 +256,82 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     final selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                '选择出生城市',
-                style: GoogleFonts.notoSerifSc(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.deepVoidBlue,
-                ),
-              ),
-            ),
-            const Divider(height: 1),
-            SizedBox(
-              height: 300,
-              child: GridView.builder(
+      isScrollControlled: true,
+      builder: (context) {
+        final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final maxHeight = screenHeight * 0.5; // 最大高度为屏幕的50%
+
+        return Container(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: EdgeInsets.only(bottom: bottomPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
                 padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 2,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
+                child: Text(
+                  '选择出生城市',
+                  style: GoogleFonts.notoSerifSc(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.deepVoidBlue,
+                  ),
                 ),
-                itemCount: _cities.length,
-                itemBuilder: (context, index) {
-                  final city = _cities[index];
-                  final isSelected = city == _city;
-                  return InkWell(
-                    onTap: () => Navigator.pop(context, city),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppTheme.accentJade.withOpacity(0.3)
-                            : AppTheme.deepVoidBlue.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppTheme.accentJade
-                              : Colors.transparent,
-                        ),
-                      ),
-                      child: Text(
-                        city,
-                        style: GoogleFonts.notoSerifSc(
-                          fontSize: 14,
-                          color: AppTheme.deepVoidBlue,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                  );
-                },
               ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+              const Divider(height: 1),
+              Flexible(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    childAspectRatio: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _cities.length,
+                  itemBuilder: (context, index) {
+                    final city = _cities[index];
+                    final isSelected = city == _city;
+                    return InkWell(
+                      onTap: () => Navigator.pop(context, city),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.accentJade.withOpacity(0.3)
+                              : AppTheme.deepVoidBlue.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppTheme.accentJade
+                                : Colors.transparent,
+                          ),
+                        ),
+                        child: Text(
+                          city,
+                          style: GoogleFonts.notoSerifSc(
+                            fontSize: 14,
+                            color: AppTheme.deepVoidBlue,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
+            ],
+          ),
+        );
+      },
     );
     if (selected != null) {
       setState(() => _city = selected);

@@ -104,7 +104,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
     if (!mounted) return;
 
-    if (response.success && response.baziInfo != null && response.ziweiInfo != null) {
+    if (response.success && response.baziInfo != null) {
       setState(() {
         _statusText = '正在解析五行属性...';
         _detailText = '八字: ${response.baziInfo!.yearPillar} ${response.baziInfo!.monthPillar} ${response.baziInfo!.dayPillar} ${response.baziInfo!.hourPillar}';
@@ -112,18 +112,40 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       await Future.delayed(const Duration(milliseconds: 800));
       if (!mounted) return;
 
-      // 保存完整命盘数据
+      // 显示五行信息
+      if (response.baziInfo!.fiveElements != null) {
+        final elements = response.baziInfo!.fiveElements!;
+        setState(() {
+          _detailText = '五行: 木${elements['木'] ?? 0} 火${elements['火'] ?? 0} 土${elements['土'] ?? 0} 金${elements['金'] ?? 0} 水${elements['水'] ?? 0}';
+        });
+        await Future.delayed(const Duration(milliseconds: 600));
+        if (!mounted) return;
+      }
+
+      // 显示格局信息
+      if (response.baziInfo!.patterns != null && response.baziInfo!.patterns!.isNotEmpty) {
+        setState(() {
+          _detailText = '格局: ${response.baziInfo!.patterns!.first.patternName}';
+        });
+        await Future.delayed(const Duration(milliseconds: 600));
+        if (!mounted) return;
+      }
+
+      // 保存完整命盘数据（ziwei_info 可能为空，创建一个默认的）
+      final ziweiInfo = response.ziweiInfo ?? ZiweiInfo(mingGong: '');
       final fortuneData = FortuneData(
         birthInfo: birthInfo,
         baziInfo: response.baziInfo!,
-        ziweiInfo: response.ziweiInfo!,
+        ziweiInfo: ziweiInfo,
         calculatedAt: DateTime.now(),
       );
       await modelManager.saveFortuneData(fortuneData);
 
       setState(() {
         _statusText = '正在生成3D形象...';
-        _detailText = '命宫: ${response.ziweiInfo!.mingGong}';
+        _detailText = response.ziweiInfo?.mingGong.isNotEmpty == true
+            ? '命宫: ${response.ziweiInfo!.mingGong}'
+            : '日主: ${response.baziInfo!.dayGan}';
       });
       await Future.delayed(const Duration(milliseconds: 800));
       if (!mounted) return;

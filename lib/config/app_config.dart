@@ -1,10 +1,26 @@
+import 'dart:io';
+
 /// APP全局配置
 class AppConfig {
   // 应用名称
   static const String appName = '鸿初元灵';
 
   // API配置
-  static const String baseUrl = 'http://localhost:8000';
+  // Android模拟器使用10.0.2.2访问主机localhost
+  // iOS模拟器使用localhost
+  // 真机调试需要使用电脑的实际IP地址
+  static String get baseUrl {
+    if (Platform.isAndroid) {
+      // Android模拟器: 10.0.2.2 映射到主机的 localhost
+      // 真机调试时请替换为电脑的实际IP地址，如: 'http://192.168.1.100:8000'
+      return 'http://192.168.31.249:8000';
+    } else if (Platform.isIOS) {
+      // iOS模拟器可以直接使用localhost
+      return 'http://localhost:8000';
+    }
+    // 其他平台（Web、桌面等）
+    return 'http://localhost:8000';
+  }
   static const String calculateEndpoint = '/api/v1/calculate';
   static const String fortuneEndpoint = '/api/v1/fortune';
   static const String fortuneStreamEndpoint = '/api/v1/fortune/stream';

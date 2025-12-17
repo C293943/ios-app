@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +8,7 @@ import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/chat_overlay.dart';
+import 'package:primordial_spirit/widgets/bazi_profile_sheet.dart';
 
 /// 主页 - 核心祭坛
 class HomeScreen extends StatefulWidget {
@@ -24,6 +26,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _openSettings() {
     Navigator.of(context).pushNamed(AppRoutes.settings);
+  }
+
+  void _showBaziProfile() {
+    final modelManager = context.read<ModelManagerService>();
+    final fortuneData = modelManager.fortuneData;
+
+    if (fortuneData != null) {
+      BaziProfileSheet.show(context, fortuneData);
+    } else {
+      // 没有命盘数据，提示用户
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('暂无命格数据，请先设置生辰信息'),
+          backgroundColor: AppTheme.primaryDeepIndigo,
+          action: SnackBarAction(
+            label: '去设置',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRoutes.baziInput);
+            },
+          ),
+        ),
+      );
+    }
   }
 
   void _onAnimationsChanged(List<String> animations, String? currentAnimation) {
@@ -162,7 +188,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                _buildMysticIconBtn(context, Icons.fingerprint, '命格'),
+                                _buildMysticIconBtn(
+                                  context,
+                                  Icons.fingerprint,
+                                  '命格',
+                                  onTap: _showBaziProfile,
+                                ),
                                 _buildMysticIconBtn(context, Icons.auto_awesome, '运势'),
                                 _buildMysticIconBtn(context, Icons.history_edu, '灵迹'),
                               ],
@@ -197,28 +228,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildMysticIconBtn(BuildContext context, IconData icon, String label) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.2),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
+  Widget _buildMysticIconBtn(
+    BuildContext context,
+    IconData icon,
+    String label, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.2),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+            ),
+            child: Icon(icon, color: AppTheme.deepVoidBlue, size: 24),
           ),
-          child: Icon(icon, color: AppTheme.deepVoidBlue, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: AppTheme.deepVoidBlue.withOpacity(0.7),
-            fontSize: 12,
-            letterSpacing: 1.2,
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.deepVoidBlue.withOpacity(0.7),
+              fontSize: 12,
+              letterSpacing: 1.2,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

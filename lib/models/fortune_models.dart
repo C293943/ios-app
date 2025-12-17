@@ -62,7 +62,12 @@ class BaziInfo {
   final String dayPillar;
   final String hourPillar;
   final String? dayMaster;
-  final String? fiveElements;
+  final Map<String, int>? fiveElements; // 五行个数 {木:2, 火:1, ...}
+  final Map<String, double>? fiveElementsStrength; // 五行力量百分比
+  final Map<String, dynamic>? tenGods; // 十神
+  final Map<String, List<String>>? hideGan; // 藏干
+  final Map<String, String>? nayin; // 纳音
+  final List<PatternInfo>? patterns; // 格局
   final Map<String, dynamic>? rawData;
 
   BaziInfo({
@@ -72,28 +77,118 @@ class BaziInfo {
     required this.hourPillar,
     this.dayMaster,
     this.fiveElements,
+    this.fiveElementsStrength,
+    this.tenGods,
+    this.hideGan,
+    this.nayin,
+    this.patterns,
     this.rawData,
   });
 
+  /// 获取日主（日干）
+  String get dayGan => dayPillar.isNotEmpty ? dayPillar[0] : '';
+
+  /// 获取五行强度描述
+  String get dominantElement {
+    if (fiveElementsStrength == null || fiveElementsStrength!.isEmpty) return '';
+    final sorted = fiveElementsStrength!.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return sorted.first.key;
+  }
+
   Map<String, dynamic> toJson() {
-    final json = rawData ?? <String, dynamic>{};
+    final json = <String, dynamic>{};
     json['year_pillar'] = yearPillar;
     json['month_pillar'] = monthPillar;
     json['day_pillar'] = dayPillar;
     json['hour_pillar'] = hourPillar;
     if (dayMaster != null) json['day_master'] = dayMaster;
     if (fiveElements != null) json['five_elements'] = fiveElements;
+    if (fiveElementsStrength != null) json['five_elements_strength'] = fiveElementsStrength;
+    if (tenGods != null) json['ten_gods'] = tenGods;
+    if (hideGan != null) json['hide_gan'] = hideGan;
+    if (nayin != null) json['nayin'] = nayin;
+    if (patterns != null) json['patterns'] = patterns!.map((p) => p.toJson()).toList();
     return json;
   }
 
-  factory BaziInfo.fromJson(Map<String, dynamic> json) => BaziInfo(
-        yearPillar: json['year_pillar'] as String? ?? '',
-        monthPillar: json['month_pillar'] as String? ?? '',
-        dayPillar: json['day_pillar'] as String? ?? '',
-        hourPillar: json['hour_pillar'] as String? ?? '',
-        dayMaster: json['day_master'] as String?,
-        fiveElements: json['five_elements'] as String?,
-        rawData: json,
+  factory BaziInfo.fromJson(Map<String, dynamic> json) {
+    // 解析五行个数
+    Map<String, int>? fiveElements;
+    if (json['five_elements'] != null && json['five_elements'] is Map) {
+      fiveElements = (json['five_elements'] as Map<String, dynamic>)
+          .map((k, v) => MapEntry(k, (v as num).toInt()));
+    }
+
+    // 解析五行力量
+    Map<String, double>? fiveElementsStrength;
+    if (json['five_elements_strength'] != null && json['five_elements_strength'] is Map) {
+      fiveElementsStrength = (json['five_elements_strength'] as Map<String, dynamic>)
+          .map((k, v) => MapEntry(k, (v as num).toDouble()));
+    }
+
+    // 解析藏干
+    Map<String, List<String>>? hideGan;
+    if (json['hide_gan'] != null && json['hide_gan'] is Map) {
+      hideGan = (json['hide_gan'] as Map<String, dynamic>).map(
+        (k, v) => MapEntry(k, (v as List).map((e) => e.toString()).toList()),
+      );
+    }
+
+    // 解析纳音
+    Map<String, String>? nayin;
+    if (json['nayin'] != null && json['nayin'] is Map) {
+      nayin = (json['nayin'] as Map<String, dynamic>)
+          .map((k, v) => MapEntry(k, v.toString()));
+    }
+
+    // 解析格局
+    List<PatternInfo>? patterns;
+    if (json['patterns'] != null && json['patterns'] is List) {
+      patterns = (json['patterns'] as List)
+          .map((p) => PatternInfo.fromJson(p as Map<String, dynamic>))
+          .toList();
+    }
+
+    return BaziInfo(
+      yearPillar: json['year_pillar'] as String? ?? '',
+      monthPillar: json['month_pillar'] as String? ?? '',
+      dayPillar: json['day_pillar'] as String? ?? '',
+      hourPillar: json['hour_pillar'] as String? ?? '',
+      dayMaster: json['day_master'] as String?,
+      fiveElements: fiveElements,
+      fiveElementsStrength: fiveElementsStrength,
+      tenGods: json['ten_gods'] as Map<String, dynamic>?,
+      hideGan: hideGan,
+      nayin: nayin,
+      patterns: patterns,
+      rawData: json,
+    );
+  }
+}
+
+/// 格局信息
+class PatternInfo {
+  final String patternCode;
+  final String patternName;
+  final String description;
+
+  PatternInfo({
+    required this.patternCode,
+    required this.patternName,
+    required this.description,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'pattern_code': patternCode,
+        'pattern_name': patternName,
+        'description': description,
+      };
+
+  factory PatternInfo.fromJson(Map<String, dynamic> json) => PatternInfo(
+        patternCode: json['pattern_code'] as String? ?? '',
+        patternName: json['pattern_name'] as String? ?? '',
+        description: json['description'] as String? ?? '',
       );
 }
 
@@ -222,7 +317,11 @@ class FortuneResponse {
       FortuneResponse(
         success: json['success'] as bool? ?? false,
         message: json['message'] as String? ?? '',
-        content: json['data']?['content'] as String? ?? json['content'] as String?,
+        // 后端返回 data.answer，兼容 data.content 和 content
+        content: json['data']?['answer'] as String? ??
+                 json['data']?['content'] as String? ??
+                 json['answer'] as String? ??
+                 json['content'] as String?,
       );
 }
 

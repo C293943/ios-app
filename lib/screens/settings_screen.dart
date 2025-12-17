@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
@@ -85,6 +86,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
 
+                const SizedBox(height: 24),
+
+                // 生辰设置
+                _buildSectionTitle('生辰信息'),
+                const SizedBox(height: 12),
+                _buildSettingTile(
+                  icon: Icons.calendar_month,
+                  title: '重新设置生辰',
+                  subtitle: '修改出生日期、时辰和地点',
+                  onTap: () => _navigateToBaziInput(),
+                ),
                 const SizedBox(height: 24),
 
                 // 关于
@@ -562,6 +574,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
+  }
+
+  void _navigateToBaziInput() {
+    // 跳转到生辰输入页，并清除之前的路由栈
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.baziInput,
+      (route) => false,
+    );
   }
 
   Future<void> _showDeleteConfirmDialog(
