@@ -9,6 +9,7 @@ import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/chat_overlay.dart';
 import 'package:primordial_spirit/widgets/bazi_profile_sheet.dart';
+import 'package:primordial_spirit/widgets/bazi_summary_overlay.dart';
 
 /// 主页 - 核心祭坛
 class HomeScreen extends StatefulWidget {
@@ -105,12 +106,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
 
-            // Layer 0: 3D 灵体展示区 (Unity/3D)
+            // Layer 0: 命盘摘要信息（作为背景衬托，在角色后面）
+            Consumer<ModelManagerService>(
+              builder: (context, modelManager, child) {
+                final fortuneData = modelManager.fortuneData;
+                if (fortuneData == null || _isChatMode) {
+                  return const SizedBox.shrink();
+                }
+                return Positioned.fill(
+                  child: AnimatedOpacity(
+                    opacity: _isChatMode ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: IgnorePointer(
+                      ignoring: true, // 不拦截点击事件，让角色可以交互
+                      child: BaziSummaryOverlay(
+                        fortuneData: fortuneData,
+                        onTap: _showBaziProfile,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Layer 1: 3D 灵体展示区 (Unity/3D)
             Positioned.fill(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeInOut,
-                padding: _isChatMode 
+                padding: _isChatMode
                     ? const EdgeInsets.only(top: 80, bottom: 200) // 聊天时留出空间
                     : EdgeInsets.only(top: 100, bottom: screenHeight * 0.3), // 默认留出底部面板空间
                 child: CharacterDisplay(
@@ -123,8 +147,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            
-            // Layer 1: Dashboard UI (Fade out when Chat Mode)
+
+            // Layer 2: Dashboard UI (Fade out when Chat Mode)
             AnimatedOpacity(
               opacity: _isChatMode ? 0.0 : 1.0,
               duration: const Duration(milliseconds: 300),

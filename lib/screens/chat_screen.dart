@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
@@ -42,7 +43,7 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: Colors.white.withValues(alpha: 0.3),
               child: const Icon(Icons.auto_awesome, color: Colors.white),
             ),
             const SizedBox(width: 12),
@@ -91,7 +92,7 @@ class _ChatScreenState extends State<ChatScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 5,
                   offset: const Offset(0, -2),
                 ),
@@ -152,6 +153,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
+    final markdownStyle = _buildMarkdownStyle(context, message.isUser);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
@@ -184,19 +187,17 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.text,
-                    style: TextStyle(
-                      color: message.isUser ? Colors.white : Colors.black87,
-                      fontSize: 15,
-                    ),
+                  MarkdownBody(
+                    data: message.text,
+                    selectable: true,
+                    styleSheet: markdownStyle,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _formatTime(message.timestamp),
                     style: TextStyle(
                       color: message.isUser
-                          ? Colors.white.withOpacity(0.7)
+                          ? Colors.white.withValues(alpha: 0.7)
                           : Colors.grey.shade600,
                       fontSize: 11,
                     ),
@@ -343,6 +344,56 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       }
     });
+  }
+
+  MarkdownStyleSheet _buildMarkdownStyle(BuildContext context, bool isUser) {
+    final base = MarkdownStyleSheet.fromTheme(Theme.of(context));
+    final textColor = isUser ? Colors.white : Colors.black87;
+    final codeBackground =
+        isUser ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.04);
+    final quoteBackground =
+        isUser ? Colors.white.withValues(alpha: 0.08) : Colors.purple.shade50;
+    final quoteBorderColor =
+        isUser ? Colors.white.withValues(alpha: 0.5) : Colors.purple.shade200;
+
+    return base.copyWith(
+      p: (base.p ?? const TextStyle()).copyWith(
+        color: textColor,
+        fontSize: 15,
+        height: 1.45,
+      ),
+      h1: (base.h1 ?? const TextStyle()).copyWith(color: textColor),
+      h2: (base.h2 ?? const TextStyle()).copyWith(color: textColor),
+      h3: (base.h3 ?? const TextStyle()).copyWith(color: textColor),
+      h4: (base.h4 ?? const TextStyle()).copyWith(color: textColor),
+      h5: (base.h5 ?? const TextStyle()).copyWith(color: textColor),
+      h6: (base.h6 ?? const TextStyle()).copyWith(color: textColor),
+      strong: (base.strong ?? const TextStyle(fontWeight: FontWeight.w600))
+          .copyWith(color: textColor),
+      em: (base.em ?? const TextStyle(fontStyle: FontStyle.italic))
+          .copyWith(color: textColor),
+      code: (base.code ?? const TextStyle(fontFamily: 'monospace'))
+          .copyWith(color: textColor),
+      listBullet: TextStyle(color: textColor, fontSize: 15),
+      blockquoteDecoration: BoxDecoration(
+        color: quoteBackground,
+        borderRadius: BorderRadius.circular(8),
+        border: Border(
+          left: BorderSide(color: quoteBorderColor, width: 3),
+        ),
+      ),
+      codeblockDecoration: BoxDecoration(
+        color: codeBackground,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      horizontalRuleDecoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: textColor.withValues(alpha: 0.2),
+          ),
+        ),
+      ),
+    );
   }
 
   String _generateAIResponse(String userMessage) {
