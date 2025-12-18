@@ -1,6 +1,5 @@
 name: Build iOS IPA
 
-# 触发规则：推送到 main 分支，或者手动点击触发
 on:
   push:
     branches: [ "main" ]
@@ -9,53 +8,47 @@ on:
 jobs:
   build-ios:
     name: Build iOS App
-    # 关键：必须使用 macOS 环境才能编译 iOS 应用
     runs-on: macos-latest
 
     steps:
-      # 1. 拉取你的代码
       - uses: actions/checkout@v4
 
-      # 2. 配置 Java 环境 (Android/Flutter构建有时需要)
+      # 设置 Java (为了防止 Gradle 相关的潜在报错，虽然是 iOS 编译，加上更稳)
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      # 3. 配置 Flutter 环境
+      # 设置 Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # 如果你的项目对 Flutter 版本有特定要求，可以在这里指定，例如 '3.24.0'
-          # flutter-version: '3.x.x' 
           cache: true
 
-      # 4. 下载项目依赖
+      # 安装项目依赖
       - name: Install Flutter Dependencies
         run: flutter pub get
 
-      # 5. 安装 iOS 也就是 CocoaPods 依赖 (这一步最容易出错，必须要有)
+      # 安装 iOS 依赖 (关键步骤)
+      # 现在你的 ios 文件夹已经存在了，这一步应该能通过
       - name: Install CocoaPods
         run: |
           cd ios
           pod install --repo-update
           cd ..
 
-      # 6. 执行免签名编译 (生成 .app 文件)
+      # 编译 APP (免签名)
       - name: Build iOS App (No Codesign)
         run: flutter build ios --release --no-codesign
 
-      # 7. 将 .app 打包成 .ipa (模拟你之前的脚本逻辑)
+      # 打包成 IPA
       - name: Package into IPA
         run: |
-          # 创建标准的 Payload 目录结构
           mkdir -p Payload
-          # 将编译好的 Runner.app 移动进去
           mv build/ios/iphoneos/Runner.app Payload/
-          # 压缩生成 IPA
           zip -r app-release-unsigned.ipa Payload
 
-      # 8. 上传结果，让你能下载
+      # 上传产物
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
