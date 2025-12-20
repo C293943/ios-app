@@ -5,18 +5,35 @@ class AppConfig {
   // 应用名称
   static const String appName = '鸿初元灵';
 
+  // ============ 服务器配置 ============
+  // 生产环境服务器地址（上线后使用）
+  static const String productionBaseUrl = 'https://your-production-server.com';
+
+  // 开发环境服务器地址（本地调试时的电脑 IP）
+  static const String developmentServerIp = '192.168.31.249';
+
+  // 是否为生产环境（上线时改为 true）
+  static const bool isProduction = false;
+
   // API配置
   // Android模拟器使用10.0.2.2访问主机localhost
   // iOS模拟器使用localhost
   // 真机调试需要使用电脑的实际IP地址
   static String get baseUrl {
+    // 生产环境直接返回生产服务器地址
+    if (isProduction) {
+      return productionBaseUrl;
+    }
+
+    // 开发环境
     if (Platform.isAndroid) {
       // Android模拟器: 10.0.2.2 映射到主机的 localhost
-      // 真机调试时请替换为电脑的实际IP地址，如: 'http://192.168.1.100:8000'
-      return 'http://192.168.31.249:8000';
+      // 真机调试时使用实际IP地址
+      return 'http://$developmentServerIp:8000';
     } else if (Platform.isIOS) {
-      // iOS模拟器可以直接使用localhost
-      return 'http://localhost:8000';
+      // iOS 真机和模拟器都使用实际 IP 地址
+      // 注意：iOS 真机无法访问 localhost，必须使用实际 IP
+      return 'http://$developmentServerIp:8000';
     }
     // 其他平台（Web、桌面等）
     return 'http://localhost:8000';
