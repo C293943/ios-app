@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_3d_controller/flutter_3d_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:primordial_spirit/services/model_manager_service.dart';
 
 /// 3D角色查看器组件
 /// 支持 GLB, GLTF, OBJ 格式，可控制动画
@@ -10,6 +13,7 @@ class Character3DViewer extends StatefulWidget {
   final String? initialAnimation;
   final Function(List<String>)? onAnimationsLoaded;
   final Function(List<String>)? onTexturesLoaded;
+  final String? taskId; // 用于缓存标识
 
   const Character3DViewer({
     super.key,
@@ -19,6 +23,7 @@ class Character3DViewer extends StatefulWidget {
     this.initialAnimation,
     this.onAnimationsLoaded,
     this.onTexturesLoaded,
+    this.taskId,
   });
 
   @override
@@ -33,7 +38,10 @@ class Character3DViewerState extends State<Character3DViewer> {
   String? _currentTexture;
   bool _isLoading = true;
   bool _isModelReady = false;
+  bool _isDownloading = false;
+  double _downloadProgress = 0.0;
   String? _errorMessage;
+  String? _localModelPath; // 下载后的本地路径
 
   @override
   void initState() {
@@ -42,18 +50,100 @@ class Character3DViewerState extends State<Character3DViewer> {
 
     // 监听模型加载状态
     _controller!.onModelLoaded.addListener(_onControllerModelLoaded);
+
+    // 如果是远程 URL，先下载
+    _prepareModel();
+  }
+
+  /// 准备模型（如果是远程 URL 则下载）
+  Future<void> _prepareModel() async {
+    final path = widget.modelPath;
+
+    // 检查是否是远程 URL
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      setState(() {
+        _isDownloading = true;
+        _downloadProgress = 0.0;
+      });
+
+      try {
+        final modelManager = context.read<ModelManagerService>();
+
+        // 下载模型到本地
+        final localPath = await modelManager.downloadRemoteModel(
+          path,
+          taskId: widget.taskId,
+          onProgress: (progress) {
+            if (mounted) {
+              setState(() {
+                _downloadProgress = progress;
+              });
+            }
+          },
+        );
+
+        if (mounted) {
+          if (localPath != null) {
+            debugPrint('[3DViewer] 模型下载完成: $localPath');
+            setState(() {
+              _localModelPath = localPath;
+              _isDownloading = false;
+            });
+          } else {
+            setState(() {
+              _isDownloading = false;
+              _errorMessage = '模型下载失败';
+              _isLoading = false;
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint('[3DViewer] 下载模型异常: $e');
+        if (mounted) {
+          setState(() {
+            _isDownloading = false;
+            _errorMessage = '下载失败: $e';
+            _isLoading = false;
+          });
+        }
+      }
+    }
   }
 
   void _onControllerModelLoaded() {
     debugPrint('控制器模型加载状态变化: ${_controller!.onModelLoaded.value}');
     if (_controller!.onModelLoaded.value) {
       debugPrint('控制器确认模型已加载');
+      _cancelLoadingTimeout();
       setState(() {
         _isModelReady = true;
         _isLoading = false;
       });
       _loadAnimationsAndPlay();
     }
+  }
+
+  /// 加载超时计时器
+  Timer? _loadingTimeoutTimer;
+
+  /// 启动加载超时计时器
+  void _startLoadingTimeout() {
+    _loadingTimeoutTimer?.cancel();
+    _loadingTimeoutTimer = Timer(const Duration(seconds: 30), () {
+      if (mounted && _isLoading && !_isModelReady) {
+        debugPrint('[3DViewer] 模型加载超时');
+        setState(() {
+          _isLoading = false;
+          _errorMessage = '模型加载超时，请重试';
+        });
+      }
+    });
+  }
+
+  /// 取消加载超时计时器
+  void _cancelLoadingTimeout() {
+    _loadingTimeoutTimer?.cancel();
+    _loadingTimeoutTimer = null;
   }
 
   Future<void> _loadAnimationsAndPlay() async {
@@ -263,6 +353,7 @@ class Character3DViewerState extends State<Character3DViewer> {
 
   void _onModelLoaded() {
     debugPrint('onLoad 回调触发，模型加载完成');
+    _cancelLoadingTimeout();
     setState(() {
       _isLoading = false;
       _isModelReady = true;
@@ -273,6 +364,7 @@ class Character3DViewerState extends State<Character3DViewer> {
 
   void _onModelError(String error) {
     debugPrint('3D模型加载错误: $error');
+    _cancelLoadingTimeout();
     setState(() {
       _isLoading = false;
       _errorMessage = '模型加载失败: $error';
@@ -288,6 +380,18 @@ class Character3DViewerState extends State<Character3DViewer> {
   Widget build(BuildContext context) {
     if (_errorMessage != null) {
       return _buildErrorWidget();
+    }
+
+    // 如果正在下载，显示下载进度
+    if (_isDownloading) {
+      return _buildDownloadingWidget();
+    }
+
+    // 如果是远程 URL 但还没下载完成，显示等待
+    final isRemoteUrl = widget.modelPath.startsWith('http://') ||
+        widget.modelPath.startsWith('https://');
+    if (isRemoteUrl && _localModelPath == null) {
+      return _buildDownloadingWidget();
     }
 
     return Container(
@@ -317,6 +421,44 @@ class Character3DViewerState extends State<Character3DViewer> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  /// 构建下载进度 Widget
+  Widget _buildDownloadingWidget() {
+    return Container(
+      width: widget.size,
+      height: widget.size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withValues(alpha: 0.1),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 60,
+              height: 60,
+              child: CircularProgressIndicator(
+                value: _downloadProgress > 0 ? _downloadProgress : null,
+                color: Colors.white,
+                strokeWidth: 3,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _downloadProgress > 0
+                  ? '下载中 ${(_downloadProgress * 100).toInt()}%'
+                  : '准备下载模型...',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -451,9 +593,21 @@ class Character3DViewerState extends State<Character3DViewer> {
 
   /// 获取正确的模型路径（处理外部文件）
   String get _effectiveModelPath {
+    // 如果有下载后的本地路径，优先使用
+    if (_localModelPath != null) {
+      debugPrint('[3DViewer] 使用本地缓存路径: $_localModelPath');
+      return 'file://$_localModelPath';
+    }
+
     final path = widget.modelPath;
     // 如果是 assets 路径，直接返回
     if (path.startsWith('assets/')) {
+      return path;
+    }
+    // 远程 http/https - 不应该直接使用（会有 CORS 问题）
+    // 但如果下载失败，还是尝试直接加载
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      debugPrint('[3DViewer] 警告: 直接使用远程 URL 可能有 CORS 问题');
       return path;
     }
     // 如果已经是 file:// 协议，直接返回
@@ -468,6 +622,10 @@ class Character3DViewerState extends State<Character3DViewer> {
   Widget _buildGlbViewer() {
     final modelSrc = _effectiveModelPath;
     debugPrint('加载 GLB 模型: $modelSrc');
+
+    // 启动加载超时计时器
+    _startLoadingTimeout();
+
     return Flutter3DViewer(
       controller: _controller,
       src: modelSrc,
@@ -544,6 +702,7 @@ class Character3DViewerState extends State<Character3DViewer> {
 
   @override
   void dispose() {
+    _cancelLoadingTimeout();
     _controller?.onModelLoaded.removeListener(_onControllerModelLoaded);
     _controller = null;
     super.dispose();

@@ -431,19 +431,39 @@ class FortuneData {
   final BaziInfo baziInfo;
   final ZiweiInfo ziweiInfo;
   final DateTime calculatedAt;
+  final Avatar3dInfo? avatar3dInfo; // 3D元神形象信息
 
   FortuneData({
     required this.birthInfo,
     required this.baziInfo,
     required this.ziweiInfo,
     required this.calculatedAt,
+    this.avatar3dInfo,
   });
+
+  /// 创建带有3D信息的副本
+  FortuneData copyWith({
+    BirthInfo? birthInfo,
+    BaziInfo? baziInfo,
+    ZiweiInfo? ziweiInfo,
+    DateTime? calculatedAt,
+    Avatar3dInfo? avatar3dInfo,
+  }) {
+    return FortuneData(
+      birthInfo: birthInfo ?? this.birthInfo,
+      baziInfo: baziInfo ?? this.baziInfo,
+      ziweiInfo: ziweiInfo ?? this.ziweiInfo,
+      calculatedAt: calculatedAt ?? this.calculatedAt,
+      avatar3dInfo: avatar3dInfo ?? this.avatar3dInfo,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'birth_info': birthInfo.toJson(),
         'bazi_info': baziInfo.toJson(),
         'ziwei_info': ziweiInfo.toJson(),
         'calculated_at': calculatedAt.toIso8601String(),
+        if (avatar3dInfo != null) 'avatar_3d_info': avatar3dInfo!.toJson(),
       };
 
   factory FortuneData.fromJson(Map<String, dynamic> json) => FortuneData(
@@ -451,10 +471,312 @@ class FortuneData {
         baziInfo: BaziInfo.fromJson(json['bazi_info'] as Map<String, dynamic>),
         ziweiInfo: ZiweiInfo.fromJson(json['ziwei_info'] as Map<String, dynamic>),
         calculatedAt: DateTime.parse(json['calculated_at'] as String),
+        avatar3dInfo: json['avatar_3d_info'] != null
+            ? Avatar3dInfo.fromJson(json['avatar_3d_info'] as Map<String, dynamic>)
+            : null,
       );
 
   String toJsonString() => jsonEncode(toJson());
 
   factory FortuneData.fromJsonString(String jsonString) =>
       FortuneData.fromJson(jsonDecode(jsonString) as Map<String, dynamic>);
+}
+
+/// 3D元神形象信息
+class Avatar3dInfo {
+  final String taskId;           // Meshy任务ID
+  final String status;           // 任务状态
+  final String? glbUrl;          // GLB模型URL
+  final String? fbxUrl;          // FBX模型URL
+  final String? objUrl;          // OBJ模型URL
+  final String? usdzUrl;         // USDZ模型URL (iOS AR)
+  final String? thumbnailUrl;    // 缩略图URL
+  final String? videoUrl;        // 预览视频URL
+  final String prompt;           // 生成使用的提示词
+  final DateTime createdAt;      // 创建时间
+  final bool isRefined;          // 是否是精细化后的模型（带贴图）
+  final bool isRigged;           // 是否已绑定骨骼
+  final bool hasAnimation;       // 是否有动画
+  final String? rigTaskId;       // 骨骼绑定任务ID
+  final String? animationTaskId; // 动画任务ID
+  final RiggedModelInfo? riggedModel;  // 绑定后的模型信息
+  final List<AnimationInfo>? animations; // 动画列表
+
+  Avatar3dInfo({
+    required this.taskId,
+    required this.status,
+    this.glbUrl,
+    this.fbxUrl,
+    this.objUrl,
+    this.usdzUrl,
+    this.thumbnailUrl,
+    this.videoUrl,
+    required this.prompt,
+    required this.createdAt,
+    this.isRefined = false,
+    this.isRigged = false,
+    this.hasAnimation = false,
+    this.rigTaskId,
+    this.animationTaskId,
+    this.riggedModel,
+    this.animations,
+  });
+
+  bool get isReady => status == 'SUCCEEDED' && glbUrl != null;
+
+  /// 是否是完整的精细化模型（带贴图，可用于展示）
+  bool get isFullModel => isReady && isRefined;
+
+  /// 是否是完整的可动画模型（带骨骼绑定）
+  bool get isAnimatableModel => isReady && isRigged && riggedModel != null;
+
+  /// 获取最佳可用的GLB URL（优先使用绑定后的模型）
+  String? get bestGlbUrl {
+    if (riggedModel?.glbUrl != null) return riggedModel!.glbUrl;
+    return glbUrl;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'task_id': taskId,
+        'status': status,
+        if (glbUrl != null) 'glb_url': glbUrl,
+        if (fbxUrl != null) 'fbx_url': fbxUrl,
+        if (objUrl != null) 'obj_url': objUrl,
+        if (usdzUrl != null) 'usdz_url': usdzUrl,
+        if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+        if (videoUrl != null) 'video_url': videoUrl,
+        'prompt': prompt,
+        'created_at': createdAt.toIso8601String(),
+        'is_refined': isRefined,
+        'is_rigged': isRigged,
+        'has_animation': hasAnimation,
+        if (rigTaskId != null) 'rig_task_id': rigTaskId,
+        if (animationTaskId != null) 'animation_task_id': animationTaskId,
+        if (riggedModel != null) 'rigged_model': riggedModel!.toJson(),
+        if (animations != null) 'animations': animations!.map((a) => a.toJson()).toList(),
+      };
+
+  factory Avatar3dInfo.fromJson(Map<String, dynamic> json) => Avatar3dInfo(
+        taskId: json['task_id'] as String,
+        status: json['status'] as String,
+        glbUrl: json['glb_url'] as String?,
+        fbxUrl: json['fbx_url'] as String?,
+        objUrl: json['obj_url'] as String?,
+        usdzUrl: json['usdz_url'] as String?,
+        thumbnailUrl: json['thumbnail_url'] as String?,
+        videoUrl: json['video_url'] as String?,
+        prompt: json['prompt'] as String? ?? '',
+        createdAt: DateTime.parse(json['created_at'] as String),
+        isRefined: json['is_refined'] as bool? ?? false,
+        isRigged: json['is_rigged'] as bool? ?? false,
+        hasAnimation: json['has_animation'] as bool? ?? false,
+        rigTaskId: json['rig_task_id'] as String?,
+        animationTaskId: json['animation_task_id'] as String?,
+        riggedModel: json['rigged_model'] != null
+            ? RiggedModelInfo.fromJson(json['rigged_model'] as Map<String, dynamic>)
+            : null,
+        animations: json['animations'] != null
+            ? (json['animations'] as List)
+                .map((a) => AnimationInfo.fromJson(a as Map<String, dynamic>))
+                .toList()
+            : null,
+      );
+
+  /// 创建更新后的副本
+  Avatar3dInfo copyWith({
+    String? taskId,
+    String? status,
+    String? glbUrl,
+    String? fbxUrl,
+    String? objUrl,
+    String? usdzUrl,
+    String? thumbnailUrl,
+    String? videoUrl,
+    String? prompt,
+    DateTime? createdAt,
+    bool? isRefined,
+    bool? isRigged,
+    bool? hasAnimation,
+    String? rigTaskId,
+    String? animationTaskId,
+    RiggedModelInfo? riggedModel,
+    List<AnimationInfo>? animations,
+  }) {
+    return Avatar3dInfo(
+      taskId: taskId ?? this.taskId,
+      status: status ?? this.status,
+      glbUrl: glbUrl ?? this.glbUrl,
+      fbxUrl: fbxUrl ?? this.fbxUrl,
+      objUrl: objUrl ?? this.objUrl,
+      usdzUrl: usdzUrl ?? this.usdzUrl,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      videoUrl: videoUrl ?? this.videoUrl,
+      prompt: prompt ?? this.prompt,
+      createdAt: createdAt ?? this.createdAt,
+      isRefined: isRefined ?? this.isRefined,
+      isRigged: isRigged ?? this.isRigged,
+      hasAnimation: hasAnimation ?? this.hasAnimation,
+      rigTaskId: rigTaskId ?? this.rigTaskId,
+      animationTaskId: animationTaskId ?? this.animationTaskId,
+      riggedModel: riggedModel ?? this.riggedModel,
+      animations: animations ?? this.animations,
+    );
+  }
+}
+
+/// 骨骼绑定后的模型信息
+class RiggedModelInfo {
+  final String taskId;
+  final String? glbUrl;
+  final String? fbxUrl;
+  final BasicAnimations? basicAnimations;  // 基础动画（行走/跑步）
+  final DateTime? createdAt;
+
+  RiggedModelInfo({
+    required this.taskId,
+    this.glbUrl,
+    this.fbxUrl,
+    this.basicAnimations,
+    this.createdAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'task_id': taskId,
+        if (glbUrl != null) 'glb_url': glbUrl,
+        if (fbxUrl != null) 'fbx_url': fbxUrl,
+        if (basicAnimations != null) 'basic_animations': basicAnimations!.toJson(),
+        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+      };
+
+  factory RiggedModelInfo.fromJson(Map<String, dynamic> json) => RiggedModelInfo(
+        taskId: json['task_id'] as String,
+        glbUrl: json['glb_url'] as String?,
+        fbxUrl: json['fbx_url'] as String?,
+        basicAnimations: json['basic_animations'] != null
+            ? BasicAnimations.fromJson(json['basic_animations'] as Map<String, dynamic>)
+            : null,
+        createdAt: json['created_at'] != null
+            ? DateTime.parse(json['created_at'] as String)
+            : null,
+      );
+}
+
+/// 基础动画（绑定时自动生成的行走/跑步动画）
+class BasicAnimations {
+  final String? walkingGlbUrl;
+  final String? walkingFbxUrl;
+  final String? walkingArmatureGlbUrl;
+  final String? runningGlbUrl;
+  final String? runningFbxUrl;
+  final String? runningArmatureGlbUrl;
+
+  BasicAnimations({
+    this.walkingGlbUrl,
+    this.walkingFbxUrl,
+    this.walkingArmatureGlbUrl,
+    this.runningGlbUrl,
+    this.runningFbxUrl,
+    this.runningArmatureGlbUrl,
+  });
+
+  Map<String, dynamic> toJson() => {
+        if (walkingGlbUrl != null) 'walking_glb_url': walkingGlbUrl,
+        if (walkingFbxUrl != null) 'walking_fbx_url': walkingFbxUrl,
+        if (walkingArmatureGlbUrl != null) 'walking_armature_glb_url': walkingArmatureGlbUrl,
+        if (runningGlbUrl != null) 'running_glb_url': runningGlbUrl,
+        if (runningFbxUrl != null) 'running_fbx_url': runningFbxUrl,
+        if (runningArmatureGlbUrl != null) 'running_armature_glb_url': runningArmatureGlbUrl,
+      };
+
+  factory BasicAnimations.fromJson(Map<String, dynamic> json) => BasicAnimations(
+        walkingGlbUrl: json['walking_glb_url'] as String?,
+        walkingFbxUrl: json['walking_fbx_url'] as String?,
+        walkingArmatureGlbUrl: json['walking_armature_glb_url'] as String?,
+        runningGlbUrl: json['running_glb_url'] as String?,
+        runningFbxUrl: json['running_fbx_url'] as String?,
+        runningArmatureGlbUrl: json['running_armature_glb_url'] as String?,
+      );
+}
+
+/// 动画信息
+class AnimationInfo {
+  final String taskId;
+  final int actionId;
+  final String actionName;
+  final String? glbUrl;
+  final String? fbxUrl;
+  final String? usdzUrl;
+  final DateTime? createdAt;
+
+  AnimationInfo({
+    required this.taskId,
+    required this.actionId,
+    required this.actionName,
+    this.glbUrl,
+    this.fbxUrl,
+    this.usdzUrl,
+    this.createdAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'task_id': taskId,
+        'action_id': actionId,
+        'action_name': actionName,
+        if (glbUrl != null) 'glb_url': glbUrl,
+        if (fbxUrl != null) 'fbx_url': fbxUrl,
+        if (usdzUrl != null) 'usdz_url': usdzUrl,
+        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+      };
+
+  factory AnimationInfo.fromJson(Map<String, dynamic> json) => AnimationInfo(
+        taskId: json['task_id'] as String,
+        actionId: json['action_id'] as int,
+        actionName: json['action_name'] as String? ?? '',
+        glbUrl: json['glb_url'] as String?,
+        fbxUrl: json['fbx_url'] as String?,
+        usdzUrl: json['usdz_url'] as String?,
+        createdAt: json['created_at'] != null
+            ? DateTime.parse(json['created_at'] as String)
+            : null,
+      );
+}
+
+/// 动画库项目
+class AnimationLibraryItem {
+  final int actionId;
+  final String name;
+  final String category;
+  final String? subcategory;
+  final String? description;
+  final String? previewUrl;
+
+  AnimationLibraryItem({
+    required this.actionId,
+    required this.name,
+    required this.category,
+    this.subcategory,
+    this.description,
+    this.previewUrl,
+  });
+
+  factory AnimationLibraryItem.fromJson(Map<String, dynamic> json) => AnimationLibraryItem(
+        actionId: json['action_id'] as int,
+        name: json['name'] as String,
+        category: json['category'] as String,
+        subcategory: json['subcategory'] as String?,
+        description: json['description'] as String?,
+        previewUrl: json['preview_url'] as String?,
+      );
+}
+
+/// 推荐的动画配置（元神主题）
+class RecommendedAnimations {
+  static const List<Map<String, dynamic>> forYuanShen = [
+    {'action_id': 0, 'name': 'Idle', 'description': '默认待机'},
+    {'action_id': 125, 'name': 'CastingSpell_01', 'description': '施法动作1'},
+    {'action_id': 126, 'name': 'CastingSpell_02', 'description': '施法动作2'},
+    {'action_id': 41, 'name': 'Formal_Bow', 'description': '正式鞠躬'},
+    {'action_id': 59, 'name': 'Victory_Cheer', 'description': '胜利欢呼'},
+    {'action_id': 63, 'name': 'Hip_Hop_Dance_01', 'description': '舞蹈动作'},
+  ];
 }

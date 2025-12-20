@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
@@ -24,9 +24,13 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = false;
   StreamSubscription<String>? _streamSubscription;
 
+  /// 当前聊天会话的唯一ID，用于管理 SSE 连接
+  String _currentChatSessionId = '';
+
   @override
   void initState() {
     super.initState();
+    _currentChatSessionId = 'chat_${DateTime.now().millisecondsSinceEpoch}';
     // 添加欢迎消息
     _messages.add(ChatMessage(
       text: '你好,我是你的专属元灵。我会陪伴你,倾听你的心声,也会在需要时给你一些人生的建议。',
@@ -153,7 +157,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
-    final markdownStyle = _buildMarkdownStyle(context, message.isUser);
+    final markdownConfig = _buildMarkdownConfig(message.isUser);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -169,7 +173,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(width: 8),
           ],
-          
+
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -187,10 +191,11 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  MarkdownBody(
+                  MarkdownWidget(
                     data: message.text,
                     selectable: true,
-                    styleSheet: markdownStyle,
+                    shrinkWrap: true,
+                    config: markdownConfig,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -206,7 +211,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
           ),
-          
+
           if (message.isUser) ...[
             const SizedBox(width: 8),
             CircleAvatar(
@@ -221,7 +226,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _sendMessage() {
     final text = _messageController.text.trim();
-    if (text.isEmpty || _isLoading) return;
+    if (text.isEmpty) return;
+
+    // 如果正在加载，先取消当前请求
+    if (_isLoading) {
+      _cancelCurrentRequest();
+    }
 
     setState(() {
       _messages.add(ChatMessage(
@@ -245,6 +255,24 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       // 没有命盘数据，使用模拟回复
       _mockResponse(text);
+    }
+  }
+
+  /// 取消当前请求
+  void _cancelCurrentRequest() {
+    _streamSubscription?.cancel();
+    _streamSubscription = null;
+    _apiService.cancelFortuneStream(connectionId: _currentChatSessionId);
+
+    // 如果最后一条消息是空的 AI 消息，更新为取消提示
+    if (_messages.isNotEmpty && !_messages.last.isUser && _messages.last.text.isEmpty) {
+      setState(() {
+        _messages[_messages.length - 1] = ChatMessage(
+          text: '[已取消]',
+          isUser: false,
+          timestamp: DateTime.now(),
+        );
+      });
     }
   }
 
@@ -278,8 +306,14 @@ class _ChatScreenState extends State<ChatScreen> {
       ));
     });
 
-    // 调用流式API
-    final stream = _apiService.fortuneStream(request);
+    // 先取消之前的订阅（防止内存泄漏）
+    _streamSubscription?.cancel();
+
+    // 调用流式API，使用会话ID作为连接ID
+    final stream = _apiService.fortuneStream(
+      request,
+      connectionId: _currentChatSessionId,
+    );
     final buffer = StringBuffer();
 
     _streamSubscription = stream.listen(
@@ -346,53 +380,139 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  MarkdownStyleSheet _buildMarkdownStyle(BuildContext context, bool isUser) {
-    final base = MarkdownStyleSheet.fromTheme(Theme.of(context));
+  MarkdownConfig _buildMarkdownConfig(bool isUser) {
     final textColor = isUser ? Colors.white : Colors.black87;
     final codeBackground =
         isUser ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.04);
-    final quoteBackground =
-        isUser ? Colors.white.withValues(alpha: 0.08) : Colors.purple.shade50;
     final quoteBorderColor =
         isUser ? Colors.white.withValues(alpha: 0.5) : Colors.purple.shade200;
+    final linkColor = isUser ? Colors.lightBlueAccent : Colors.blue;
 
-    return base.copyWith(
-      p: (base.p ?? const TextStyle()).copyWith(
-        color: textColor,
-        fontSize: 15,
-        height: 1.45,
-      ),
-      h1: (base.h1 ?? const TextStyle()).copyWith(color: textColor),
-      h2: (base.h2 ?? const TextStyle()).copyWith(color: textColor),
-      h3: (base.h3 ?? const TextStyle()).copyWith(color: textColor),
-      h4: (base.h4 ?? const TextStyle()).copyWith(color: textColor),
-      h5: (base.h5 ?? const TextStyle()).copyWith(color: textColor),
-      h6: (base.h6 ?? const TextStyle()).copyWith(color: textColor),
-      strong: (base.strong ?? const TextStyle(fontWeight: FontWeight.w600))
-          .copyWith(color: textColor),
-      em: (base.em ?? const TextStyle(fontStyle: FontStyle.italic))
-          .copyWith(color: textColor),
-      code: (base.code ?? const TextStyle(fontFamily: 'monospace'))
-          .copyWith(color: textColor),
-      listBullet: TextStyle(color: textColor, fontSize: 15),
-      blockquoteDecoration: BoxDecoration(
-        color: quoteBackground,
-        borderRadius: BorderRadius.circular(8),
-        border: Border(
-          left: BorderSide(color: quoteBorderColor, width: 3),
+    final textStyle = TextStyle(
+      color: textColor,
+      fontSize: 15,
+      height: 1.45,
+    );
+
+    // 使用 darkConfig 或 defaultConfig 作为基础，确保所有行内样式正确渲染
+    final baseConfig = isUser ? MarkdownConfig.darkConfig : MarkdownConfig.defaultConfig;
+
+    return baseConfig.copy(
+      configs: [
+        // 段落样式 (p) - 包含行内元素的基础样式
+        PConfig(textStyle: textStyle),
+        // 标题样式 (# ~ ######)
+        H1Config(style: textStyle.copyWith(fontSize: 24, fontWeight: FontWeight.bold)),
+        H2Config(style: textStyle.copyWith(fontSize: 20, fontWeight: FontWeight.bold)),
+        H3Config(style: textStyle.copyWith(fontSize: 18, fontWeight: FontWeight.bold)),
+        H4Config(style: textStyle.copyWith(fontSize: 16, fontWeight: FontWeight.bold)),
+        H5Config(style: textStyle.copyWith(fontSize: 15, fontWeight: FontWeight.bold)),
+        H6Config(style: textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.bold)),
+        // 行内代码样式 (`code`)
+        CodeConfig(style: TextStyle(
+          color: textColor,
+          backgroundColor: codeBackground,
+          fontFamily: 'monospace',
+          fontSize: 14,
+        )),
+        // 代码块样式 (```code```)
+        PreConfig(
+          decoration: BoxDecoration(
+            color: codeBackground,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: TextStyle(
+            color: textColor,
+            fontFamily: 'monospace',
+            fontSize: 14,
+          ),
+          language: '',
         ),
-      ),
-      codeblockDecoration: BoxDecoration(
-        color: codeBackground,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      horizontalRuleDecoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: textColor.withValues(alpha: 0.2),
+        // 引用块样式 (> quote)
+        BlockquoteConfig(
+          sideColor: quoteBorderColor,
+          textColor: textColor,
+        ),
+        // 列表样式 (- item 或 1. item)
+        ListConfig(
+          marker: (isOrdered, depth, index) {
+            if (isOrdered) {
+              return Container(
+                margin: const EdgeInsets.only(right: 8),
+                child: Text(
+                  '${index + 1}.',
+                  style: TextStyle(color: textColor, fontSize: 15),
+                ),
+              );
+            } else {
+              final markers = ['•', '◦', '▪'];
+              return Container(
+                margin: const EdgeInsets.only(right: 8),
+                child: Text(
+                  markers[depth % markers.length],
+                  style: TextStyle(color: textColor, fontSize: 15),
+                ),
+              );
+            }
+          },
+        ),
+        // 链接样式 ([text](url))
+        LinkConfig(
+          style: TextStyle(
+            color: linkColor,
+            decoration: TextDecoration.underline,
           ),
         ),
-      ),
+        // 图片样式 (![alt](url))
+        ImgConfig(
+          builder: (url, attributes) {
+            return Image.network(
+              url,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: codeBackground,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.broken_image, color: textColor, size: 16),
+                      const SizedBox(width: 4),
+                      Text('图片加载失败', style: TextStyle(color: textColor, fontSize: 12)),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        // 表格样式 (| col1 | col2 |)
+        TableConfig(
+          headerStyle: textStyle.copyWith(fontWeight: FontWeight.bold),
+          bodyStyle: textStyle,
+          border: TableBorder.all(
+            color: textColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        // 分割线样式 (--- 或 ***)
+        HrConfig(color: textColor.withValues(alpha: 0.3)),
+        // 任务列表样式 (- [ ] 或 - [x])
+        CheckBoxConfig(
+          builder: (checked) {
+            return Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: Icon(
+                checked ? Icons.check_box : Icons.check_box_outline_blank,
+                size: 18,
+                color: checked ? (isUser ? Colors.lightGreenAccent : Colors.green) : textColor,
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -425,6 +545,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    // 取消 SSE 连接
+    _apiService.cancelFortuneStream(connectionId: _currentChatSessionId);
     _streamSubscription?.cancel();
     _messageController.dispose();
     _scrollController.dispose();

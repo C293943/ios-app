@@ -133,26 +133,40 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
       // 保存完整命盘数据（ziwei_info 可能为空，创建一个默认的）
       final ziweiInfo = response.ziweiInfo ?? ZiweiInfo(mingGong: '');
-      final fortuneData = FortuneData(
+      var fortuneData = FortuneData(
         birthInfo: birthInfo,
         baziInfo: response.baziInfo!,
         ziweiInfo: ziweiInfo,
         calculatedAt: DateTime.now(),
       );
-      await modelManager.saveFortuneData(fortuneData);
 
       setState(() {
-        _statusText = '正在生成3D形象...';
+        _statusText = '正在生成3D元神形象...';
         _detailText = response.ziweiInfo?.mingGong.isNotEmpty == true
             ? '命宫: ${response.ziweiInfo!.mingGong}'
             : '日主: ${response.baziInfo!.dayGan}';
       });
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
 
+      // 调用 Meshy API 生成3D形象
+      final avatar3dInfo = await _generate3dAvatar(
+        baziInfo: response.baziInfo!,
+        gender: birthInfo.gender,
+      );
+
+      // 更新命盘数据，添加3D信息
+      if (avatar3dInfo != null) {
+        fortuneData = fortuneData.copyWith(avatar3dInfo: avatar3dInfo);
+      }
+
+      // 保存命盘数据
+      await modelManager.saveFortuneData(fortuneData);
+
+      if (!mounted) return;
       setState(() {
         _statusText = '生成完成!';
-        _detailText = '';
+        _detailText = avatar3dInfo?.isReady == true ? '元神形象已就绪' : '';
       });
     } else {
       // API调用失败，显示错误信息
@@ -187,6 +201,204 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       AppRoutes.home,
       (route) => false,
     );
+  }
+
+  /// 生成3D元神形象（通过后端API）
+  /// 使用 SSE 流式获取进度，支持两阶段流程：预览 -> 精细化
+  /// 预览完成后先展示预览模型，精细化完成后更新为精细化模型
+  Future<Avatar3dInfo?> _generate3dAvatar({
+    required BaziInfo baziInfo,
+    required String gender,
+  }) async {
+    Avatar3dInfo? previewResult;  // 保存预览结果
+
+    try {
+      setState(() {
+        _statusText = '正在凝聚元神...';
+        _detailText = '根据八字生成专属形象';
+      });
+
+      final apiService = FortuneApiService();
+
+      // 通过后端创建3D任务（自动执行两阶段流程）
+      final createResponse = await apiService.createAvatar3dTask(
+        dayMaster: baziInfo.dayGan,
+        gender: gender,
+        fiveElements: baziInfo.fiveElements,
+        fiveElementsStrength: baziInfo.fiveElementsStrength,
+        autoRefine: true,  // 自动执行精细化
+        enablePbr: true,   // 生成PBR贴图
+      );
+
+      if (!createResponse.success || createResponse.taskId == null) {
+        debugPrint('[3D生成] 创建任务失败: ${createResponse.error}');
+        setState(() {
+          _detailText = '3D生成服务暂时不可用';
+        });
+        return null;
+      }
+
+      final taskId = createResponse.taskId!;
+      final prompt = createResponse.prompt ?? '';
+      debugPrint('[3D生成] 任务已创建: $taskId');
+      debugPrint('[3D生成] 提示词: $prompt');
+
+      setState(() {
+        _statusText = '元神正在凝聚...';
+        _detailText = '预览阶段：连接中...';
+      });
+
+      // 使用 SSE 流式获取进度（更优雅）
+      final taskStatus = await apiService.waitForAvatar3dCompletionSSE(
+        taskId,
+        onProgress: (status, totalProgress, stage) {
+          if (mounted) {
+            setState(() {
+              _statusText = _getStatusTextForStage(status, stage);
+              _detailText = '总进度: $totalProgress%';
+              // 更新进度条（3D生成占后半段进度）
+              _progress = 0.5 + (totalProgress / 100) * 0.5;
+            });
+          }
+        },
+        onStageChanged: (stage) {
+          if (mounted) {
+            setState(() {
+              if (stage == 'preview') {
+                _statusText = '正在生成3D网格...';
+                _detailText = '预览阶段';
+              } else if (stage == 'refine') {
+                _statusText = '正在添加贴图...';
+                _detailText = '精细化阶段（预览模型已就绪）';
+              }
+            });
+          }
+        },
+        onPreviewComplete: (event) {
+          // 预览完成，保存预览结果
+          debugPrint('[3D生成] 预览完成! GLB: ${event.modelUrls?['glb']}');
+          previewResult = Avatar3dInfo(
+            taskId: taskId,
+            status: 'PREVIEW_SUCCEEDED',
+            glbUrl: event.modelUrls?['glb'],
+            fbxUrl: event.modelUrls?['fbx'],
+            objUrl: event.modelUrls?['obj'],
+            usdzUrl: event.modelUrls?['usdz'],
+            thumbnailUrl: event.thumbnailUrl,
+            videoUrl: event.videoUrl,
+            prompt: prompt,
+            createdAt: DateTime.now(),
+            isRefined: false,  // 预览模型，未精细化
+          );
+
+          if (mounted) {
+            setState(() {
+              _statusText = '预览模型已就绪';
+              _detailText = '正在进行精细化处理...';
+            });
+          }
+        },
+      );
+
+      if (taskStatus.isSucceeded) {
+        debugPrint('[3D生成] 生成成功!');
+        debugPrint('[3D生成] GLB URL: ${taskStatus.modelUrls?['glb']}');
+        debugPrint('[3D生成] 缩略图: ${taskStatus.thumbnailUrl}');
+        debugPrint('[3D生成] 是否精细化模型: ${taskStatus.isRefinedModel}');
+
+        return Avatar3dInfo(
+          taskId: taskId,
+          status: taskStatus.status,
+          glbUrl: taskStatus.modelUrls?['glb'],
+          fbxUrl: taskStatus.modelUrls?['fbx'],
+          objUrl: taskStatus.modelUrls?['obj'],
+          usdzUrl: taskStatus.modelUrls?['usdz'],
+          thumbnailUrl: taskStatus.thumbnailUrl,
+          videoUrl: taskStatus.videoUrl,
+          prompt: prompt,
+          createdAt: DateTime.now(),
+          isRefined: taskStatus.isRefinedModel,
+        );
+      } else {
+        debugPrint('[3D生成] 生成失败: ${taskStatus.error}');
+
+        // 如果精细化失败但有预览结果，返回预览结果
+        if (previewResult != null) {
+          debugPrint('[3D生成] 返回预览结果作为备用');
+          setState(() {
+            _detailText = '精细化失败，使用预览模型';
+          });
+          return previewResult;
+        }
+
+        setState(() {
+          _detailText = taskStatus.error ?? '生成失败';
+        });
+        return Avatar3dInfo(
+          taskId: taskId,
+          status: taskStatus.status,
+          prompt: prompt,
+          createdAt: DateTime.now(),
+        );
+      }
+    } catch (e) {
+      debugPrint('[3D生成] 异常: $e');
+
+      // 异常时如果有预览结果，返回预览结果
+      if (previewResult != null) {
+        debugPrint('[3D生成] 异常，返回预览结果');
+        setState(() {
+          _detailText = '连接中断，使用预览模型';
+        });
+        return previewResult;
+      }
+
+      setState(() {
+        _detailText = '3D生成出错: $e';
+      });
+      return null;
+    }
+  }
+
+  String _getStatusTextForStage(String status, String stage) {
+    final stageText = stage == 'refine' ? '精细化' : '预览';
+    switch (status) {
+      case 'PENDING':
+        return '$stageText排队中...';
+      case 'IN_PROGRESS':
+        return stage == 'refine' ? '正在添加贴图...' : '正在生成3D网格...';
+      case 'STAGE_CHANGE':
+        return '预览完成，开始精细化...';
+      case 'SUCCEEDED':
+        return '生成完成!';
+      case 'FAILED':
+        return '$stageText失败';
+      case 'CANCELED':
+        return '已取消';
+      default:
+        return '处理中...';
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case 'PENDING':
+        return '排队中...';
+      case 'IN_PROGRESS':
+        return '正在生成...';
+      case 'PREVIEW_PENDING':
+        return '预览排队中...';
+      case 'REFINE_PENDING':
+        return '精细化排队中...';
+      case 'SUCCEEDED':
+        return '生成完成!';
+      case 'FAILED':
+        return '生成失败';
+      case 'CANCELED':
+        return '已取消';
+      default:
+        return '处理中...';
+    }
   }
 
   @override

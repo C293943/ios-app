@@ -51,7 +51,41 @@ class AppConfig {
   
   // 3D配置
   static const String defaultModelPath = 'assets/3d_models/default_avatar.obj';
-  
+
+  // 3D 元神形象 API 端点（通过后端调用 Meshy API）
+  // ============ 基础生成流程 ============
+  // POST /api/v1/avatar3d/create - 创建任务（预览 + 精细化）
+  // GET /api/v1/avatar3d/status/{task_id} - 查询状态
+  // GET /api/v1/avatar3d/stream/{task_id} - SSE 流式获取进度
+  static const String avatar3dCreateEndpoint = '/api/v1/avatar3d/create';
+  static const String avatar3dStatusEndpoint = '/api/v1/avatar3d/status';
+  static const String avatar3dStreamEndpoint = '/api/v1/avatar3d/stream';
+
+  // ============ 换皮肤/换材质 (Retexture) ============
+  // POST /api/v1/avatar3d/retexture - 创建换皮肤任务
+  // GET /api/v1/avatar3d/retexture/{task_id} - 查询换皮肤状态
+  // GET /api/v1/avatar3d/retexture/{task_id}/stream - SSE 流式获取进度
+  static const String avatar3dRetextureEndpoint = '/api/v1/avatar3d/retexture';
+
+  // ============ 骨骼绑定 (Rigging) ============
+  // POST /api/v1/avatar3d/rig - 创建骨骼绑定任务
+  // GET /api/v1/avatar3d/rig/{task_id} - 查询绑定状态
+  // GET /api/v1/avatar3d/rig/{task_id}/stream - SSE 流式获取进度
+  static const String avatar3dRigEndpoint = '/api/v1/avatar3d/rig';
+
+  // ============ 动画绑定 (Animation) ============
+  // POST /api/v1/avatar3d/animate - 创建动画任务
+  // GET /api/v1/avatar3d/animate/{task_id} - 查询动画状态
+  // GET /api/v1/avatar3d/animate/{task_id}/stream - SSE 流式获取进度
+  // GET /api/v1/avatar3d/animations - 获取动画库列表
+  static const String avatar3dAnimateEndpoint = '/api/v1/avatar3d/animate';
+  static const String avatar3dAnimationLibraryEndpoint = '/api/v1/avatar3d/animations';
+
+  // ============ 完整流程（一键生成） ============
+  // POST /api/v1/avatar3d/create-full - 完整流程：预览→精细化→绑定→动画
+  // GET /api/v1/avatar3d/full/{task_id}/stream - SSE 流式获取完整流程进度
+  static const String avatar3dCreateFullEndpoint = '/api/v1/avatar3d/create-full';
+
   // 缓存配置
   static const int maxCacheSize = 100 * 1024 * 1024; // 100MB
   static const Duration cacheValidDuration = Duration(days: 7);

@@ -36,9 +36,13 @@ class _ChatOverlayState extends State<ChatOverlay> {
   bool _isLoading = false;
   StreamSubscription<String>? _streamSubscription;
 
+  /// 当前聊天会话的唯一ID，用于管理 SSE 连接
+  String _currentChatSessionId = '';
+
   @override
   void initState() {
     super.initState();
+    _currentChatSessionId = 'overlay_chat_${DateTime.now().millisecondsSinceEpoch}';
     _messages.add(ChatMessage(
       text: '在存亮透过的瞬息，谢谢结缘的距离？\n元神的经过的瞬息，意不如型诚语...',
       isUser: false,
@@ -261,7 +265,12 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   void _sendMessage() {
     final text = _messageController.text.trim();
-    if (text.isEmpty || _isLoading) return;
+    if (text.isEmpty) return;
+
+    // 如果正在加载，先取消当前请求
+    if (_isLoading) {
+      _cancelCurrentRequest();
+    }
 
     setState(() {
       _messages.add(ChatMessage(
@@ -285,6 +294,24 @@ class _ChatOverlayState extends State<ChatOverlay> {
     } else {
       // 没有命盘数据，使用模拟回复
       _mockResponse();
+    }
+  }
+
+  /// 取消当前请求
+  void _cancelCurrentRequest() {
+    _streamSubscription?.cancel();
+    _streamSubscription = null;
+    _apiService.cancelFortuneStream(connectionId: _currentChatSessionId);
+
+    // 如果最后一条消息是空的 AI 消息，更新为取消提示
+    if (_messages.isNotEmpty && !_messages.last.isUser && _messages.last.text.isEmpty) {
+      setState(() {
+        _messages[_messages.length - 1] = ChatMessage(
+          text: '[已取消]',
+          isUser: false,
+          timestamp: DateTime.now(),
+        );
+      });
     }
   }
 
@@ -318,8 +345,14 @@ class _ChatOverlayState extends State<ChatOverlay> {
       ));
     });
 
-    // 调用流式API
-    final stream = _apiService.fortuneStream(request);
+    // 先取消之前的订阅（防止内存泄漏）
+    _streamSubscription?.cancel();
+
+    // 调用流式API，使用会话ID作为连接ID
+    final stream = _apiService.fortuneStream(
+      request,
+      connectionId: _currentChatSessionId,
+    );
     final buffer = StringBuffer();
 
     _streamSubscription = stream.listen(
@@ -388,6 +421,8 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   @override
   void dispose() {
+    // 取消 SSE 连接
+    _apiService.cancelFortuneStream(connectionId: _currentChatSessionId);
     _streamSubscription?.cancel();
     _messageController.dispose();
     _scrollController.dispose();

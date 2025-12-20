@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
@@ -331,6 +332,114 @@ class ModelManagerService extends ChangeNotifier {
     await prefs.remove(_userBaziKey);
     await prefs.remove(_fortuneDataKey);
     notifyListeners();
+  }
+
+  /// 下载远程 3D 模型到本地（解决 CORS 问题）
+  /// 返回本地文件路径，如果下载失败返回 null
+  Future<String?> downloadRemoteModel(
+    String remoteUrl, {
+    String? taskId,
+    Function(double progress)? onProgress,
+  }) async {
+    try {
+      debugPrint('[ModelManager] 开始下载模型: $remoteUrl');
+
+      // 获取应用文档目录
+      final appDir = await getApplicationDocumentsDirectory();
+      final modelsDir = Directory('${appDir.path}/3d_models/downloaded');
+
+      // 创建目录
+      if (!await modelsDir.exists()) {
+        await modelsDir.create(recursive: true);
+      }
+
+      // 生成文件名（使用 taskId 或 URL hash）
+      final fileName = taskId != null
+          ? '${taskId}_model.glb'
+          : '${remoteUrl.hashCode.abs()}_model.glb';
+      final localPath = '${modelsDir.path}/$fileName';
+      final localFile = File(localPath);
+
+      // 如果文件已存在且大小合理，直接返回
+      if (await localFile.exists()) {
+        final fileSize = await localFile.length();
+        if (fileSize > 1024) {
+          // 大于 1KB 认为是有效文件
+          debugPrint('[ModelManager] 使用缓存文件: $localPath (${fileSize} bytes)');
+          return localPath;
+        }
+      }
+
+      // 下载文件
+      final request = http.Request('GET', Uri.parse(remoteUrl));
+      final response = await http.Client().send(request);
+
+      if (response.statusCode != 200) {
+        debugPrint('[ModelManager] 下载失败: ${response.statusCode}');
+        return null;
+      }
+
+      // 获取文件总大小
+      final contentLength = response.contentLength ?? 0;
+      var downloadedBytes = 0;
+
+      // 创建文件并写入
+      final sink = localFile.openWrite();
+
+      await for (final chunk in response.stream) {
+        sink.add(chunk);
+        downloadedBytes += chunk.length;
+
+        // 报告进度
+        if (contentLength > 0 && onProgress != null) {
+          onProgress(downloadedBytes / contentLength);
+        }
+      }
+
+      await sink.close();
+
+      final finalSize = await localFile.length();
+      debugPrint('[ModelManager] 下载完成: $localPath (${finalSize} bytes)');
+
+      return localPath;
+    } catch (e) {
+      debugPrint('[ModelManager] 下载模型失败: $e');
+      return null;
+    }
+  }
+
+  /// 获取本地缓存的模型路径（如果存在）
+  Future<String?> getCachedModelPath(String taskId) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final localPath = '${appDir.path}/3d_models/downloaded/${taskId}_model.glb';
+      final localFile = File(localPath);
+
+      if (await localFile.exists()) {
+        final fileSize = await localFile.length();
+        if (fileSize > 1024) {
+          return localPath;
+        }
+      }
+    } catch (e) {
+      debugPrint('[ModelManager] 检查缓存失败: $e');
+    }
+    return null;
+  }
+
+  /// 清除下载的模型缓存
+  Future<void> clearDownloadedModels() async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final modelsDir = Directory('${appDir.path}/3d_models/downloaded');
+
+      if (await modelsDir.exists()) {
+        await modelsDir.delete(recursive: true);
+        debugPrint('[ModelManager] 已清除下载的模型缓存');
+      }
+    } catch (e) {
+      debugPrint('[ModelManager] 清除缓存失败: $e');
+    }
   }
 
   /// 获取模型文件大小

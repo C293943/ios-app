@@ -7,6 +7,7 @@ import 'package:primordial_spirit/widgets/character_3d_viewer.dart';
 import 'package:primordial_spirit/widgets/character_2d_viewer.dart';
 import 'package:primordial_spirit/widgets/character_live2d_viewer.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
+import 'package:primordial_spirit/models/fortune_models.dart';
 
 /// 角色显示组件 - 支持3D、2D和Live2D模式切换
 class CharacterDisplay extends StatefulWidget {
@@ -75,6 +76,7 @@ class CharacterDisplayState extends State<CharacterDisplay> {
       builder: (context, modelManager, child) {
         final selectedModel = modelManager.selectedModel;
         final currentMode = modelManager.displayMode;
+        final fortuneData = modelManager.fortuneData;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -96,7 +98,11 @@ class CharacterDisplayState extends State<CharacterDisplay> {
                         ),
                       );
                     },
-                    child: _buildCurrentViewer(selectedModel, currentMode),
+                    child: _buildCurrentViewer(
+                      selectedModel,
+                      currentMode,
+                      fortuneData?.avatar3dInfo,
+                    ),
                   ),
                 ],
               ),
@@ -120,10 +126,17 @@ class CharacterDisplayState extends State<CharacterDisplay> {
     );
   }
 
-  Widget _buildCurrentViewer(Model3DConfig? selectedModel, DisplayMode currentMode) {
+  Widget _buildCurrentViewer(
+    Model3DConfig? selectedModel,
+    DisplayMode currentMode,
+    Avatar3dInfo? avatar3dInfo,
+  ) {
     switch (currentMode) {
       case DisplayMode.mode3D:
-        final modelPath = widget.modelPath3D ?? selectedModel?.path ?? '';
+        // 优先展示刚生成的远程 GLB，其次使用传入/选中模型
+        final generatedModelPath =
+            (avatar3dInfo?.isReady ?? false) ? avatar3dInfo!.glbUrl : null;
+        final modelPath = widget.modelPath3D ?? generatedModelPath ?? selectedModel?.path ?? '';
         if (modelPath.isEmpty) {
           return const Center(
             child: Text(
@@ -138,6 +151,7 @@ class CharacterDisplayState extends State<CharacterDisplay> {
           size: widget.size,
           autoPlay: true,
           initialAnimation: selectedModel?.defaultAnimation,
+          taskId: avatar3dInfo?.taskId, // 传递 taskId 用于缓存标识
           onAnimationsLoaded: (animations) {
              if (mounted) {
                setState(() {
