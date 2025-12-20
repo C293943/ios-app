@@ -44,12 +44,35 @@ jobs:
           mv build/ios/iphoneos/Runner.app Payload/
           zip -r app-release-unsigned.ipa Payload
 
-      - name: Upload iOS IPA
+      # 上传到 Artifact（保留，可选）
+      - name: Upload iOS IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
           path: app-release-unsigned.ipa
           retention-days: 3
+
+      # ======================
+      # 创建 / 上传 Release
+      # ======================
+      - name: Create iOS Release
+        id: ios_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: "ios-${{ github.run_number }}"
+          release_name: "iOS Build #${{ github.run_number }}"
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload IPA to iOS Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.ios_release.outputs.upload_url }}
+          asset_path: ./app-release-unsigned.ipa
+          asset_name: app-release-unsigned.ipa
+          asset_content_type: application/zip
 
   # ======================
   # Android 构建
@@ -78,11 +101,12 @@ jobs:
       - name: Build Android APK (Release)
         run: flutter build apk --release
 
-      # （可选）构建 debug APK，真机即装
+      # 构建 debug APK（可选）
       - name: Build Android APK (Debug)
         run: flutter build apk --debug
 
-      - name: Upload Android APK
+      # 上传到 Artifact
+      - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
@@ -90,3 +114,33 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 3
+
+      # ======================
+      # 创建 / 上传 Android Release
+      # ======================
+      - name: Create Android Release
+        id: android_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: "android-${{ github.run_number }}"
+          release_name: "Android Build #${{ github.run_number }}"
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload APKs to Android Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.android_release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload Debug APK to Android Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.android_release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-debug.apk
+          asset_name: app-debug.apk
+          asset_content_type: application/vnd.android.package-archive
