@@ -4,7 +4,10 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
-
+  
+permissions:
+  contents: write  # <-- 允许创建 Release
+  
 jobs:
   # ======================
   # iOS 构建
