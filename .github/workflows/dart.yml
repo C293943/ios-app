@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: write   # 允许创建 Release + 上传 asset
+
 jobs:
   # ======================
   # iOS 构建
@@ -26,8 +29,21 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - uses: actions/cache@v3
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+
       - name: Install Flutter Dependencies
         run: flutter pub get
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ios/Pods
+            ios/Podfile.lock
+            ~/.cocoapods/repos
+          key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
 
       - name: Install CocoaPods
         run: |
@@ -44,12 +60,33 @@ jobs:
           mv build/ios/iphoneos/Runner.app Payload/
           zip -r app-release-unsigned.ipa Payload
 
-      - name: Upload iOS IPA
+      - name: Upload iOS IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
           path: app-release-unsigned.ipa
           retention-days: 3
+
+      - name: Create iOS Release
+        id: ios_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ios-${{ github.run_number }}
+          release_name: iOS Build #${{ github.run_number }}
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set upload URL for later steps
+        run: echo "UPLOAD_URL=${{ steps.ios_release.outputs.upload_url }}" >> $GITHUB_ENV
+      
+      - name: Upload IPA to iOS Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ env.UPLOAD_URL }}
+          asset_path: ./app-release-unsigned.ipa
+          asset_name: app-release-unsigned.ipa
+          asset_content_type: application/zip
 
   # ======================
   # Android 构建
@@ -70,19 +107,40 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+      # ---------------------------------
+      # 临时升级 Gradle / AGP 解决依赖问题
+      # ---------------------------------
+      - name: Upgrade Gradle Wrapper and AGP for CI
+        run: |
+          cd android
+          # 升级 Gradle Wrapper
+          ./gradlew wrapper --gradle-version 8.3 --distribution-type all
+          # 修改 build.gradle 中的 AGP 版本
+          sed -i 's/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.9.1/' build.gradle
+          cd ..
+          
+      - uses: actions/cache@v3
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Install Flutter Dependencies
         run: flutter pub get
 
-      # 构建 release APK（未签名）
       - name: Build Android APK (Release)
         run: flutter build apk --release
 
-      # （可选）构建 debug APK，真机即装
       - name: Build Android APK (Debug)
         run: flutter build apk --debug
 
-      - name: Upload Android APK
+      - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
@@ -90,3 +148,33 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 3
+
+      - name: Create Android Release
+        id: android_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: android-${{ github.run_number }}
+          release_name: Android Build #${{ github.run_number }}
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release APK to Android Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.android_release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: app-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload Debug APK to Android Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.android_release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-debug.apk
+          asset_name: app-debug.apk
+          asset_content_type: application/vnd.android.package-archive
