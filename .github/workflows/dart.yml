@@ -77,13 +77,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set upload URL for later steps
+        run: echo "UPLOAD_URL=${{ steps.ios_release.outputs.upload_url }}" >> $GITHUB_ENV
+      
       - name: Upload IPA to iOS Release
         uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.ios_release.outputs.upload_url }}
-          asset_path: app-release-unsigned.ipa
+          upload_url: ${{ env.UPLOAD_URL }}
+          asset_path: ./app-release-unsigned.ipa
           asset_name: app-release-unsigned.ipa
           asset_content_type: application/zip
 
@@ -109,20 +110,14 @@ jobs:
       # ---------------------------------
       # 临时升级 Gradle / AGP 解决依赖问题
       # ---------------------------------
-      - name: Upgrade Android Gradle Plugin for CI
+      - name: Upgrade Gradle Wrapper and AGP for CI
         run: |
           cd android
-      
-          # 兼容两种常见写法（Groovy / Kotlin）
-          if [ -f build.gradle ]; then
-            sed -i 's/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.9.1/' build.gradle
-          fi
-      
-          if [ -f build.gradle.kts ]; then
-            sed -i 's/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.9.1"/' build.gradle.kts
-          fi
-      
-          cd .. 
+          # 升级 Gradle Wrapper
+          ./gradlew wrapper --gradle-version 8.3 --distribution-type all
+          # 修改 build.gradle 中的 AGP 版本
+          sed -i 's/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.9.1/' build.gradle
+          cd ..
           
       - uses: actions/cache@v3
         with:
