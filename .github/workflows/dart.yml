@@ -77,16 +77,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Set the upload URL for later steps
       - name: Set upload URL for later steps
         run: echo "UPLOAD_URL=${{ steps.ios_release.outputs.upload_url }}" >> $GITHUB_ENV
-      
+
+      # Upload IPA to iOS Release
       - name: Upload IPA to iOS Release
         uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ env.UPLOAD_URL }}
+          upload_url: ${{ env.UPLOAD_URL }}  # 使用环境变量
           asset_path: ./app-release-unsigned.ipa
           asset_name: app-release-unsigned.ipa
           asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 确保使用 GitHub token 进行认证
+
 
   # ======================
   # Android 构建
@@ -107,6 +112,12 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+
+
+      # 确保 gradlew 文件具有执行权限
+      - name: Make gradlew executable
+        run: chmod +x ./android/gradlew
+    
       # ---------------------------------
       # 临时升级 Gradle / AGP 解决依赖问题
       # ---------------------------------
