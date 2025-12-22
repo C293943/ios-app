@@ -7,13 +7,13 @@ class AppConfig {
 
   // ============ 服务器配置 ============
   // 生产环境服务器地址（上线后使用）
-  static const String productionBaseUrl = 'https://your-production-server.com';
+  static const String productionBaseUrl = 'http://192.168.31.200:8848';
 
   // 开发环境服务器地址（本地调试时的电脑 IP）
   static const String developmentServerIp = '192.168.31.249';
 
   // 是否为生产环境（上线时改为 true）
-  static const bool isProduction = false;
+  static const bool isProduction = true;
 
   // API配置
   // Android模拟器使用10.0.2.2访问主机localhost
