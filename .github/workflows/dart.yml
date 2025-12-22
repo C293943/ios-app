@@ -106,7 +106,24 @@ jobs:
         with:
           channel: 'stable'
           cache: true
-
+      # ---------------------------------
+      # 临时升级 Gradle / AGP 解决依赖问题
+      # ---------------------------------
+      - name: Upgrade Android Gradle Plugin for CI
+        run: |
+          cd android
+      
+          # 兼容两种常见写法（Groovy / Kotlin）
+          if [ -f build.gradle ]; then
+            sed -i 's/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.9.1/' build.gradle
+          fi
+      
+          if [ -f build.gradle.kts ]; then
+            sed -i 's/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.9.1"/' build.gradle.kts
+          fi
+      
+          cd .. 
+          
       - uses: actions/cache@v3
         with:
           path: ~/.pub-cache
