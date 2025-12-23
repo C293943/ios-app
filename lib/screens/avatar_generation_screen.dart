@@ -380,7 +380,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
     }
   }
 
-  String _getStatusText(String status) {
+  String getStatusText(String status) {
     switch (status) {
       case 'PENDING':
         return '排队中...';

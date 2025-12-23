@@ -2,83 +2,81 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Mystic Void Palette (虚空琉璃)
-  static const Color cloudMistWhite = Color(0xFFDCEAF6); // 基调: 云霭白
-  static const Color celestialCyan = Color(0xFF8FBBD9); // 过渡: 天青色
-  static const Color deepVoidBlue = Color(0xFF365B85); // Deepened from #4A6FA5 for better contrast
+  // Mystic Void Palette (虚空琉璃 - Night Valley Edition)
   
-  static const Color jadeGreen = Color(0xFFA8D8B9); // 疗愈: 淡玉绿
-  static const Color muttonFatJade = Color(0xFFF0F4E3); // 温润: 羊脂白
+  // Background Core
+  static const Color daiDeep = Color(0xFF0F1E24);  // 黛色 (Deep Cyan/Black base)
+  static const Color crowCyan = Color(0xFF1C3A40); // 鸦青 (Lighter Cyan/Greenish)
+  static const Color mountainMist = Color(0xFF2C4E55); // 远山 (Mountain Silhouette)
   
-  static const Color fluidGold = Color(0xFFEEDC82); // 指引: 流光金
-  static const Color lotusPink = Color(0xFFFFB7B2); // 情感波动: 藕荷粉
-
-  // Legacy/Compatibility Colors
-  static const Color primaryDeepIndigo = Color(0xFF1A237E);
-  static const Color primaryBlack = Color(0xFF1A2633); // Darker black-blue
-  static const Color accentJade = jadeGreen;
-  static const Color accentGold = fluidGold;
-  static const Color surfaceGlass = Color(0x1AFFFFFF); // Glassmorphism
+  // Accents
+  static const Color moonHalo = Color(0xFFE8DCCA); // 月晕 (Pale dry gold/Bone white)
+  static const Color spiritJade = Color(0xFF66FFCC); // 灵体 (Bright glowing jade)
+  static const Color spiritJadeDim = Color(0xFF2A5A4E); // 灵体暗部
+  
+  // UI Controls
+  static const Color scrollPaper = Color(0x1AFFFFFF); // 卷轴底色 (Glassy)
+  static const Color scrollBorder = Color(0xFF8C9E9A); // 卷轴边框 (Muted metallic)
+  static const Color inkText = Color(0xFFE0E0E0); // 墨色 (Text, inverted for dark mode)
+  
+  // Legacy/Compatibility Aliases (map old names to new palette)
+  static const Color deepVoidBlue = crowCyan;       // Maps to crowCyan for contrast
+  static const Color accentJade = spiritJade;       // Maps to spiritJade
+  static const Color jadeGreen = spiritJade;        // Maps to spiritJade
+  static const Color primaryDeepIndigo = daiDeep;   // Maps to daiDeep
+  static const Color primaryBlack = daiDeep;        // Maps to daiDeep
+  static const Color fluidGold = Color(0xFFEEDC82); // 流光金 (Keep for ripples)
+  static const Color celestialCyan = mountainMist;  // Maps to mountainMist
+  static const Color lotusPink = Color(0xFFFFB7B2); // 藕荷粉 (Keep original pink)
+  static const Color cloudMistWhite = moonHalo;     // Maps to moonHalo
 
   static ThemeData get mysticTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light, 
-      scaffoldBackgroundColor: cloudMistWhite,
+      brightness: Brightness.dark, // Default to dark for this theme
+      scaffoldBackgroundColor: daiDeep,
       
-      // Specialized Date/Time Picker Themes for "Mystic" Feel
-      datePickerTheme: DatePickerThemeData(
-        backgroundColor: cloudMistWhite,
-        headerBackgroundColor: deepVoidBlue,
-        headerForegroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        dayStyle: GoogleFonts.notoSerifSc(fontSize: 14),
-        yearStyle: GoogleFonts.notoSerifSc(fontSize: 14),
-        weekdayStyle: GoogleFonts.notoSerifSc(color: deepVoidBlue.withOpacity(0.7)),
-        dayForegroundColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) return Colors.white;
-          return primaryBlack;
-        }),
-        todayBackgroundColor: MaterialStateProperty.all(jadeGreen.withOpacity(0.3)),
-        todayForegroundColor: MaterialStateProperty.all(deepVoidBlue),
-      ),
-      timePickerTheme: TimePickerThemeData(
-        backgroundColor: cloudMistWhite,
-        hourMinuteColor: deepVoidBlue.withOpacity(0.1),
-        hourMinuteTextColor: deepVoidBlue,
-        dayPeriodColor: jadeGreen.withOpacity(0.2),
-        dayPeriodTextColor: deepVoidBlue,
-        dialHandColor: jadeGreen,
-        dialBackgroundColor: deepVoidBlue.withOpacity(0.05),
-        entryModeIconColor: deepVoidBlue,
-      ),
-      
-      textTheme: TextTheme(
+      // Font: Simulating "Shoujin" or "Calligraphy" where possible, falling back to Serif
+      textTheme: GoogleFonts.notoSerifScTextTheme().apply(
+        bodyColor: inkText,
+        displayColor: moonHalo,
+      ).copyWith(
+        headlineLarge: GoogleFonts.notoSerifSc(
+          color: moonHalo,
+          fontWeight: FontWeight.w300,
+          letterSpacing: 2.0,
+        ),
         bodyMedium: GoogleFonts.notoSerifSc(
-          color: const Color(0xFF1A2633), // Darker text
+          color: inkText.withOpacity(0.9),
           fontSize: 16,
-        ),
-        bodyLarge: GoogleFonts.notoSerifSc(
-          color: const Color(0xFF1A2633),
-          fontSize: 18,
-        ),
-        displayLarge: GoogleFonts.notoSerifSc(
-          color: deepVoidBlue,
-          fontWeight: FontWeight.w400, // Slightly bolder
-        ),
-        titleMedium: GoogleFonts.notoSerifSc(
-          color: const Color(0xFF1A2633),
-          fontWeight: FontWeight.w600,
+          height: 1.5,
         ),
       ),
       
-      colorScheme: const ColorScheme.light(
-        primary: deepVoidBlue, // Switched to Deep Void as primary for better active element contrast
-        secondary: jadeGreen,
-        surface: Colors.white24, // Touched up for dialogs
-        onSurface: Color(0xFF1A2633),
-        background: cloudMistWhite,
-        onBackground: Color(0xFF1A2633),
+      colorScheme: const ColorScheme.dark(
+        primary: spiritJade,
+        secondary: moonHalo,
+        surface: Color(0x0DFFFFFF), // Very subtle surface
+        background: daiDeep,
+        onBackground: inkText,
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: scrollPaper,
+        hintStyle: TextStyle(color: inkText.withOpacity(0.4), fontStyle: FontStyle.italic),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12), // Placeholder for Ruyi shape
+          borderSide: const BorderSide(color: scrollBorder, width: 0.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: scrollBorder, width: 0.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: spiritJade, width: 1.0),
+        ),
       ),
     );
   }

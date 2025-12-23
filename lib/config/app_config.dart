@@ -29,14 +29,14 @@ class AppConfig {
     if (Platform.isAndroid) {
       // Android模拟器: 10.0.2.2 映射到主机的 localhost
       // 真机调试时使用实际IP地址
-      return 'http://$developmentServerIp:8000';
+      return 'http://$developmentServerIp:8848';
     } else if (Platform.isIOS) {
       // iOS 真机和模拟器都使用实际 IP 地址
       // 注意：iOS 真机无法访问 localhost，必须使用实际 IP
-      return 'http://$developmentServerIp:8000';
+      return 'http://$developmentServerIp:8848';
     }
     // 其他平台（Web、桌面等）
-    return 'http://localhost:8000';
+    return 'http://localhost:8848';
   }
   static const String calculateEndpoint = '/api/v1/calculate';
   static const String fortuneStreamEndpoint = '/api/v1/fortune/stream';
