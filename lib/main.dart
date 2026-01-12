@@ -4,6 +4,7 @@ import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
+import 'package:primordial_spirit/services/cultivation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,13 +13,25 @@ void main() async {
   final modelManager = ModelManagerService();
   await modelManager.init();
 
-  runApp(MyApp(modelManager: modelManager));
+  // 初始化养成值服务
+  final cultivationService = CultivationService();
+  await cultivationService.initialize();
+
+  runApp(MyApp(
+    modelManager: modelManager,
+    cultivationService: cultivationService,
+  ));
 }
 
 class MyApp extends StatelessWidget {
   final ModelManagerService modelManager;
+  final CultivationService cultivationService;
 
-  const MyApp({super.key, required this.modelManager});
+  const MyApp({
+    super.key,
+    required this.modelManager,
+    required this.cultivationService,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +43,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: modelManager),
+        ChangeNotifierProvider.value(value: cultivationService),
       ],
       child: MaterialApp(
         title: AppConfig.appName,

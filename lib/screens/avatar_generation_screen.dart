@@ -140,8 +140,12 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
         calculatedAt: DateTime.now(),
       );
 
+      // 根据当前显示模式决定生成方式
+      final currentMode = modelManager.displayMode;
+      final is2DMode = currentMode == DisplayMode.mode2D || currentMode == DisplayMode.live2D;
+
       setState(() {
-        _statusText = '正在生成3D元神形象...';
+        _statusText = is2DMode ? '正在生成2D形象...' : '正在生成3D元神形象...';
         _detailText = response.ziweiInfo?.mingGong.isNotEmpty == true
             ? '命宫: ${response.ziweiInfo!.mingGong}'
             : '日主: ${response.baziInfo!.dayGan}';
@@ -149,15 +153,39 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
 
-      // 调用 Meshy API 生成3D形象
-      final avatar3dInfo = await _generate3dAvatar(
-        baziInfo: response.baziInfo!,
-        gender: birthInfo.gender,
-      );
+      // 根据模式调用不同的生成API
+      if (is2DMode) {
+        // 2D模式：调用图片生成API
+        final imageUrl = await _generate2DImage(
+          baziInfo: response.baziInfo!,
+          gender: birthInfo.gender,
+        );
 
-      // 更新命盘数据，添加3D信息
-      if (avatar3dInfo != null) {
-        fortuneData = fortuneData.copyWith(avatar3dInfo: avatar3dInfo);
+        // 保存2D图片URL到fortuneData（复用avatar3dInfo字段存储）
+        if (imageUrl != null) {
+          fortuneData = fortuneData.copyWith(
+            avatar3dInfo: Avatar3dInfo(
+              taskId: DateTime.now().millisecondsSinceEpoch.toString(),
+              status: 'SUCCEEDED',
+              thumbnailUrl: imageUrl, // 使用thumbnailUrl存储2D图片URL
+              glbUrl: imageUrl, // 同时使用glbUrl存储，方便访问
+              prompt: '2D形象',
+              createdAt: DateTime.now(),
+              isRefined: true,
+            ),
+          );
+        }
+      } else {
+        // 3D模式：调用3D生成API
+        final avatar3dInfo = await _generate3dAvatar(
+          baziInfo: response.baziInfo!,
+          gender: birthInfo.gender,
+        );
+
+        // 更新命盘数据，添加3D信息
+        if (avatar3dInfo != null) {
+          fortuneData = fortuneData.copyWith(avatar3dInfo: avatar3dInfo);
+        }
       }
 
       // 保存命盘数据
@@ -166,7 +194,10 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       if (!mounted) return;
       setState(() {
         _statusText = '生成完成!';
-        _detailText = avatar3dInfo?.isReady == true ? '元神形象已就绪' : '';
+        // 检查是否有有效的形象数据（3D或2D）
+        final hasAvatar = fortuneData.avatar3dInfo?.isReady == true ||
+            fortuneData.avatar3dInfo?.thumbnailUrl != null;
+        _detailText = hasAvatar ? '元神形象已就绪' : '';
       });
     } else {
       // API调用失败，显示错误信息
@@ -201,6 +232,98 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       AppRoutes.home,
       (route) => false,
     );
+  }
+
+  /// 生成2D形象（通过后端图片生成API）
+  /// 使用同步生成接口，快速返回图片URL
+  Future<String?> _generate2DImage({
+    required BaziInfo baziInfo,
+    required String gender,
+  }) async {
+    try {
+      setState(() {
+        _statusText = '正在绘制形象...';
+        _detailText = '根据八字生成专属画像';
+      });
+
+      final apiService = FortuneApiService();
+
+      // 构建图片生成提示词（基于八字信息）
+      final prompt = _buildImagePrompt(baziInfo, gender);
+
+      debugPrint('[2D生成] 提示词: $prompt');
+
+      // 调用同步图片生成API
+      final response = await apiService.generateImageSync(
+        prompt: prompt,
+        aspectRatio: 'portrait', // 竖版肖像
+        visitorId: 'user-${DateTime.now().millisecondsSinceEpoch}',
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      if (response.success && response.resultUrl != null) {
+        debugPrint('[2D生成] 生成成功: ${response.resultUrl}');
+        setState(() {
+          _statusText = '生成完成!';
+          _detailText = '2D形象已就绪';
+        });
+        return response.resultUrl;
+      } else {
+        debugPrint('[2D生成] 生成失败: ${response.error}');
+        setState(() {
+          _detailText = '图片生成失败: ${response.error}';
+        });
+        return null;
+      }
+    } catch (e) {
+      debugPrint('[2D生成] 异常: $e');
+      setState(() {
+        _detailText = '2D生成出错: $e';
+      });
+      return null;
+    }
+  }
+
+  /// 构建图片生成提示词
+  String _buildImagePrompt(BaziInfo baziInfo, String gender) {
+    // 基础提示词
+    final basePrompt = 'Full body shot, frontal view, ethereal Xianxia immortal style';
+
+    // 根据日主（天干）添加特征
+    final dayMaster = baziInfo.dayGan;
+    String characterFeature = '';
+    switch (dayMaster) {
+      case '甲':
+      case '乙':
+        characterFeature = 'wood element spirit, gentle and elegant, green and cyan robes';
+        break;
+      case '丙':
+      case '丁':
+        characterFeature = 'fire element spirit, passionate and bright, red and orange robes';
+        break;
+      case '戊':
+      case '己':
+        characterFeature = 'earth element spirit, stable and reliable, yellow and brown robes';
+        break;
+      case '庚':
+      case '辛':
+        characterFeature = 'metal element spirit, sharp and decisive, white and golden robes';
+        break;
+      case '壬':
+      case '癸':
+        characterFeature = 'water element spirit, wise and fluid, blue and black robes';
+        break;
+      default:
+        characterFeature = 'mystical immortal spirit';
+    }
+
+    // 根据性别添加特征
+    final genderFeature = gender == '男' ? 'male cultivator' : 'female cultivator';
+
+    // 组合完整提示词
+    return '$basePrompt, $genderFeature, $characterFeature, '
+        'floating in clouds, celestial atmosphere, Chinese traditional painting style, '
+        'highly detailed, digital art, 8k resolution';
   }
 
   /// 生成3D元神形象（通过后端API）

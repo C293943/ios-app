@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lottie/lottie.dart';
 
 class Character2DViewer extends StatefulWidget {
   final String? animationPath;
+  final String? imageUrl;
+  final bool isLoading;
+  final String? error;
   final double size;
   final bool animate;
 
   const Character2DViewer({
     super.key,
     this.animationPath,
+    this.imageUrl,
+    this.isLoading = false,
+    this.error,
     this.size = 250.0,
     this.animate = true,
   });
@@ -84,6 +91,7 @@ class _Character2DViewerState extends State<Character2DViewer>
   Widget build(BuildContext context) {
     final String assetPath =
         widget.animationPath ?? 'assets/animations/character.json';
+    final imageUrl = widget.imageUrl;
 
     return SizedBox(
       width: widget.size,
@@ -105,12 +113,7 @@ class _Character2DViewerState extends State<Character2DViewer>
               onTap: _onCharacterTap, // 绑定点击事件
               child: Opacity(
                 opacity: 0.7, // 透明度: 0.0(完全透明) ~ 1.0(完全不透明)
-                child: Image.asset(
-                  assetPath,
-                  width: widget.size,
-                  height: widget.size,
-                  fit: BoxFit.contain,
-                ),
+                child: _buildImage(assetPath, imageUrl),
               ),
             ),
           ),
@@ -123,6 +126,69 @@ class _Character2DViewerState extends State<Character2DViewer>
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildImage(String assetPath, String? imageUrl) {
+    // 优先显示网络图片
+    if (imageUrl != null && imageUrl.isNotEmpty && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+      debugPrint('[Character2DViewer] 加载网络图片: $imageUrl');
+      return CachedNetworkImage(
+        imageUrl: imageUrl,
+        width: widget.size,
+        height: widget.size,
+        fit: BoxFit.contain,
+        placeholder: (context, _) => SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+        errorWidget: (context, _, error) {
+          debugPrint('[Character2DViewer] 图片加载失败: $error');
+          return Image.asset(
+            assetPath,
+            width: widget.size,
+            height: widget.size,
+            fit: BoxFit.contain,
+          );
+        },
+      );
+    }
+
+    // 加载中状态
+    if (widget.isLoading && (imageUrl == null || imageUrl.isEmpty)) {
+      return SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    // 错误状态
+    if (widget.error != null && widget.error!.isNotEmpty && (imageUrl == null || imageUrl.isEmpty)) {
+      debugPrint('[Character2DViewer] 显示错误信息: ${widget.error}');
+      return SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: Center(
+          child: Text(
+            widget.error!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ),
+      );
+    }
+
+    // 默认使用本地资源
+    debugPrint('[Character2DViewer] 使用本地资源: $assetPath');
+    return Image.asset(
+      assetPath,
+      width: widget.size,
+      height: widget.size,
+      fit: BoxFit.contain,
     );
   }
 

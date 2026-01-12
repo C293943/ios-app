@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
+import 'package:primordial_spirit/services/fortune_api_service.dart';
 
 enum DisplayMode { mode3D, mode2D, live2D }
 
@@ -48,13 +50,21 @@ class ModelManagerService extends ChangeNotifier {
   static const String _displayModeKey = 'display_mode';
   static const String _userBaziKey = 'user_bazi_data';
   static const String _fortuneDataKey = 'fortune_data';
+  static const String _visitorIdKey = 'visitor_id';
+  static const String _image2dCacheKey = 'image_2d_cache';
 
   List<Model3DConfig> _customModels = [];
   String? _selectedModelId;
-  DisplayMode _displayMode = DisplayMode.mode3D;
+  DisplayMode _displayMode = DisplayMode.mode2D; // 默认使用2D模式
   bool _isInitialized = false;
   Map<String, dynamic>? _userBaziData;
   FortuneData? _fortuneData;
+  String? _visitorId;
+  String? _image2dUrl;
+  String? _image2dTaskId;
+  int? _image2dPromptHash;
+  bool _isGenerating2dImage = false;
+  String? _image2dError;
 
   /// 内置模型列表
   static final List<Model3DConfig> builtInModels = [
@@ -121,6 +131,36 @@ class ModelManagerService extends ChangeNotifier {
   /// 获取完整命盘数据
   FortuneData? get fortuneData => _fortuneData;
 
+  /// 访问者ID（用于后端生图接口追踪）
+  String? get visitorId => _visitorId;
+
+  /// 2D 生图结果（URL）
+  /// 优先使用 fortuneData.avatar3dInfo 中的 URL，其次使用缓存
+  String? get image2dUrl {
+    // 如果 fortuneData 中有有效的 2D 图片 URL，优先使用
+    if (_fortuneData?.avatar3dInfo?.thumbnailUrl != null &&
+        _fortuneData!.avatar3dInfo!.thumbnailUrl!.isNotEmpty) {
+      return _fortuneData!.avatar3dInfo!.thumbnailUrl;
+    }
+    if (_fortuneData?.avatar3dInfo?.glbUrl != null &&
+        _fortuneData!.avatar3dInfo!.glbUrl!.isNotEmpty &&
+        (_fortuneData!.avatar3dInfo!.glbUrl!.startsWith('http://') ||
+         _fortuneData!.avatar3dInfo!.glbUrl!.startsWith('https://'))) {
+      return _fortuneData!.avatar3dInfo!.glbUrl;
+    }
+    // 否则使用缓存
+    return _image2dUrl;
+  }
+
+  /// 2D 生图任务ID
+  String? get image2dTaskId => _image2dTaskId;
+
+  /// 2D 生图中
+  bool get isGenerating2dImage => _isGenerating2dImage;
+
+  /// 2D 生图错误信息（如有）
+  String? get image2dError => _image2dError;
+
   /// 是否已完成首次设置（已填写生辰信息）
   bool get hasCompletedSetup => _fortuneData != null || _userBaziData != null;
 
@@ -172,8 +212,34 @@ class ModelManagerService extends ChangeNotifier {
       }
     }
 
+    // visitor_id
+    _visitorId = prefs.getString(_visitorIdKey);
+    if (_visitorId == null || _visitorId!.isEmpty) {
+      _visitorId = _generateVisitorId();
+      await prefs.setString(_visitorIdKey, _visitorId!);
+    }
+
+    // 2D 生图缓存
+    final image2dJson = prefs.getString(_image2dCacheKey);
+    if (image2dJson != null) {
+      try {
+        final cached = jsonDecode(image2dJson) as Map<String, dynamic>;
+        _image2dUrl = cached['url'] as String?;
+        _image2dTaskId = cached['task_id'] as String?;
+        _image2dPromptHash = cached['prompt_hash'] as int?;
+      } catch (e) {
+        debugPrint('加载2D生图缓存失败: $e');
+      }
+    }
+
     _isInitialized = true;
     notifyListeners();
+
+    // ⚠️ 禁止自动触发生图接口
+    // 生图接口只能在提交个人信息时触发（avatar_generation_screen.dart）
+    // if (_displayMode == DisplayMode.mode2D) {
+    //   ensure2DImageGenerated();
+    // }
   }
 
   /// 保存自定义模型到本地
@@ -298,6 +364,139 @@ class ModelManagerService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_displayModeKey, mode.index);
     notifyListeners();
+
+    // ⚠️ 禁止自动触发生图接口
+    // 生图接口只能在提交个人信息时触发（avatar_generation_screen.dart）
+    // if (mode == DisplayMode.mode2D) {
+    //   ensure2DImageGenerated();
+    // }
+  }
+
+  int _stableHash(String input) {
+    // FNV-1a 32-bit
+    const int fnvPrime = 16777619;
+    int hash = 2166136261;
+    for (final unit in input.codeUnits) {
+      hash ^= unit;
+      hash = (hash * fnvPrime) & 0xFFFFFFFF;
+    }
+    return hash;
+  }
+
+  String _generateVisitorId() {
+    final rand = Random.secure();
+    final bytes = List<int>.generate(16, (_) => rand.nextInt(256));
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  String _build2DImagePrompt() {
+    final basePrompt = _fortuneData?.avatar3dInfo?.prompt;
+    final gender = _fortuneData?.birthInfo.gender ?? (_userBaziData?['gender'] as String?) ?? '男';
+    final dayMaster = _fortuneData?.baziInfo.dayMaster ?? _fortuneData?.baziInfo.dayGan;
+
+    final promptParts = <String>[];
+    if (basePrompt != null && basePrompt.trim().isNotEmpty) {
+      promptParts.add(basePrompt.trim());
+    } else {
+      promptParts.add('Full body shot, frontal view, ethereal Xianxia immortal spirit companion, Chinese fantasy style');
+      if (dayMaster != null && dayMaster.isNotEmpty) {
+        promptParts.add('day master: $dayMaster');
+      }
+      promptParts.add('gender: $gender');
+    }
+
+    // 强制2D风格（用于“2D平面”模式）
+    promptParts.addAll([
+      '2D illustration',
+      'high quality',
+      'clean background',
+      'soft lighting',
+    ]);
+
+    return promptParts.join(', ');
+  }
+
+  Future<void> ensure2DImageGenerated() async {
+    if (_isGenerating2dImage) return;
+
+    // 优先检查 fortuneData 中是否已有有效的 2D 图片 URL
+    if (_fortuneData?.avatar3dInfo?.thumbnailUrl != null &&
+        _fortuneData!.avatar3dInfo!.thumbnailUrl!.isNotEmpty) {
+      debugPrint('[ModelManager] fortuneData 中已有 2D 图片，跳过生成');
+      return;
+    }
+    if (_fortuneData?.avatar3dInfo?.glbUrl != null &&
+        _fortuneData!.avatar3dInfo!.glbUrl!.isNotEmpty &&
+        (_fortuneData!.avatar3dInfo!.glbUrl!.startsWith('http://') ||
+         _fortuneData!.avatar3dInfo!.glbUrl!.startsWith('https://'))) {
+      debugPrint('[ModelManager] fortuneData.glbUrl 中已有 2D 图片 URL，跳过生成');
+      return;
+    }
+
+    final visitorId = _visitorId;
+    if (visitorId == null || visitorId.isEmpty) {
+      // 理论上 init 已生成，这里兜底一次
+      final prefs = await SharedPreferences.getInstance();
+      _visitorId = prefs.getString(_visitorIdKey);
+      if (_visitorId == null || _visitorId!.isEmpty) {
+        _visitorId = _generateVisitorId();
+        await prefs.setString(_visitorIdKey, _visitorId!);
+      }
+    }
+
+    final prompt = _build2DImagePrompt();
+    final promptHash = _stableHash(prompt);
+
+    // 命中缓存（同prompt）则不重复调用
+    if (_image2dUrl != null && _image2dUrl!.isNotEmpty && _image2dPromptHash == promptHash) {
+      debugPrint('[ModelManager] 命中缓存，跳过生成');
+      return;
+    }
+
+    debugPrint('[ModelManager] 开始生成 2D 图片');
+    debugPrint('[ModelManager] 提示词: $prompt');
+    
+    _isGenerating2dImage = true;
+    _image2dError = null;
+    notifyListeners();
+
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final api = FortuneApiService();
+      final resp = await api.generateImageSync(
+        prompt: prompt,
+        visitorId: _visitorId!,
+        timestamp: now,
+      );
+
+      if (resp.success == true && resp.resultUrl != null && resp.resultUrl!.isNotEmpty) {
+        _image2dUrl = resp.resultUrl;
+        _image2dTaskId = resp.taskId;
+        _image2dPromptHash = promptHash;
+        
+        debugPrint('[ModelManager] 2D 图片生成成功: $_image2dUrl');
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          _image2dCacheKey,
+          jsonEncode({
+            'url': _image2dUrl,
+            'task_id': _image2dTaskId,
+            'prompt_hash': _image2dPromptHash,
+            'updated_at': now,
+          }),
+        );
+      } else {
+        _image2dError = resp.error ?? '生图失败（未返回结果URL）';
+        debugPrint('[ModelManager] 2D 图片生成失败: $_image2dError');
+      }
+    } catch (e) {
+      _image2dError = '生图异常: $e';
+      debugPrint('[ModelManager] 2D 图片生成异常: $e');
+    } finally {
+      _isGenerating2dImage = false;
+      notifyListeners();
+    }
   }
 
   /// 保存用户八字数据
@@ -322,15 +521,27 @@ class ModelManagerService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_fortuneDataKey, data.toJsonString());
     notifyListeners();
+
+    // ⚠️ 禁止自动触发生图接口
+    // 生图接口只能在提交个人信息时触发（avatar_generation_screen.dart）
+    // 命盘更新后，若当前处于2D模式，则自动刷新一次2D形象
+    // if (_displayMode == DisplayMode.mode2D) {
+    //   ensure2DImageGenerated();
+    // }
   }
 
   /// 清除用户数据（用于重置）
   Future<void> clearUserData() async {
     _userBaziData = null;
     _fortuneData = null;
+    _image2dUrl = null;
+    _image2dTaskId = null;
+    _image2dPromptHash = null;
+    _image2dError = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userBaziKey);
     await prefs.remove(_fortuneDataKey);
+    await prefs.remove(_image2dCacheKey);
     notifyListeners();
   }
 

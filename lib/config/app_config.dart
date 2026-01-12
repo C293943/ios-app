@@ -13,7 +13,7 @@ class AppConfig {
   static const String developmentServerIp = '192.168.31.249';
 
   // 是否为生产环境（上线时改为 true）
-  static const bool isProduction = true;
+  static const bool isProduction = false;
 
   // API配置
   // Android模拟器使用10.0.2.2访问主机localhost
@@ -102,6 +102,16 @@ class AppConfig {
   // POST /api/v1/avatar3d/create-full - 完整流程：预览→精细化→绑定→动画
   // GET /api/v1/avatar3d/full/{task_id}/stream - SSE 流式获取完整流程进度
   static const String avatar3dCreateFullEndpoint = '/api/v1/avatar3d/create-full';
+
+  // ============ 图片生成 API ============
+  // POST /api/v1/generate - 异步生成图片
+  // GET /api/v1/status/{task_id} - 查询生成状态
+  // GET /api/v1/stream/{task_id} - SSE 流式获取进度
+  // POST /api/v1/generate/sync - 同步生成图片
+  static const String imageGenerateEndpoint = '/api/v1/generate';
+  static const String imageStatusEndpoint = '/api/v1/status';
+  static const String imageStreamEndpoint = '/api/v1/stream';
+  static const String imageGenerateSyncEndpoint = '/api/v1/generate/sync';
 
   // 缓存配置
   static const int maxCacheSize = 100 * 1024 * 1024; // 100MB

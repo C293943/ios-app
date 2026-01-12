@@ -43,6 +43,9 @@ class Character3DViewerState extends State<Character3DViewer> {
   String? _errorMessage;
   String? _localModelPath; // 下载后的本地路径
 
+  // 防抖：减少 setState 调用频率
+  Timer? _debounceTimer;
+
   @override
   void initState() {
     super.initState();
@@ -51,8 +54,12 @@ class Character3DViewerState extends State<Character3DViewer> {
     // 监听模型加载状态
     _controller!.onModelLoaded.addListener(_onControllerModelLoaded);
 
-    // 如果是远程 URL，先下载
-    _prepareModel();
+    // 延迟执行模型准备，避免在 initState 中进行耗时操作
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _prepareModel();
+      }
+    });
   }
 
   /// 准备模型（如果是远程 URL 则下载）
@@ -61,42 +68,51 @@ class Character3DViewerState extends State<Character3DViewer> {
 
     // 检查是否是远程 URL
     if (path.startsWith('http://') || path.startsWith('https://')) {
-      setState(() {
-        _isDownloading = true;
-        _downloadProgress = 0.0;
-      });
+      if (mounted) {
+        setState(() {
+          _isDownloading = true;
+          _downloadProgress = 0.0;
+        });
+      }
 
       try {
         final modelManager = context.read<ModelManagerService>();
 
-        // 下载模型到本地
-        final localPath = await modelManager.downloadRemoteModel(
-          path,
-          taskId: widget.taskId,
-          onProgress: (progress) {
-            if (mounted) {
+        // 使用 Future.microtask 避免阻塞 UI
+        await Future.microtask(() async {
+          // 下载模型到本地
+          final localPath = await modelManager.downloadRemoteModel(
+            path,
+            taskId: widget.taskId,
+            onProgress: (progress) {
+              // 使用防抖减少 setState 频率（每200ms最多更新一次）
+              _debounceTimer?.cancel();
+              _debounceTimer = Timer(const Duration(milliseconds: 200), () {
+                if (mounted) {
+                  setState(() {
+                    _downloadProgress = progress;
+                  });
+                }
+              });
+            },
+          );
+
+          if (mounted) {
+            if (localPath != null) {
+              debugPrint('[3DViewer] 模型下载完成: $localPath');
               setState(() {
-                _downloadProgress = progress;
+                _localModelPath = localPath;
+                _isDownloading = false;
+              });
+            } else {
+              setState(() {
+                _isDownloading = false;
+                _errorMessage = '模型下载失败';
+                _isLoading = false;
               });
             }
-          },
-        );
-
-        if (mounted) {
-          if (localPath != null) {
-            debugPrint('[3DViewer] 模型下载完成: $localPath');
-            setState(() {
-              _localModelPath = localPath;
-              _isDownloading = false;
-            });
-          } else {
-            setState(() {
-              _isDownloading = false;
-              _errorMessage = '模型下载失败';
-              _isLoading = false;
-            });
           }
-        }
+        });
       } catch (e) {
         debugPrint('[3DViewer] 下载模型异常: $e');
         if (mounted) {
@@ -107,18 +123,22 @@ class Character3DViewerState extends State<Character3DViewer> {
           });
         }
       }
+    } else {
+      debugPrint('[3DViewer] 使用本地模型路径: $path');
     }
   }
 
   void _onControllerModelLoaded() {
-    debugPrint('控制器模型加载状态变化: ${_controller!.onModelLoaded.value}');
+    debugPrint('[3DViewer] 控制器模型加载状态变化: ${_controller!.onModelLoaded.value}');
     if (_controller!.onModelLoaded.value) {
-      debugPrint('控制器确认模型已加载');
+      debugPrint('[3DViewer] 控制器确认模型已加载');
       _cancelLoadingTimeout();
-      setState(() {
-        _isModelReady = true;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isModelReady = true;
+          _isLoading = false;
+        });
+      }
       _loadAnimationsAndPlay();
     }
   }
@@ -129,13 +149,23 @@ class Character3DViewerState extends State<Character3DViewer> {
   /// 启动加载超时计时器
   void _startLoadingTimeout() {
     _loadingTimeoutTimer?.cancel();
-    _loadingTimeoutTimer = Timer(const Duration(seconds: 30), () {
+    // 增加超时时间到60秒，并添加多次重试机制
+    _loadingTimeoutTimer = Timer(const Duration(seconds: 60), () {
       if (mounted && _isLoading && !_isModelReady) {
         debugPrint('[3DViewer] 模型加载超时');
-        setState(() {
-          _isLoading = false;
-          _errorMessage = '模型加载超时，请重试';
-        });
+        // 不立即报错，而是继续等待（某些设备加载慢）
+        if (_loadingTimeoutTimer != null) {
+          // 再等待30秒
+          _loadingTimeoutTimer = Timer(const Duration(seconds: 30), () {
+            if (mounted && _isLoading && !_isModelReady) {
+              debugPrint('[3DViewer] 模型加载最终超时');
+              setState(() {
+                _isLoading = false;
+                _errorMessage = '模型加载超时，请重试';
+              });
+            }
+          });
+        }
       }
     });
   }
@@ -352,23 +382,27 @@ class Character3DViewerState extends State<Character3DViewer> {
   }
 
   void _onModelLoaded() {
-    debugPrint('onLoad 回调触发，模型加载完成');
+    debugPrint('[3DViewer] onLoad 回调触发，模型加载完成');
     _cancelLoadingTimeout();
-    setState(() {
-      _isLoading = false;
-      _isModelReady = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _isModelReady = true;
+      });
+    }
     // 直接在这里也尝试加载动画
     _loadAnimationsAndPlay();
   }
 
   void _onModelError(String error) {
-    debugPrint('3D模型加载错误: $error');
+    debugPrint('[3DViewer] 3D模型加载错误: $error');
     _cancelLoadingTimeout();
-    setState(() {
-      _isLoading = false;
-      _errorMessage = '模型加载失败: $error';
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = '模型加载失败: $error';
+      });
+    }
   }
 
   /// 判断是否为 OBJ 格式
@@ -621,10 +655,15 @@ class Character3DViewerState extends State<Character3DViewer> {
   /// 构建 GLB/GLTF 查看器（支持动画）
   Widget _buildGlbViewer() {
     final modelSrc = _effectiveModelPath;
-    debugPrint('加载 GLB 模型: $modelSrc');
+    debugPrint('[3DViewer] 加载 GLB 模型: $modelSrc');
 
     // 启动加载超时计时器
     _startLoadingTimeout();
+
+    // 确保状态正确重置
+    if (_isLoading) {
+      debugPrint('[3DViewer] 开始加载，设置 _isLoading = true');
+    }
 
     return Flutter3DViewer(
       controller: _controller,
@@ -633,12 +672,15 @@ class Character3DViewerState extends State<Character3DViewer> {
       activeGestureInterceptor: true,  // 防止手势冲突
       progressBarColor: Colors.orange,
       onLoad: (modelAddress) {
-        debugPrint('GLB 模型加载成功: $modelAddress');
+        debugPrint('[3DViewer] GLB 模型加载成功: $modelAddress');
         _onModelLoaded();
       },
-      onError: (error) => _onModelError(error),
+      onError: (error) {
+        debugPrint('[3DViewer] GLB 模型加载错误: $error');
+        _onModelError(error);
+      },
       onProgress: (progress) {
-        debugPrint('GLB 加载进度: $progress');
+        debugPrint('[3DViewer] GLB 加载进度: $progress');
       },
     );
   }
@@ -646,17 +688,27 @@ class Character3DViewerState extends State<Character3DViewer> {
   /// 构建 OBJ 查看器（静态模型）
   Widget _buildObjViewer() {
     final modelSrc = _effectiveModelPath;
-    debugPrint('加载 OBJ 模型: $modelSrc');
+    debugPrint('[3DViewer] 加载 OBJ 模型: $modelSrc');
+
+    // 启动加载超时计时器
+    _startLoadingTimeout();
+
     return Flutter3DViewer.obj(
       src: modelSrc,
       scale: 10,
       cameraX: 0,
       cameraY: 2,
       cameraZ: 0,
-      onLoad: (modelAddress) => _onModelLoaded(),
-      onError: (error) => _onModelError(error),
+      onLoad: (modelAddress) {
+        debugPrint('[3DViewer] OBJ 模型加载成功: $modelAddress');
+        _onModelLoaded();
+      },
+      onError: (error) {
+        debugPrint('[3DViewer] OBJ 模型加载错误: $error');
+        _onModelError(error);
+      },
       onProgress: (progress) {
-        // 可以在这里处理加载进度
+        debugPrint('[3DViewer] OBJ 加载进度: $progress');
       },
     );
   }
@@ -703,6 +755,7 @@ class Character3DViewerState extends State<Character3DViewer> {
   @override
   void dispose() {
     _cancelLoadingTimeout();
+    _debounceTimer?.cancel(); // 清理防抖定时器
     _controller?.onModelLoaded.removeListener(_onControllerModelLoaded);
     _controller = null;
     super.dispose();

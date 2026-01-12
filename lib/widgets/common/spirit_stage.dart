@@ -73,9 +73,9 @@ class _SpiritStageState extends State<SpiritStage> with TickerProviderStateMixin
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 1. Lotus Ripples (Base)
+          // 1. Lotus Ripples (Interactive)
           ..._rippleControllers.map((controller) => _buildRipple(controller)),
-          
+
           // 2. Main Spirit Container
           AnimatedBuilder(
             animation: _breatheAnim,
@@ -97,8 +97,8 @@ class _SpiritStageState extends State<SpiritStage> with TickerProviderStateMixin
                           boxShadow: [
                             BoxShadow(
                               color: widget.isThinking 
-                                  ? AppTheme.fluidGold.withOpacity(0.4) 
-                                  : AppTheme.spiritJade.withOpacity(0.2),
+                                  ? AppTheme.amberGold.withOpacity(0.4) 
+                                  : AppTheme.fluorescentCyan.withOpacity(0.2), // Updated colors
                               blurRadius: 60,
                               spreadRadius: 10,
                             ),
@@ -112,11 +112,11 @@ class _SpiritStageState extends State<SpiritStage> with TickerProviderStateMixin
                       else 
                         // Default Placeholder if no child provided
                         Image.asset(
-                          'assets/images/spirit_placeholder.png', // Fallback, likely won't exist yet
+                          'assets/images/spirit_placeholder.png', 
                           errorBuilder: (c, e, s) => Icon(
                             Icons.self_improvement, 
                             size: 150, 
-                            color: AppTheme.spiritJade.withOpacity(0.8)
+                            color: AppTheme.fluorescentCyan.withOpacity(0.8) // Updated color
                           ),
                         ),
                         
@@ -133,18 +133,18 @@ class _SpiritStageState extends State<SpiritStage> with TickerProviderStateMixin
                                 width: 20 * val,
                                 height: 20 * val,
                                 decoration: BoxDecoration(
-                                  color: AppTheme.fluidGold.withOpacity(val),
+                                  color: AppTheme.amberGold.withOpacity(val),
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.fluidGold,
+                                      color: AppTheme.amberGold,
                                       blurRadius: 20 * val,
                                     )
                                   ],
                                 ),
                               );
                             },
-                            onEnd: () {}, // Can loop if needed
+                            onEnd: () {}, 
                           ),
                         ),
                     ],
@@ -164,15 +164,15 @@ class _SpiritStageState extends State<SpiritStage> with TickerProviderStateMixin
       builder: (context, child) {
         final val = controller.value;
         return Positioned(
-          bottom: 40, // Adjust base position
+          bottom: 40, 
           child: Opacity(
             opacity: (1 - val) * 0.6,
             child: Container(
               width: 100 + (val * 200),
-              height: 30 + (val * 60), // Elliptical for perspective
+              height: 30 + (val * 60), 
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: AppTheme.fluidGold,
+                  color: AppTheme.fluorescentCyan, // Updated to Cyan
                   width: 2,
                 ),
                 borderRadius: BorderRadius.all(Radius.elliptical(50 + (val * 100), 15 + (val * 30))),
@@ -183,4 +183,36 @@ class _SpiritStageState extends State<SpiritStage> with TickerProviderStateMixin
       },
     );
   }
+}
+
+class MagicCirclePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2 + 100); // Shifted down for perspective
+    final paint = Paint()
+      ..color = AppTheme.fluorescentCyan.withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    // Outer Ring
+    canvas.drawCircle(center, 80, paint);
+    
+    // Inner Ring
+    canvas.drawCircle(center, 50, paint..strokeWidth = 1);
+    
+    // Abstract Runes/Array Lines
+    for (int i = 0; i < 8; i++) {
+        final angle = (i * 3.14159 / 4);
+        final p1 = center + Offset(50 * 0.6 * -1 * (i % 2 == 0 ? 1 : 0), 0); // Simplified trig logic replacement
+        // Just drawing some spokes for visual effect
+        canvas.drawLine(
+            center + Offset(50 * 0.0, 0).translate(50 * 0.1 * i, 50 * 0.1 * i), // Placeholder math
+            center + Offset(80 * 0.0, 0), 
+            paint
+        );
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

@@ -1284,6 +1284,219 @@ class FortuneApiService {
     );
   }
 
+  // ============================================================
+  // Image Generate API（图片生成）
+  // ============================================================
+
+  /// 异步生成图片
+  /// POST /api/v1/generate
+  Future<ImageGenerateResponse> generateImage({
+    required String prompt,
+    List<String> inputImages = const [],
+    String aspectRatio = 'portrait',
+    required String visitorId,
+    required int timestamp,
+  }) async {
+    final url = Uri.parse('${AppConfig.baseUrl}${AppConfig.imageGenerateEndpoint}');
+
+    final requestBody = {
+      'prompt': prompt,
+      'input_images': inputImages,
+      'aspect_ratio': aspectRatio,
+      'visitor_id': visitorId,
+      'timestamp': timestamp,
+    };
+
+    debugPrint('[API] 生成图片 URL: $url');
+    debugPrint('[API] 请求体: ${jsonEncode(requestBody)}');
+
+    try {
+      final response = await _client
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(requestBody),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      debugPrint('[API] 生成图片响应: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        if (json['success'] == true && json['data'] != null) {
+          final data = json['data'] as Map<String, dynamic>;
+          return ImageGenerateResponse(
+            success: true,
+            taskId: data['task_id'] as String?,
+            status: data['status'] as String?,
+            createdAt: data['created_at'] as double?,
+          );
+        }
+      }
+
+      return ImageGenerateResponse(
+        success: false,
+        error: '生成图片失败: ${response.statusCode}',
+      );
+    } catch (e) {
+      debugPrint('[API] 生成图片异常: $e');
+      return ImageGenerateResponse(
+        success: false,
+        error: '网络错误: $e',
+      );
+    }
+  }
+
+  /// 查询图片生成状态
+  /// GET /api/v1/status/{task_id}
+  Future<ImageGenerateStatusResponse> getImageGenerateStatus(String taskId) async {
+    final url = Uri.parse('${AppConfig.baseUrl}${AppConfig.imageStatusEndpoint}/$taskId');
+
+    try {
+      final response = await _client
+          .get(url)
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        if (json['success'] == true && json['data'] != null) {
+          return ImageGenerateStatusResponse.fromJson(json['data'] as Map<String, dynamic>);
+        }
+      }
+
+      return ImageGenerateStatusResponse(
+        taskId: taskId,
+        status: 'FAILED',
+        error: '查询失败: ${response.statusCode}',
+      );
+    } catch (e) {
+      return ImageGenerateStatusResponse(
+        taskId: taskId,
+        status: 'FAILED',
+        error: '网络错误: $e',
+      );
+    }
+  }
+
+  /// SSE 流式获取图片生成进度
+  Stream<ImageGenerateStreamEvent> streamImageGenerateProgress(
+    String taskId, {
+    String? connectionId,
+    Duration timeout = const Duration(minutes: 10),
+  }) async* {
+    final url = Uri.parse('${AppConfig.baseUrl}/api/v1/stream/$taskId');
+    final connId = connectionId ?? 'image_generate_$taskId';
+
+    debugPrint('[API] 图片生成 SSE 连接: $url');
+
+    final request = http.Request('GET', url);
+    final connection = _createSSEConnection(connId);
+
+    try {
+      connection.connect(
+        request,
+        timeout: timeout,
+        connectionTimeout: const Duration(seconds: 30),
+      );
+
+      await for (final jsonStr in connection.stream) {
+        try {
+          final json = jsonDecode(jsonStr) as Map<String, dynamic>;
+          yield ImageGenerateStreamEvent.fromJson(json);
+        } catch (e) {
+          debugPrint('[API] 图片生成 SSE 解析错误: $e');
+        }
+      }
+    } on TimeoutException {
+      yield ImageGenerateStreamEvent(
+        taskId: taskId,
+        status: 'FAILED',
+        progress: 0,
+        message: 'SSE 连接超时',
+        error: 'SSE 连接超时',
+        done: true,
+      );
+    } catch (e) {
+      debugPrint('[API] 图片生成 SSE 异常: $e');
+      yield ImageGenerateStreamEvent(
+        taskId: taskId,
+        status: 'FAILED',
+        progress: 0,
+        message: '网络错误: $e',
+        error: '网络错误: $e',
+        done: true,
+      );
+    } finally {
+      _activeConnections.remove(connId);
+    }
+  }
+
+  /// 取消图片生成进度流
+  void cancelImageGenerateStream(String taskId) {
+    cancelSSEConnection('image_generate_$taskId');
+  }
+
+  /// 同步生成图片（立即返回结果）
+  /// POST /api/v1/generate/sync
+  Future<ImageGenerateSyncResponse> generateImageSync({
+    required String prompt,
+    List<String> inputImages = const [],
+    String aspectRatio = 'portrait',
+    required String visitorId,
+    required int timestamp,
+  }) async {
+    final url = Uri.parse('${AppConfig.baseUrl}/api/v1/generate/sync');
+
+    final requestBody = {
+      'prompt': prompt,
+      'input_images': inputImages,
+      'aspect_ratio': aspectRatio,
+      'visitor_id': visitorId,
+      'timestamp': timestamp,
+    };
+
+    debugPrint('[API] 同步生成图片 URL: $url');
+    debugPrint('[API] 请求体: ${jsonEncode(requestBody)}');
+
+    try {
+      final response = await _client
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(requestBody),
+          )
+          .timeout(const Duration(seconds: 60)); // 同步生成可能需要更长时间
+
+      debugPrint('[API] 同步生成图片响应: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        if (json['success'] == true && json['data'] != null) {
+          final data = json['data'] as Map<String, dynamic>;
+          return ImageGenerateSyncResponse(
+            success: true,
+            taskId: data['task_id'] as String?,
+            resultUrl: data['result_url'] as String?,
+            status: data['status'] as String?,
+            prompt: data['prompt'] as String?,
+            aspectRatio: data['aspect_ratio'] as String?,
+          );
+        }
+      }
+
+      return ImageGenerateSyncResponse(
+        success: false,
+        error: '同步生成图片失败: ${response.statusCode}',
+      );
+    } catch (e) {
+      debugPrint('[API] 同步生成图片异常: $e');
+      return ImageGenerateSyncResponse(
+        success: false,
+        error: '网络错误: $e',
+      );
+    }
+  }
+
   /// 关闭客户端
   void dispose() {
     _client.close();

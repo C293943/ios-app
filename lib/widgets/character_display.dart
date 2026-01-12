@@ -16,6 +16,7 @@ class CharacterDisplay extends StatefulWidget {
   final String? modelPathLive2D;
   final double size;
   final bool showControls;
+  final bool visible; // 是否显示角色
   final Function(List<String> animations, String? currentAnimation)? onAnimationsChanged;
 
   const CharacterDisplay({
@@ -25,6 +26,7 @@ class CharacterDisplay extends StatefulWidget {
     this.modelPathLive2D,
     this.size = 250.0,
     this.showControls = false, // Default to hidden
+    this.visible = true, // Default to visible
     this.onAnimationsChanged,
   });
 
@@ -72,6 +74,11 @@ class CharacterDisplayState extends State<CharacterDisplay> {
 
   @override
   Widget build(BuildContext context) {
+    // 如果不可见，返回空容器
+    if (!widget.visible) {
+      return const SizedBox.shrink();
+    }
+
     return Consumer<ModelManagerService>(
       builder: (context, modelManager, child) {
         final selectedModel = modelManager.selectedModel;
@@ -102,6 +109,9 @@ class CharacterDisplayState extends State<CharacterDisplay> {
                       selectedModel,
                       currentMode,
                       fortuneData?.avatar3dInfo,
+                      modelManager.image2dUrl,
+                      modelManager.isGenerating2dImage,
+                      modelManager.image2dError,
                     ),
                   ),
                 ],
@@ -130,6 +140,9 @@ class CharacterDisplayState extends State<CharacterDisplay> {
     Model3DConfig? selectedModel,
     DisplayMode currentMode,
     Avatar3dInfo? avatar3dInfo,
+    String? image2dUrl,
+    bool isGenerating2dImage,
+    String? image2dError,
   ) {
     switch (currentMode) {
       case DisplayMode.mode3D:
@@ -180,9 +193,29 @@ class CharacterDisplayState extends State<CharacterDisplay> {
           },
         );
       case DisplayMode.mode2D:
+        // 优先使用 avatar3dInfo 中的 URL（2D生成时保存的）
+        String? finalImageUrl = image2dUrl;
+        
+        // 如果 image2dUrl 为空，尝试从 avatar3dInfo 获取
+        if ((finalImageUrl == null || finalImageUrl.isEmpty) && avatar3dInfo != null) {
+          // 2D生成时，thumbnailUrl 和 glbUrl 都存储了图片URL
+          if (avatar3dInfo.thumbnailUrl != null && avatar3dInfo.thumbnailUrl!.isNotEmpty) {
+            finalImageUrl = avatar3dInfo.thumbnailUrl;
+            debugPrint('[CharacterDisplay] 使用 avatar3dInfo.thumbnailUrl: $finalImageUrl');
+          } else if (avatar3dInfo.glbUrl != null && avatar3dInfo.glbUrl!.isNotEmpty &&
+                     (avatar3dInfo.glbUrl!.startsWith('http://') || avatar3dInfo.glbUrl!.startsWith('https://'))) {
+            // glbUrl 可能也存储了图片URL（2D生成时的特殊处理）
+            finalImageUrl = avatar3dInfo.glbUrl;
+            debugPrint('[CharacterDisplay] 使用 avatar3dInfo.glbUrl 作为图片URL: $finalImageUrl');
+          }
+        }
+        
         return Character2DViewer(
           key: const ValueKey('2d'),
           animationPath: widget.animationPath2D,
+          imageUrl: finalImageUrl,
+          isLoading: isGenerating2dImage && (finalImageUrl == null || finalImageUrl.isEmpty),
+          error: finalImageUrl == null || finalImageUrl.isEmpty ? image2dError : null,
           size: widget.size,
         );
       case DisplayMode.live2D:
@@ -246,10 +279,10 @@ class CharacterDisplayState extends State<CharacterDisplay> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppTheme.jadeGreen
-                        : AppTheme.deepVoidBlue.withOpacity(0.1),
+                        : AppTheme.deepVoidBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? Colors.transparent : AppTheme.deepVoidBlue.withOpacity(0.2),
+                      color: isSelected ? Colors.transparent : AppTheme.deepVoidBlue.withValues(alpha: 0.2),
                     ),
                   ),
                   alignment: Alignment.center,

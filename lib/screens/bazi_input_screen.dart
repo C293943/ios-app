@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
+import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
 
 /// 八字输入页面
 class BaziInputScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
   TimeOfDay? _selectedTime;
   String _gender = '男';
   String _city = '北京';
+  bool _showQiAnimation = false;
 
   // 常用城市列表
   static const List<String> _cities = [
@@ -43,102 +45,151 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        automaticallyImplyLeading: false, // 移除返回按钮
+        automaticallyImplyLeading: false,
       ),
-      body: MysticBackground(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 80.0),
-          child: Column(
-            children: [
-              // Header Text
-              Text(
-                '请输入生辰信息',
-                style: GoogleFonts.notoSerifSc(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w400, // Slightly bolder
-                  color: AppTheme.deepVoidBlue,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '唤醒您的五行守护灵',
-                style: GoogleFonts.notoSerifSc(
-                  fontSize: 14,
-                  color: AppTheme.deepVoidBlue.withOpacity(0.6),
-                  letterSpacing: 1,
-                ),
-              ),
-              const SizedBox(height: 40),
+      body: Stack(
+        children: [
+          MysticBackground(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 80.0),
+              child: Column(
+                children: [
+                  Text(
+                    '请输入生辰信息',
+                    style: GoogleFonts.notoSerifSc(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w400,
+                      color: AppTheme.deepVoidBlue,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '唤醒您的五行守护灵',
+                    style: GoogleFonts.notoSerifSc(
+                      fontSize: 14,
+                      color: AppTheme.deepVoidBlue.withValues(alpha: 0.6),
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
 
-              // Form Area
-              GlassContainer(
-                borderRadius: BorderRadius.circular(20),
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionLabel('阴阳 (Gender)'),
-                      Row(
+                  GlassContainer(
+                    borderRadius: BorderRadius.circular(20),
+                    padding: const EdgeInsets.all(24),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: _buildGenderOption('男', Icons.male),
+                          _buildSectionLabel('阴阳 (Gender)'),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildGenderOption('男', Icons.male),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildGenderOption('女', Icons.female),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildGenderOption('女', Icons.female),
+                          const SizedBox(height: 24),
+
+                          _buildSectionLabel('天干 (Date)'),
+                          _buildMysticInput(
+                            value: _selectedDate == null
+                                ? '选择出生日期'
+                                : '${_selectedDate!.year}年${_selectedDate!.month}月${_selectedDate!.day}日',
+                            icon: Icons.calendar_today,
+                            onTap: _selectDate,
+                          ),
+                          if (_selectedDate == null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4, left: 12),
+                              child: Text(
+                                '请选择出生日期',
+                                style: GoogleFonts.notoSerifSc(
+                                  color: Colors.red.shade400,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 24),
+
+                          _buildSectionLabel('地支 (Time)'),
+                          _buildMysticInput(
+                            value: _selectedTime == null
+                                ? '选择出生时辰'
+                                : '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
+                            icon: Icons.access_time,
+                            onTap: _selectTime,
+                          ),
+                          if (_selectedTime == null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4, left: 12),
+                              child: Text(
+                                '请选择出生时辰',
+                                style: GoogleFonts.notoSerifSc(
+                                  color: Colors.red.shade400,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 24),
+
+                          _buildSectionLabel('出生地 (City)'),
+                          _buildMysticInput(
+                            value: _city,
+                            icon: Icons.location_on,
+                            onTap: _selectCity,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
-
-                      _buildSectionLabel('天干 (Date)'),
-                      _buildMysticInput(
-                        value: _selectedDate == null
-                            ? '选择出生日期'
-                            : '${_selectedDate!.year}年${_selectedDate!.month}月${_selectedDate!.day}日',
-                        icon: Icons.calendar_today,
-                        onTap: _selectDate,
-                      ),
-                      const SizedBox(height: 24),
-
-                      _buildSectionLabel('地支 (Time)'),
-                      _buildMysticInput(
-                        value: _selectedTime == null
-                            ? '选择出生时辰'
-                            : '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
-                        icon: Icons.access_time,
-                        onTap: _selectTime,
-                      ),
-                      const SizedBox(height: 24),
-
-                      _buildSectionLabel('出生地 (City)'),
-                      _buildMysticInput(
-                        value: _city,
-                        icon: Icons.location_on,
-                        onTap: _selectCity,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
 
-              const SizedBox(height: 48),
+                  const SizedBox(height: 48),
 
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                child: MysticButton(
-                  text: '凝 聚 灵 体',
-                  onPressed: _onSubmit,
-                ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: MysticButton(
+                      text: '凝 聚 灵 体',
+                      onPressed: _onSubmit,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+
+          // 灵气汇聚动画层
+          if (_showQiAnimation)
+            Positioned.fill(
+              child: QiConvergenceAnimation(
+                isTriggered: _showQiAnimation,
+                onComplete: _onAnimationComplete,
+              ),
+            ),
+        ],
       ),
+    );
+  }
+
+  void _onAnimationComplete() {
+    debugPrint('[BaziInputScreen] 动画完成，准备跳转');
+
+    final baziData = {
+      'gender': _gender,
+      'date': _selectedDate,
+      'time': _selectedTime,
+      'city': _city,
+    };
+
+    debugPrint('[BaziInputScreen] 跳转到 AvatarGenerationScreen，数据: $baziData');
+    Navigator.of(context).pushNamed(
+      AppRoutes.avatarGeneration,
+      arguments: {'baziData': baziData},
     );
   }
 
@@ -339,6 +390,11 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
   }
 
   void _onSubmit() {
+    // 验证表单
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     if (_selectedDate == null || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -349,16 +405,8 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       return;
     }
 
-    final baziData = {
-      'gender': _gender,
-      'date': _selectedDate,
-      'time': _selectedTime,
-      'city': _city,
-    };
-
-    Navigator.of(context).pushNamed(
-      AppRoutes.avatarGeneration,
-      arguments: {'baziData': baziData},
-    );
+    setState(() {
+      _showQiAnimation = true;
+    });
   }
 }

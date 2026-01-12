@@ -149,7 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isSelected = modelManager.displayMode == mode;
     return Expanded(
       child: GestureDetector(
-        onTap: () => modelManager.setDisplayMode(mode),
+        onTap: () async => modelManager.setDisplayMode(mode),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),

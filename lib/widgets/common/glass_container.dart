@@ -31,15 +31,22 @@ class GlassContainer extends StatelessWidget {
       height: height,
       margin: margin,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15), // 极低透明度的白
+        color: AppTheme.scrollPaper.withOpacity(0.1), // Base glassy layer
         borderRadius: radius,
         border: Border.all(
-          color: Colors.white.withOpacity(0.4), // 微弱的边缘光
+          color: AppTheme.fluorescentCyan.withOpacity(0.3), // Glowing Edge (faint)
           width: 0.5,
         ),
         boxShadow: [
+          // Inner/Outer Glow combination
           BoxShadow(
-            color: AppTheme.deepVoidBlue.withOpacity(0.05), // 深蓝色的阴影，增加深邃感
+            color: AppTheme.fluorescentCyan.withOpacity(0.1), // Neon glow
+            blurRadius: 15,
+            spreadRadius: -5,
+            offset: const Offset(0, 0),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3), // Depth shadow
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 10),

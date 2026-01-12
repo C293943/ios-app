@@ -780,3 +780,110 @@ class RecommendedAnimations {
     {'action_id': 63, 'name': 'Hip_Hop_Dance_01', 'description': '舞蹈动作'},
   ];
 }
+
+// ============================================================
+// 图片生成相关模型
+// ============================================================
+
+/// 图片生成任务创建响应
+class ImageGenerateResponse {
+  final bool success;
+  final String? taskId;
+  final String? status;
+  final double? createdAt;
+  final String? error;
+
+  ImageGenerateResponse({
+    required this.success,
+    this.taskId,
+    this.status,
+    this.createdAt,
+    this.error,
+  });
+}
+
+/// 图片生成任务状态响应
+class ImageGenerateStatusResponse {
+  final String taskId;
+  final String status;
+  final double? createdAt;
+  final String? resultUrl;
+  final String? error;
+
+  ImageGenerateStatusResponse({
+    required this.taskId,
+    required this.status,
+    this.createdAt,
+    this.resultUrl,
+    this.error,
+  });
+
+  bool get isCompleted =>
+      status == 'completed' || status == 'failed';
+  bool get isSucceeded => status == 'completed';
+
+  factory ImageGenerateStatusResponse.fromJson(Map<String, dynamic> json) {
+    return ImageGenerateStatusResponse(
+      taskId: json['task_id'] as String? ?? '',
+      status: json['status'] as String? ?? 'UNKNOWN',
+      createdAt: (json['created_at'] as num?)?.toDouble(),
+      resultUrl: json['result_url'] as String?,
+      error: json['error'] as String?,
+    );
+  }
+}
+
+/// 图片生成 SSE 流事件
+class ImageGenerateStreamEvent {
+  final String taskId;
+  final String status;
+  final int progress;
+  final String message;
+  final String? resultUrl;
+  final String? error;
+  final bool done;
+
+  ImageGenerateStreamEvent({
+    required this.taskId,
+    required this.status,
+    required this.progress,
+    required this.message,
+    this.resultUrl,
+    this.error,
+    this.done = false,
+  });
+
+  factory ImageGenerateStreamEvent.fromJson(Map<String, dynamic> json) {
+    return ImageGenerateStreamEvent(
+      taskId: json['task_id'] as String? ?? '',
+      status: json['status'] as String? ?? 'UNKNOWN',
+      progress: json['progress'] as int? ?? 0,
+      message: json['message'] as String? ?? '',
+      resultUrl: json['result_url'] as String?,
+      error: json['error'] as String?,
+      done: json['done'] as bool? ?? false,
+    );
+  }
+}
+
+/// 同步图片生成响应
+class ImageGenerateSyncResponse {
+  final bool success;
+  final String? taskId;
+  final String? resultUrl;
+  final String? status;
+  final String? prompt;
+  final String? aspectRatio;
+  final String? error;
+
+  ImageGenerateSyncResponse({
+    required this.success,
+    this.taskId,
+    this.resultUrl,
+    this.status,
+    this.prompt,
+    this.aspectRatio,
+    this.error,
+  });
+}
+

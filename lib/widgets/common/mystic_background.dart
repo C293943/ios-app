@@ -46,11 +46,11 @@ class _MysticBackgroundState extends State<MysticBackground> with SingleTickerPr
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppTheme.daiDeep,
-                AppTheme.crowCyan,
-                AppTheme.daiDeep, // darker at bottom again for grounding
+                AppTheme.voidBackground,
+                AppTheme.inkGreen,
+                AppTheme.voidBackground, // darker at bottom again for grounding
               ],
-              stops: [0.0, 0.6, 1.0],
+              stops: [0.0, 0.4, 1.0], // Adjusted stops for better depth
             ),
           ),
         ),
@@ -114,7 +114,7 @@ class MountainPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     // Layer 1: Farthest, lightest (Foggy)
-    paint.color = AppTheme.mountainMist.withOpacity(0.3);
+    paint.color = AppTheme.inkGreen.withOpacity(0.3);
     final path1 = Path();
     path1.moveTo(0, size.height * 0.6);
     path1.cubicTo(size.width * 0.3, size.height * 0.5, size.width * 0.6, size.height * 0.7, size.width, size.height * 0.55);
@@ -124,7 +124,7 @@ class MountainPainter extends CustomPainter {
     canvas.drawPath(path1, paint);
 
     // Layer 2: Middle
-    paint.color = AppTheme.mountainMist.withOpacity(0.6);
+    paint.color = AppTheme.inkGreen.withOpacity(0.6);
     final path2 = Path();
     path2.moveTo(0, size.height * 0.75);
     path2.cubicTo(size.width * 0.2, size.height * 0.65, size.width * 0.7, size.height * 0.85, size.width, size.height * 0.7);
@@ -134,7 +134,7 @@ class MountainPainter extends CustomPainter {
     canvas.drawPath(path2, paint);
     
     // Layer 3: Closest, Darkest
-    paint.color = AppTheme.daiDeep; // Merges with bottom
+    paint.color = AppTheme.voidBackground; // Merges with bottom
     final path3 = Path();
     path3.moveTo(0, size.height);
     path3.cubicTo(size.width * 0.1, size.height * 0.9, size.width * 0.4, size.height * 0.95, size.width * 0.6, size.height);
@@ -156,7 +156,7 @@ class CloudPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppTheme.moonHalo.withOpacity(0.05)
+      ..color = AppTheme.cloudMistWhite.withOpacity(0.08) // Warmer mist
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20); // Soften edges
 

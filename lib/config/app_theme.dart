@@ -2,51 +2,58 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Mystic Void Palette (虚空琉璃 - Night Valley Edition)
+  // Mystic Void Palette (Digital Xianxia)
   
   // Background Core
-  static const Color daiDeep = Color(0xFF0F1E24);  // 黛色 (Deep Cyan/Black base)
-  static const Color crowCyan = Color(0xFF1C3A40); // 鸦青 (Lighter Cyan/Greenish)
-  static const Color mountainMist = Color(0xFF2C4E55); // 远山 (Mountain Silhouette)
+  static const Color voidBackground = Color(0xFF050A10);  // Deep Blue-Black (Void)
+  static const Color inkGreen = Color(0xFF0F2420);        // Ink Green (Universe depth)
   
   // Accents
-  static const Color moonHalo = Color(0xFFE8DCCA); // 月晕 (Pale dry gold/Bone white)
-  static const Color spiritJade = Color(0xFF66FFCC); // 灵体 (Bright glowing jade)
-  static const Color spiritJadeDim = Color(0xFF2A5A4E); // 灵体暗部
+  static const Color fluorescentCyan = Color(0xFF00FFD1); // Fluorescent Cyan (Tech/Energy)
+  static const Color electricBlue = Color(0xFF00A2FF);    // Electric Blue (Tech)
+  static const Color amberGold = Color(0xFFFFBF00);       // Amber Gold (Reiki/Holy)
+  static const Color warmYellow = Color(0xFFFFEDA0);      // Warm Yellow (Slightly softer gold)
+
+  // Legacy/Compatibility Aliases
+  static const Color daiDeep = voidBackground;
+  static const Color crowCyan = inkGreen;
+  static const Color mountainMist = Color(0xFF2C4E55); // Keep for variety
+  
+  static const Color moonHalo = warmYellow;
+  static const Color spiritJade = fluorescentCyan;
+  static const Color spiritJadeDim = Color(0xFF005949);
   
   // UI Controls
-  static const Color scrollPaper = Color(0x1AFFFFFF); // 卷轴底色 (Glassy)
-  static const Color scrollBorder = Color(0xFF8C9E9A); // 卷轴边框 (Muted metallic)
-  static const Color inkText = Color(0xFFE0E0E0); // 墨色 (Text, inverted for dark mode)
-  
-  // Legacy/Compatibility Aliases (map old names to new palette)
-  static const Color deepVoidBlue = crowCyan;       // Maps to crowCyan for contrast
-  static const Color accentJade = spiritJade;       // Maps to spiritJade
-  static const Color jadeGreen = spiritJade;        // Maps to spiritJade
-  static const Color primaryDeepIndigo = daiDeep;   // Maps to daiDeep
-  static const Color primaryBlack = daiDeep;        // Maps to daiDeep
-  static const Color fluidGold = Color(0xFFEEDC82); // 流光金 (Keep for ripples)
-  static const Color celestialCyan = mountainMist;  // Maps to mountainMist
-  static const Color lotusPink = Color(0xFFFFB7B2); // 藕荷粉 (Keep original pink)
-  static const Color cloudMistWhite = moonHalo;     // Maps to moonHalo
+  static const Color scrollPaper = Color(0x0FFFFFFF); // More transparent
+  static const Color scrollBorder = Color(0x4D00FFD1); // Cyan tint border
+  static const Color inkText = Color(0xFFF0F0F0); // Bright text
+  static const Color cloudMistWhite = warmYellow;
+  static const Color fluidGold = amberGold;
+  static const Color lotusPink = Color(0xFFFFB7B2);
+  static const Color celestialCyan = fluorescentCyan;
+  static const Color primaryDeepIndigo = voidBackground;
+  static const Color primaryBlack = voidBackground;
+  static const Color deepVoidBlue = voidBackground;
+  static const Color accentJade = fluorescentCyan;
+  static const Color jadeGreen = fluorescentCyan;
 
   static ThemeData get mysticTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark, // Default to dark for this theme
-      scaffoldBackgroundColor: daiDeep,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: voidBackground,
       
-      // Font: Simulating "Shoujin" or "Calligraphy" where possible, falling back to Serif
-      textTheme: GoogleFonts.notoSerifScTextTheme().apply(
+      // Font: Crisp, Modern yet Mystical
+      textTheme: GoogleFonts.outfitTextTheme().apply(
         bodyColor: inkText,
-        displayColor: moonHalo,
+        displayColor: fluorescentCyan,
       ).copyWith(
-        headlineLarge: GoogleFonts.notoSerifSc(
-          color: moonHalo,
-          fontWeight: FontWeight.w300,
+        headlineLarge: GoogleFonts.zcoolXiaoWei( // Or similar mystical font if available, else Outfit
+          color: fluorescentCyan,
+          fontWeight: FontWeight.w400,
           letterSpacing: 2.0,
         ),
-        bodyMedium: GoogleFonts.notoSerifSc(
+        bodyMedium: GoogleFonts.outfit(
           color: inkText.withOpacity(0.9),
           fontSize: 16,
           height: 1.5,
@@ -54,28 +61,29 @@ class AppTheme {
       ),
       
       colorScheme: const ColorScheme.dark(
-        primary: spiritJade,
-        secondary: moonHalo,
-        surface: Color(0x0DFFFFFF), // Very subtle surface
-        background: daiDeep,
+        primary: fluorescentCyan,
+        secondary: amberGold,
+        surface: Color(0x0DFFFFFF),
+        background: voidBackground,
         onBackground: inkText,
       ),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: scrollPaper,
-        hintStyle: TextStyle(color: inkText.withOpacity(0.4), fontStyle: FontStyle.italic),
+        hintStyle: TextStyle(color: inkText.withOpacity(0.4)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), // Placeholder for Ruyi shape
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: scrollBorder, width: 0.5),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: scrollBorder, width: 0.5),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: spiritJade, width: 1.0),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: fluorescentCyan, width: 1.0),
         ),
       ),
     );
