@@ -214,40 +214,46 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
       return const SizedBox.shrink();
     }
 
-    return Stack(
-      children: [
-        // 背景遮罩
-        AnimatedBuilder(
-          animation: _overlayAnimation,
-          builder: (context, child) {
-            final opacity = _currentStage == AnimationStage.burst ||
-                _currentStage == AnimationStage.emerge
-                ? 0.9
-                : 0.7;
-            return Container(
-              color: Colors.black.withValues(alpha: opacity),
-            );
-          },
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 背景遮罩（半透明黑色，增强对比度）
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _overlayAnimation,
+              builder: (context, child) {
+                final opacity = _currentStage == AnimationStage.burst ||
+                    _currentStage == AnimationStage.emerge
+                    ? 0.9
+                    : 0.7;
+                return Container(
+                  color: Colors.black.withValues(alpha: opacity),
+                );
+              },
+            ),
+          ),
 
-        // 粒子爆发效果
-        if (_currentStage == AnimationStage.burst ||
-            _currentStage == AnimationStage.emerge)
-          _buildParticles(),
+          // 粒子爆发效果（中间层）
+          if (_currentStage == AnimationStage.burst ||
+              _currentStage == AnimationStage.emerge)
+            _buildParticles(),
 
-        // 能量环
-        if (_currentStage == AnimationStage.burst)
-          _buildEnergyRings(),
+          // 能量环（中间层）
+          if (_currentStage == AnimationStage.burst)
+            _buildEnergyRings(),
 
-        // 主体内容
-        Center(
-          child: _buildMainContent(),
-        ),
+          // 主体内容（上层，确保在最前面显示）
+          Center(
+            child: _buildMainContent(),
+          ),
 
-        // 文字提示
-        if (_currentStage == AnimationStage.emerge)
-          _buildAnnouncement(),
-      ],
+          // 文字提示（最上层）
+          if (_currentStage == AnimationStage.emerge)
+            _buildAnnouncement(),
+        ],
+      ),
     );
   }
 
@@ -287,22 +293,25 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
                 // 发光背景
                 _buildGlowEffect(),
 
-                // 灵石图片
+                // 灵石图片（不做任何处理，直接显示）
                 Image.asset(
                   widget.spiritStoneAsset ?? 'assets/images/spirit-stone-egg.png',
                   width: 160,
                   height: 160,
                   fit: BoxFit.contain,
-                  color: Color.lerp(
-                    const Color(0xFFFFFFFF),
-                    const Color(0xFFFFFF00),
-                    _glowAnimation.value - 1.0,
-                  ),
                 ),
 
-                // 裂纹覆盖层
-                if (_currentStage == AnimationStage.cracking)
-                  _buildCrackOverlay(),
+                // 裂纹覆盖层（完全透明的 SVG 线条，叠加在蛋上）
+                if (_currentStage == AnimationStage.cracking) ...[
+                  // 裂纹线条
+                  SizedBox(
+                    width: 160,
+                    height: 160,
+                    child: _buildCrackOverlay(),
+                  ),
+                  // 从裂纹处透出的光芒
+                  _buildCrackGlow(),
+                ],
               ],
             ),
           ),
@@ -346,10 +355,38 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
       animation: _crackAnimation,
       builder: (context, child) {
         return Opacity(
-          opacity: _crackAnimation.value,
+          opacity: _crackAnimation.value.clamp(0.0, 1.0), // 确保完全可见
           child: CustomPaint(
             size: const Size(160, 160),
             painter: CrackPainter(),
+          ),
+        );
+      },
+    );
+  }
+
+  // 从裂纹处透出的光芒
+  Widget _buildCrackGlow() {
+    return AnimatedBuilder(
+      animation: _crackController,
+      builder: (context, child) {
+        final glowIntensity = (math.sin(_crackController.value * math.pi * 2) * 0.5 + 0.5)
+            .clamp(0.4, 1.0);
+
+        return Container(
+          width: 160,
+          height: 160,
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.center,
+              radius: 0.5,
+              colors: [
+                const Color(0xFFFFB84D).withValues(alpha: glowIntensity * 0.7), // 金色光芒 hsl(43 100% 70%)
+                const Color(0xFFFFB84D).withValues(alpha: glowIntensity * 0.3),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.4, 1.0],
+            ),
           ),
         );
       },
@@ -592,7 +629,7 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
                         ..shader = const LinearGradient(
                           colors: [Colors.amber, Colors.cyan],
                         ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
-                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -643,48 +680,58 @@ class ParticleData {
 class CrackPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFFFD700)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke
-      ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 3);
-
-    final path = Path();
     final center = Offset(size.width / 2, size.height / 2);
 
-    // 绘制裂纹线条
-    path.moveTo(center.dx, center.dy - 30);
-    path.lineTo(center.dx + 5, center.dy - 15);
-    path.lineTo(center.dx - 2, center.dy);
-    path.lineTo(center.dx + 2, center.dy + 15);
-    path.lineTo(center.dx - 5, center.dy + 30);
-    canvas.drawPath(path, paint);
-
-    // 第二条裂纹
-    path.reset();
-    path.moveTo(center.dx - 20, center.dy - 10);
-    path.lineTo(center.dx - 5, center.dy - 5);
-    path.lineTo(center.dx, center.dy);
-    path.lineTo(center.dx + 5, center.dy + 5);
-    path.lineTo(center.dx + 20, center.dy + 10);
-    canvas.drawPath(path, Paint()
-      ..color = const Color(0xFF00BCD4)
-      ..strokeWidth = 2
+    // 第一条裂纹（金色 hsl(43 100% 70%)）- 主裂纹
+    final paint1 = Paint()
+      ..color = const Color(0xFFFFB84D) // HSL(43, 100%, 70%) = 金色
+      ..strokeWidth = 5
       ..style = PaintingStyle.stroke
-      ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 3));
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 6);
 
-    // 第三条裂纹
-    path.reset();
-    path.moveTo(center.dx - 15, center.dy + 15);
-    path.lineTo(center.dx - 8, center.dy + 5);
-    path.lineTo(center.dx, center.dy);
-    path.lineTo(center.dx + 8, center.dy - 5);
-    path.lineTo(center.dx + 15, center.dy - 15);
-    canvas.drawPath(path, Paint()
-      ..color = const Color(0xFFFFD700)
-      ..strokeWidth = 1.5
+    final path1 = Path();
+    path1.moveTo(center.dx, center.dy - 35);
+    path1.lineTo(center.dx + 6, center.dy - 18);
+    path1.lineTo(center.dx - 3, center.dy);
+    path1.lineTo(center.dx + 3, center.dy + 18);
+    path1.lineTo(center.dx - 6, center.dy + 35);
+    canvas.drawPath(path1, paint1);
+
+    // 第二条裂纹（青色 hsl(187 100% 70%)）- 横向裂纹
+    final paint2 = Paint()
+      ..color = const Color(0xFF00F0FF) // HSL(187, 100%, 70%) = 青色
+      ..strokeWidth = 5
       ..style = PaintingStyle.stroke
-      ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 3));
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 6);
+
+    final path2 = Path();
+    path2.moveTo(center.dx - 25, center.dy - 12);
+    path2.lineTo(center.dx - 6, center.dy - 6);
+    path2.lineTo(center.dx, center.dy);
+    path2.lineTo(center.dx + 6, center.dy + 6);
+    path2.lineTo(center.dx + 25, center.dy + 12);
+    canvas.drawPath(path2, paint2);
+
+    // 第三条裂纹（金色 hsl(43 100% 70%)）- 对角裂纹
+    final paint3 = Paint()
+      ..color = const Color(0xFFFFB84D) // HSL(43, 100%, 70%) = 金色
+      ..strokeWidth = 4.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 6);
+
+    final path3 = Path();
+    path3.moveTo(center.dx - 18, center.dy + 18);
+    path3.lineTo(center.dx - 10, center.dy + 6);
+    path3.lineTo(center.dx, center.dy);
+    path3.lineTo(center.dx + 10, center.dy - 6);
+    path3.lineTo(center.dx + 18, center.dy - 18);
+    canvas.drawPath(path3, paint3);
   }
 
   @override
