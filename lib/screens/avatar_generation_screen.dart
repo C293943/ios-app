@@ -8,7 +8,7 @@ import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
-import 'package:primordial_spirit/widgets/liquid_avatar.dart';
+import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
 
 /// 3D形象生成页面（加载过渡页）
 class AvatarGenerationScreen extends StatefulWidget {
@@ -527,109 +527,117 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: MysticBackground(
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // 灵体凝聚动画
-                  const SizedBox(
-                    width: 160,
-                    height: 160,
-                    child: LiquidAvatar(isTalking: true),
-                  ),
-                  const SizedBox(height: 32),
+      body: Stack(
+        children: [
+          MysticBackground(
+            child: SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 100),
 
-                  // 状态文本
-                  Text(
-                    _statusText,
-                    style: GoogleFonts.notoSerifSc(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: _hasError ? Colors.red.shade400 : AppTheme.deepVoidBlue,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // 详细信息
-                  if (_detailText.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _hasError
-                            ? Colors.red.withOpacity(0.1)
-                            : AppTheme.deepVoidBlue.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _detailText,
+                      // 状态文本
+                      Text(
+                        _statusText,
                         style: GoogleFonts.notoSerifSc(
-                          fontSize: 12,
-                          color: _hasError
-                              ? Colors.red.shade400
-                              : AppTheme.deepVoidBlue.withOpacity(0.7),
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: _hasError ? Colors.red.shade400 : AppTheme.deepVoidBlue,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                    ),
-                  const SizedBox(height: 20),
+                      const SizedBox(height: 8),
 
-                  // 进度条
-                  Container(
-                    width: double.infinity,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppTheme.deepVoidBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: _progress,
-                      child: Container(
+                      // 详细信息
+                      if (_detailText.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _hasError
+                                ? Colors.red.withValues(alpha: 0.1)
+                                : AppTheme.deepVoidBlue.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _detailText,
+                            style: GoogleFonts.notoSerifSc(
+                              fontSize: 12,
+                              color: _hasError
+                                  ? Colors.red.shade400
+                                  : AppTheme.deepVoidBlue.withValues(alpha: 0.7),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+
+                      // 进度条
+                      Container(
+                        width: double.infinity,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: AppTheme.jadeGreen,
+                          color: AppTheme.deepVoidBlue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.jadeGreen.withOpacity(0.5),
-                              blurRadius: 6,
-                            )
-                          ],
+                        ),
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: _progress,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.jadeGreen,
+                              borderRadius: BorderRadius.circular(2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.jadeGreen.withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                )
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                  // 进度百分比
-                  Text(
-                    '${(_progress * 100).toInt()}%',
-                    style: GoogleFonts.notoSerifSc(
-                      fontSize: 16,
-                      color: AppTheme.deepVoidBlue.withOpacity(0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
+                      // 进度百分比
+                      Text(
+                        '${(_progress * 100).toInt()}%',
+                        style: GoogleFonts.notoSerifSc(
+                          fontSize: 16,
+                          color: AppTheme.deepVoidBlue.withValues(alpha: 0.6),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
-                  // 提示文本
-                  Text(
-                    '基于您的八字信息\n正在凝聚专属元神...',
-                    style: GoogleFonts.notoSerifSc(
-                      fontSize: 14,
-                      color: AppTheme.deepVoidBlue.withOpacity(0.7),
-                      height: 1.5,
-                    ),
-                    textAlign: TextAlign.center,
+                      // 提示文本
+                      Text(
+                        '基于您的八字信息\n正在凝聚专属元神...',
+                        style: GoogleFonts.notoSerifSc(
+                          fontSize: 14,
+                          color: AppTheme.deepVoidBlue.withValues(alpha: 0.7),
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+
+          // 五行汇聚动画层
+          Positioned.fill(
+            child: QiConvergenceAnimation(
+              isTriggered: true,
+              onComplete: () {
+                // 动画完成后不做任何操作，让页面继续正常流程
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

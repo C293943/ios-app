@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -38,7 +37,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // 觉醒动画状态
   bool _showEvolutionAnimation = false;
   bool _isCharacterVisible = false; // 角色是否已觉醒（是否显示）
-  bool _isEvolutionTriggered = false; // 觉醒动画是否已触发（防止重复触发）
 
   List<String> _animations = [];
   String? _currentAnimation;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
+import 'package:primordial_spirit/services/cultivation_service.dart';
 
 /// 八字输入页面
 class BaziInputScreen extends StatefulWidget {
@@ -176,8 +178,15 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     );
   }
 
-  void _onAnimationComplete() {
+  void _onAnimationComplete() async {
     debugPrint('[BaziInputScreen] 动画完成，准备跳转');
+
+    // 重置养成进度，让用户重新体验从蛋到元神的养成过程
+    final cultivationService = context.read<CultivationService>();
+    await cultivationService.reset();
+    debugPrint('[BaziInputScreen] 养成进度已重置');
+
+    if (!mounted) return;
 
     final baziData = {
       'gender': _gender,
