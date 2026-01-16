@@ -1497,10 +1497,148 @@ class FortuneApiService {
     }
   }
 
+  /// 提交轻动作视频生成任务（异步）
+  /// POST /api/v1/video/motion/async
+  Future<MotionVideoCreateResponse> createMotionVideoTask({
+    required String firstFrameImage,
+    String? visitorId,
+    String? prompt,
+    String model = 'jimeng-video-3.0',
+    int duration = 4,
+    String? resolution,
+  }) async {
+    final url = Uri.parse('${AppConfig.baseUrl}/api/v1/video/motion/async');
+
+    final requestBody = {
+      'first_frame_image': firstFrameImage,
+      if (prompt != null) 'prompt': prompt,
+      'model': model,
+      'duration': duration,
+      if (resolution != null) 'resolution': resolution,
+      if (visitorId != null) 'visitor_id': visitorId,
+    };
+
+    debugPrint('[API] 轻动作视频任务提交 URL: $url');
+
+    try {
+      final response = await _client
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(requestBody),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        if (json['success'] == true && json['data'] != null) {
+          final data = json['data'] as Map<String, dynamic>;
+          return MotionVideoCreateResponse(
+            success: true,
+            taskId: data['task_id'] as String?,
+            status: data['status'] as String?,
+            videoUrl: data['video_url'] as String?,
+            cached: data['cached'] as bool? ?? false,
+          );
+        }
+        return MotionVideoCreateResponse(
+          success: false,
+          error: json['message'] as String? ?? '提交失败',
+        );
+      }
+
+      return MotionVideoCreateResponse(
+        success: false,
+        error: '提交失败: ${response.statusCode}',
+      );
+    } catch (e) {
+      return MotionVideoCreateResponse(success: false, error: '网络错误: $e');
+    }
+  }
+
+  /// 查询轻动作视频任务状态
+  /// POST /api/v1/video/motion/status
+  Future<MotionVideoStatusResponse> getMotionVideoStatus({
+    required String taskId,
+  }) async {
+    final url = Uri.parse('${AppConfig.baseUrl}/api/v1/video/motion/status');
+
+    final requestBody = {'task_id': taskId};
+
+    try {
+      final response = await _client
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(requestBody),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        if (json['success'] == true && json['data'] != null) {
+          final data = json['data'] as Map<String, dynamic>;
+          return MotionVideoStatusResponse(
+            success: true,
+            taskId: data['task_id'] as String?,
+            status: data['status'] as String?,
+            videoUrl: data['video_url'] as String?,
+            error: data['error'] as String?,
+          );
+        }
+        return MotionVideoStatusResponse(
+          success: false,
+          error: json['message'] as String? ?? '查询失败',
+        );
+      }
+
+      return MotionVideoStatusResponse(
+        success: false,
+        error: '查询失败: ${response.statusCode}',
+      );
+    } catch (e) {
+      return MotionVideoStatusResponse(success: false, error: '网络错误: $e');
+    }
+  }
+
   /// 关闭客户端
   void dispose() {
     _client.close();
   }
+}
+
+class MotionVideoCreateResponse {
+  final bool success;
+  final String? taskId;
+  final String? status;
+  final String? videoUrl;
+  final bool cached;
+  final String? error;
+
+  MotionVideoCreateResponse({
+    required this.success,
+    this.taskId,
+    this.status,
+    this.videoUrl,
+    this.cached = false,
+    this.error,
+  });
+}
+
+class MotionVideoStatusResponse {
+  final bool success;
+  final String? taskId;
+  final String? status;
+  final String? videoUrl;
+  final String? error;
+
+  MotionVideoStatusResponse({
+    required this.success,
+    this.taskId,
+    this.status,
+    this.videoUrl,
+    this.error,
+  });
 }
 
 /// 3D 任务创建响应

@@ -66,6 +66,9 @@ class ModelManagerService extends ChangeNotifier {
   bool _isGenerating2dImage = false;
   String? _image2dError;
 
+  /// 2D 形象对应的轻动作视频缓存（key=imageUrl, value=videoUrl）
+  final Map<String, String> _motionVideoCache = {};
+
   /// 内置模型列表
   static final List<Model3DConfig> builtInModels = [
     Model3DConfig(
@@ -160,6 +163,16 @@ class ModelManagerService extends ChangeNotifier {
 
   /// 2D 生图错误信息（如有）
   String? get image2dError => _image2dError;
+
+  /// 获取轻动作视频 URL（如已缓存）
+  String? getMotionVideoUrl(String imageUrl) => _motionVideoCache[imageUrl];
+
+  /// 写入轻动作视频 URL 缓存
+  void setMotionVideoUrl(String imageUrl, String videoUrl) {
+    if (imageUrl.isEmpty || videoUrl.isEmpty) return;
+    _motionVideoCache[imageUrl] = videoUrl;
+    notifyListeners();
+  }
 
   /// 是否已完成首次设置（已填写生辰信息）
   bool get hasCompletedSetup => _fortuneData != null || _userBaziData != null;
