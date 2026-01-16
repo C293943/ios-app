@@ -52,26 +52,38 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    // Transparent background, relying on HomeScreen's MysticBackground
-    return SafeArea(
-      child: Column(
-        children: [
-           _buildHeader(context),
-           Expanded(
-             child: ListView.builder(
-               controller: _scrollController,
-               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-               itemCount: _messages.length,
-               itemBuilder: (context, index) {
-                 final message = _messages[index];
-                 return _buildMessageBubble(message);
-               },
+    // 半透明背景，可以看到后面的主体
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppTheme.deepVoidBlue.withValues(alpha: 0.85), // 顶部较透明
+            AppTheme.deepVoidBlue.withValues(alpha: 0.95), // 底部较不透明
+          ],
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+             _buildHeader(context),
+             Expanded(
+               child: ListView.builder(
+                 controller: _scrollController,
+                 padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                 itemCount: _messages.length,
+                 itemBuilder: (context, index) {
+                   final message = _messages[index];
+                   return _buildMessageBubble(message);
+                 },
+               ),
              ),
-           ),
-           // 动画选择器（在输入框上方）
-           if (widget.animations.isNotEmpty) _buildAnimationSelector(),
-           _buildInputArea(),
-        ],
+             // 动画选择器（在输入框上方）
+             if (widget.animations.isNotEmpty) _buildAnimationSelector(),
+             _buildInputArea(),
+          ],
+        ),
       ),
     );
   }

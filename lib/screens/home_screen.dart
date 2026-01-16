@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/widgets/character_display.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/cultivation_service.dart';
@@ -20,6 +19,8 @@ import 'package:primordial_spirit/widgets/five_elements_progress.dart'
     show ElementProgressBar;
 import 'package:primordial_spirit/widgets/qi_summary_display.dart'
     show CompactQiSummary;
+import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
+import 'package:primordial_spirit/widgets/motion_preview_overlay.dart';
 
 /// 主页 - 太虚幻境 (Taixu Realm)
 class HomeScreen extends StatefulWidget {
@@ -116,6 +117,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  Future<void> _showMotionPreview() async {
+    final modelManager = context.read<ModelManagerService>();
+    final imageUrl = modelManager.image2dUrl;
+
+    if (imageUrl == null || imageUrl.isEmpty) {
+      ToastOverlay.show(
+        context,
+        message: '暂无可用形象图片，请先生成 2D 形象',
+        backgroundColor: AppTheme.amberGold,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    final cachedVideoUrl = modelManager.getMotionVideoUrl(imageUrl);
+
+    await MotionPreviewOverlay.show(
+      context,
+      imageUrl: imageUrl,
+      visitorId: modelManager.visitorId,
+      cachedVideoUrl: cachedVideoUrl,
+      onVideoUrlReady: (videoUrl) => modelManager.setMotionVideoUrl(imageUrl, videoUrl),
+    );
+  }
+
   /// 修行 - 增加养成值
   Future<void> _cultivate() async {
     final cultivationService = context.read<CultivationService>();
@@ -125,13 +151,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // 显示修行提示
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('修行完成，养成值 +10', style: GoogleFonts.outfit()),
-          backgroundColor: AppTheme.fluorescentCyan.withValues(alpha: 0.9),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-        ),
+      ToastOverlay.show(
+        context,
+        message: '修行完成，养成值 +10',
+        backgroundColor: AppTheme.fluorescentCyan,
+        duration: const Duration(seconds: 1),
       );
     }
 
@@ -160,12 +184,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // 检查是否已经觉醒
     if (cultivationService.isAwakened) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('元神已经觉醒，无需再次觉醒', style: GoogleFonts.outfit()),
-          backgroundColor: AppTheme.amberGold.withValues(alpha: 0.9),
-          duration: const Duration(seconds: 2),
-        ),
+      ToastOverlay.show(
+        context,
+        message: '元神已经觉醒，无需再次觉醒',
+        backgroundColor: AppTheme.amberGold,
+        duration: const Duration(seconds: 2),
       );
       return;
     }
@@ -173,15 +196,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // 检查养成值是否足够
     if (cultivationService.cultivationValue <
         cultivationService.maxCultivationValue) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '修行尚未圆满，当前 ${cultivationService.cultivationValue}/${cultivationService.maxCultivationValue}',
-            style: GoogleFonts.outfit(),
-          ),
-          backgroundColor: AppTheme.electricBlue.withValues(alpha: 0.9),
-          duration: const Duration(seconds: 2),
-        ),
+      ToastOverlay.show(
+        context,
+        message: '修行尚未圆满，当前 ${cultivationService.cultivationValue}/${cultivationService.maxCultivationValue}',
+        backgroundColor: AppTheme.electricBlue,
+        duration: const Duration(seconds: 2),
       );
       return;
     }
@@ -211,27 +230,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // 显示觉醒完成提示
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.auto_awesome, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                '元神觉醒！神识初成',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          backgroundColor: AppTheme.amberGold.withValues(alpha: 0.95),
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-        ),
+      ToastOverlay.show(
+        context,
+        message: '元神觉醒！神识初成',
+        icon: Icons.auto_awesome,
+        backgroundColor: AppTheme.amberGold,
+        duration: const Duration(seconds: 3),
       );
     }
   }
 
+  /// 计算当前等级
+  int _getCurrentLevel() {
+    if (_cultivationService == null) return 1;
+
+    // 觉醒前：根据养成值计算等级 (1-5级)
+    if (!_cultivationService!.isAwakened) {
+      final value = _cultivationService!.cultivationValue;
+      if (value < 20) return 1;
+      if (value < 40) return 2;
+      if (value < 60) return 3;
+      if (value < 80) return 4;
+      return 5;
+    }
+
+    // 觉醒后：基础等级为6，未来可以根据羁绊值继续提升
+    return 6;
+  }
+
   List<MenuData> _buildMenuItems() {
+    final currentLevel = _getCurrentLevel();
+
     final items = <MenuData>[
       MenuData(
         title: '修行',
@@ -239,6 +268,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         icon: Icons.self_improvement,
         color: AppTheme.fluorescentCyan,
         onTap: _cultivate,
+        unlockLevel: 1,
+        isLocked: currentLevel < 1,
       ),
       MenuData(
         title: '觉醒',
@@ -246,6 +277,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         icon: Icons.auto_awesome,
         color: AppTheme.amberGold,
         onTap: _triggerEvolution,
+        unlockLevel: 2,
+        isLocked: currentLevel < 2,
       ),
       MenuData(
         title: '宿命',
@@ -253,6 +286,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         icon: Icons.stars,
         color: Colors.purple,
         onTap: _showBaziProfile,
+        unlockLevel: 3,
+        isLocked: currentLevel < 3,
       ),
       MenuData(
         title: '唤醒',
@@ -260,6 +295,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         icon: Icons.lightbulb,
         color: Colors.amber,
         onTap: () => setState(() => _isChatMode = true),
+        unlockLevel: 4,
+        isLocked: currentLevel < 4,
       ),
       MenuData(
         title: '结缘',
@@ -267,13 +304,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         icon: Icons.history,
         color: Colors.pink,
         onTap: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+        unlockLevel: 5,
+        isLocked: currentLevel < 5,
       ),
       MenuData(
         title: '秘境',
         subtitle: '探索更多',
         icon: Icons.explore,
         color: Colors.indigo,
-        onTap: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+        onTap: _showMotionPreview,
+        unlockLevel: 6,
+        isLocked: currentLevel < 6,
       ),
     ];
 
@@ -320,28 +361,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               // ===== 背景层 =====
 
               // 角色显示层（觉醒后显示，作为背景）
-              if (!_isChatMode)
-                Positioned(
-                  top: size.height * 0.25,
-                  child: SpiritStage(
-                    isThinking: false,
-                    child: SizedBox(
-                      width: 300,
-                      height: 400,
-                      child: CharacterDisplay(
-                        key: _characterDisplayKey,
-                        animationPath2D: 'assets/images/back-1.png',
-                        modelPathLive2D: 'c_9999.model3.json',
-                        size: 600,
-                        showControls: false,
-                        visible: _isCharacterVisible, // 只有觉醒后才显示元神
-                        onAnimationsChanged: _onAnimationsChanged,
-                      ),
+              Positioned(
+                top: size.height * 0.25,
+                child: SpiritStage(
+                  isThinking: false,
+                  child: SizedBox(
+                    width: 300,
+                    height: 400,
+                    child: CharacterDisplay(
+                      key: _characterDisplayKey,
+                      animationPath2D: 'assets/images/back-1.png',
+                      modelPathLive2D: 'c_9999.model3.json',
+                      size: 600,
+                      showControls: false,
+                      visible: _isCharacterVisible, // 只有觉醒后才显示元神
+                      onAnimationsChanged: _onAnimationsChanged,
                     ),
                   ),
                 ),
+              ),
               // 主体底部的金色水波动效（统一放在CharacterDisplay之后）
-              if (!_isChatMode && _isCharacterVisible)
+              if (_isCharacterVisible)
                 Positioned(
                   top: size.height * 0.25 + 400, // SpiritStage高度之后
                   child: DivineRipple(
@@ -468,7 +508,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
 
               // 3D 旋转菜单（觉醒前后都显示）
-              if (!_isChatMode && !_showEvolutionAnimation)
+              if (!_showEvolutionAnimation)
                 Positioned(
                   top: size.height * 0.15,
                   child: Column(
@@ -501,9 +541,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
 
-              // 聊天覆盖层
+              // 聊天覆盖层（只占据底部和中间部分，保留顶部背景可见）
               if (_isChatMode)
-                Positioned.fill(
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  top: size.height * 0.4, // 从屏幕40%处开始，留出顶部背景
                   child: ChatOverlay(
                     onBack: () {
                       setState(() {

@@ -8,6 +8,7 @@ import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
 import 'package:primordial_spirit/services/cultivation_service.dart';
+import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
 
 /// 八字输入页面
 class BaziInputScreen extends StatefulWidget {
@@ -405,11 +406,10 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     }
 
     if (_selectedDate == null || _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('请完整填写出生时间，以便推算命格'),
-          backgroundColor: AppTheme.primaryDeepIndigo,
-        ),
+      ToastOverlay.show(
+        context,
+        message: '请完整填写出生时间，以便推算命格',
+        backgroundColor: AppTheme.primaryDeepIndigo,
       );
       return;
     }

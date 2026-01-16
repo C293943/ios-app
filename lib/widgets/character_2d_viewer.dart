@@ -1,6 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:lottie/lottie.dart';
 
 class Character2DViewer extends StatefulWidget {
   final String? animationPath;
@@ -130,7 +131,43 @@ class _Character2DViewerState extends State<Character2DViewer>
   }
 
   Widget _buildImage(String assetPath, String? imageUrl) {
-    // 优先显示网络图片
+    // 优先显示 Base64 编码的图片（背景移除后的图片）
+    if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith('data:image')) {
+      debugPrint('[Character2DViewer] 加载 Base64 图片');
+      try {
+        // 解码 Base64 图片
+        final base64String = imageUrl.split(',').last;
+        final imageBytes = base64Decode(base64String);
+
+        return Image.memory(
+          imageBytes,
+          width: widget.size,
+          height: widget.size,
+          fit: BoxFit.contain,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('[Character2DViewer] Base64 图片解码失败: $error');
+            return Image.asset(
+              assetPath,
+              width: widget.size,
+              height: widget.size,
+              fit: BoxFit.contain,
+            );
+          },
+        );
+      } catch (e) {
+        debugPrint('[Character2DViewer] Base64 解码异常: $e');
+        // 回退到本地资源
+        return Image.asset(
+          assetPath,
+          width: widget.size,
+          height: widget.size,
+          fit: BoxFit.contain,
+        );
+      }
+    }
+
+    // 显示网络图片
     if (imageUrl != null && imageUrl.isNotEmpty && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
       debugPrint('[Character2DViewer] 加载网络图片: $imageUrl');
       return CachedNetworkImage(
@@ -205,11 +242,11 @@ class _Character2DViewerState extends State<Character2DViewer>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),

@@ -7,6 +7,7 @@ import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
 
 /// 设置页面
 class SettingsScreen extends StatefulWidget {
@@ -451,11 +452,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         if (!supportedExtensions.contains(extension)) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('不支持的文件格式，请选择 .glb, .gltf 或 .obj 文件'),
-                backgroundColor: Colors.orange,
-              ),
+            ToastOverlay.show(
+              context,
+              message: '不支持的文件格式，请选择 .glb, .gltf 或 .obj 文件',
+              backgroundColor: Colors.orange,
             );
           }
           return;
@@ -471,11 +471,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             );
 
             if (model != null && mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('模型 "$name" 添加成功'),
-                  backgroundColor: AppTheme.jadeGreen,
-                ),
+              ToastOverlay.show(
+                context,
+                message: '模型 "$name" 添加成功',
+                backgroundColor: AppTheme.jadeGreen,
               );
             }
           }
@@ -483,11 +482,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('添加模型失败: $e'),
-            backgroundColor: Colors.red,
-          ),
+        ToastOverlay.show(
+          context,
+          message: '添加模型失败: $e',
+          backgroundColor: Colors.red,
         );
       }
     } finally {
@@ -566,11 +564,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (newName != null && newName.isNotEmpty && newName != model.name) {
       final success = await modelManager.updateModelName(model.id, newName);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? '重命名成功' : '重命名失败'),
-            backgroundColor: success ? AppTheme.jadeGreen : Colors.red,
-          ),
+        ToastOverlay.show(
+          context,
+          message: success ? '重命名成功' : '重命名失败',
+          backgroundColor: success ? AppTheme.jadeGreen : Colors.red,
         );
       }
     }
@@ -611,11 +608,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed == true) {
       final success = await modelManager.deleteCustomModel(model.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? '删除成功' : '删除失败'),
-            backgroundColor: success ? AppTheme.jadeGreen : Colors.red,
-          ),
+        ToastOverlay.show(
+          context,
+          message: success ? '删除成功' : '删除失败',
+          backgroundColor: success ? AppTheme.jadeGreen : Colors.red,
         );
       }
     }

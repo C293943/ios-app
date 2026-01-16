@@ -9,6 +9,8 @@ class HexCrystalMenuItem extends StatelessWidget {
   final VoidCallback? onTap;
   final double width;
   final double height;
+  final bool isLocked; // 是否锁定
+  final int unlockLevel; // 解锁所需等级
 
   const HexCrystalMenuItem({
     super.key,
@@ -19,55 +21,82 @@ class HexCrystalMenuItem extends StatelessWidget {
     this.onTap,
     this.width = 120,
     this.height = 150,
+    this.isLocked = false,
+    this.unlockLevel = 1,
   });
 
   @override
   Widget build(BuildContext context) {
-    final content = SizedBox(
-      width: width,
-      height: height,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          ClipPath(
-            clipper: _HexCrystalClipper(),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.22),
-                      tintColor.withValues(alpha: 0.18),
-                      Colors.white.withValues(alpha: 0.08),
-                    ],
-                    stops: const [0.0, 0.55, 1.0],
+    final lockedColor = Colors.grey.withValues(alpha: 0.5);
+    final displayColor = isLocked ? lockedColor : tintColor;
+    final displayOpacity = isLocked ? 0.4 : 1.0;
+
+    final content = Opacity(
+      opacity: displayOpacity,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            ClipPath(
+              clipper: _HexCrystalClipper(),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withValues(alpha: isLocked ? 0.08 : 0.22),
+                        displayColor.withValues(alpha: isLocked ? 0.05 : 0.18),
+                        Colors.white.withValues(alpha: isLocked ? 0.03 : 0.08),
+                      ],
+                      stops: const [0.0, 0.55, 1.0],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          CustomPaint(
-            size: Size(width, height),
-            painter: _HexCrystalBorderPainter(tintColor: tintColor),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            child: _HexCrystalContent(
-              title: title,
-              subtitle: subtitle,
-              icon: icon,
+            CustomPaint(
+              size: Size(width, height),
+              painter: _HexCrystalBorderPainter(tintColor: displayColor),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              child: _HexCrystalContent(
+                title: title,
+                subtitle: subtitle,
+                icon: icon,
+                isLocked: isLocked,
+                unlockLevel: unlockLevel,
+              ),
+            ),
+            // 锁定图标覆盖层
+            if (isLocked)
+              Positioned.fill(
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.lock,
+                    size: 32,
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: onTap,
+      onTap: isLocked ? null : onTap, // 锁定时不响应点击
       child: content,
     );
   }
@@ -78,11 +107,15 @@ class _HexCrystalContent extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    this.isLocked = false,
+    this.unlockLevel = 1,
   });
 
   final String title;
   final String? subtitle;
   final IconData? icon;
+  final bool isLocked;
+  final int unlockLevel;
 
   @override
   Widget build(BuildContext context) {

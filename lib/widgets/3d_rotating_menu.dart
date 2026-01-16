@@ -232,6 +232,8 @@ class _Rotating3DMenuState extends State<Rotating3DMenu> {
               onTap: data.onTap,
               width: widget.itemWidth,
               height: widget.itemHeight,
+              isLocked: data.isLocked,
+              unlockLevel: data.unlockLevel,
             ),
           ),
         ),
@@ -254,6 +256,8 @@ class MenuData {
   final IconData? icon;
   final Color? color;
   final VoidCallback? onTap;
+  final int unlockLevel; // 解锁所需等级（1为默认解锁）
+  final bool isLocked; // 是否锁定（根据等级计算）
 
   MenuData({
     required this.title,
@@ -261,6 +265,8 @@ class MenuData {
     this.icon,
     this.color,
     this.onTap,
+    this.unlockLevel = 1,
+    this.isLocked = false,
   });
 }
 
