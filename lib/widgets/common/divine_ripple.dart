@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:primordial_spirit/config/app_theme.dart';
 
 /// 金色神圣风格水波动效组件
 /// 用于营造蛋或元神在上方飘着的效果
@@ -50,7 +51,7 @@ class _DivineRippleState extends State<DivineRipple>
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = widget.baseColor ?? const Color(0xFFFFD700); // 金色
+    final baseColor = widget.baseColor ?? AppTheme.amberGold;
 
     return SizedBox(
       width: widget.width,

@@ -61,7 +61,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
     _controller.forward();
 
     final modelManager = context.read<ModelManagerService>();
-    final taskManager = _taskManager ??= context.read<TaskManagerService>();
+    _taskManager ??= context.read<TaskManagerService>();
 
     // 保存用户八字数据（兼容旧逻辑）
     if (widget.baziData != null) {
@@ -559,7 +559,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
                         style: GoogleFonts.notoSerifSc(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: _hasError ? Colors.red.shade400 : AppTheme.deepVoidBlue,
+                          color: _hasError ? Colors.red.shade400 : AppTheme.warmYellow,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -572,7 +572,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
                           decoration: BoxDecoration(
                             color: _hasError
                                 ? Colors.red.withValues(alpha: 0.1)
-                                : AppTheme.deepVoidBlue.withValues(alpha: 0.05),
+                                : AppTheme.spiritGlass.withOpacity(0.35),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -581,7 +581,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
                               fontSize: 12,
                               color: _hasError
                                   ? Colors.red.shade400
-                                  : AppTheme.deepVoidBlue.withValues(alpha: 0.7),
+                                  : AppTheme.inkText.withOpacity(0.72),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -593,7 +593,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
                         width: double.infinity,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: AppTheme.deepVoidBlue.withValues(alpha: 0.1),
+                          color: AppTheme.spiritGlass.withOpacity(0.35),
                           borderRadius: BorderRadius.circular(2),
                         ),
                         child: FractionallySizedBox(
@@ -620,7 +620,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
                         '${(_progress * 100).toInt()}%',
                         style: GoogleFonts.notoSerifSc(
                           fontSize: 16,
-                          color: AppTheme.deepVoidBlue.withValues(alpha: 0.6),
+                          color: AppTheme.warmYellow.withOpacity(0.85),
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -630,7 +630,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
                         '基于您的八字信息\n正在凝聚专属元神...',
                         style: GoogleFonts.notoSerifSc(
                           fontSize: 14,
-                          color: AppTheme.deepVoidBlue.withValues(alpha: 0.7),
+                          color: AppTheme.inkText.withOpacity(0.78),
                           height: 1.5,
                         ),
                         textAlign: TextAlign.center,

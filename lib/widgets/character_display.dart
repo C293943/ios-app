@@ -279,17 +279,20 @@ class CharacterDisplayState extends State<CharacterDisplay> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppTheme.jadeGreen
-                        : AppTheme.deepVoidBlue.withValues(alpha: 0.1),
+                        : AppTheme.spiritGlass.withOpacity(0.35),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? Colors.transparent : AppTheme.deepVoidBlue.withValues(alpha: 0.2),
+                      color: isSelected
+                          ? Colors.transparent
+                          : AppTheme.amberGold.withOpacity(0.22),
                     ),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     _formatAnimationName(anim),
                     style: GoogleFonts.notoSerifSc(
-                      color: isSelected ? Colors.white : AppTheme.deepVoidBlue,
+                      color:
+                          isSelected ? Colors.white : AppTheme.inkText.withOpacity(0.92),
                       fontSize: 12,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     ),
@@ -317,8 +320,9 @@ class CharacterDisplayState extends State<CharacterDisplay> {
       height: 36,
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.4),
+        color: AppTheme.spiritGlass.withOpacity(0.35),
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.amberGold.withOpacity(0.18), width: 0.8),
       ),
       child: Row(
         children: [
@@ -327,7 +331,7 @@ class CharacterDisplayState extends State<CharacterDisplay> {
             padding: const EdgeInsets.only(left: 12),
             child: Icon(
               Icons.palette,
-              color: Colors.teal.shade300,
+              color: AppTheme.amberGold.withOpacity(0.85),
               size: 16,
             ),
           ),
@@ -335,7 +339,7 @@ class CharacterDisplayState extends State<CharacterDisplay> {
           Text(
             '皮肤',
             style: TextStyle(
-              color: Colors.teal.shade300,
+              color: AppTheme.warmYellow.withOpacity(0.9),
               fontSize: 11,
               fontWeight: FontWeight.bold,
             ),

@@ -68,11 +68,11 @@ class _QiConvergenceAnimationState extends State<QiConvergenceAnimation>
         scale: 0.3 + random.nextDouble() * 1.2,
         speed: 0.3 + random.nextDouble() * 0.7, // 添加速度差异
         color: [
-          const Color(0xFF00BCD4), // 青
-          const Color(0xFFFFD700), // 金
-          const Color(0xFF4CAF50), // 绿
-          const Color(0xFF2196F3), // 蓝
-          const Color(0xFFD4A574), // 土
+          AppTheme.fluorescentCyan, // 青
+          AppTheme.amberGold, // 金
+          AppTheme.jadeGreen, // 绿
+          AppTheme.electricBlue, // 蓝
+          AppTheme.bronzeGold, // 土
         ][i % 5],
         delay: random.nextDouble() * 800, // 增加延迟范围，让粒子分批次进入
         hasTrail: random.nextBool(), // 部分粒子带有尾迹
@@ -269,14 +269,14 @@ class _QiConvergenceAnimationState extends State<QiConvergenceAnimation>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.cyan.withValues(alpha: opacity * 0.6),
-                      Colors.amber.withValues(alpha: opacity * 0.3),
+                      AppTheme.fluorescentCyan.withValues(alpha: opacity * 0.6),
+                      AppTheme.amberGold.withValues(alpha: opacity * 0.3),
                       Colors.transparent,
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.cyan.withValues(alpha: opacity * 0.4),
+                      color: AppTheme.fluorescentCyan.withValues(alpha: opacity * 0.4),
                       blurRadius: 40,
                       spreadRadius: 10,
                     ),
@@ -303,19 +303,19 @@ class _QiConvergenceAnimationState extends State<QiConvergenceAnimation>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      Colors.cyan.withValues(alpha: pulseOpacity * 0.3),
-                      Colors.amber.withValues(alpha: pulseOpacity * 0.15),
+                      AppTheme.fluorescentCyan.withValues(alpha: pulseOpacity * 0.3),
+                      AppTheme.amberGold.withValues(alpha: pulseOpacity * 0.15),
                       Colors.transparent,
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.cyan.withValues(alpha: pulseOpacity * 0.2),
+                      color: AppTheme.fluorescentCyan.withValues(alpha: pulseOpacity * 0.2),
                       blurRadius: 30,
                       spreadRadius: 15,
                     ),
                     BoxShadow(
-                      color: Colors.amber.withValues(alpha: pulseOpacity * 0.1),
+                      color: AppTheme.amberGold.withValues(alpha: pulseOpacity * 0.1),
                       blurRadius: 50,
                       spreadRadius: 20,
                     ),
@@ -350,7 +350,7 @@ class _QiConvergenceAnimationState extends State<QiConvergenceAnimation>
                     fontWeight: FontWeight.bold,
                     foreground: Paint()
                       ..shader = const LinearGradient(
-                        colors: [Colors.cyan, Colors.amber],
+                        colors: [AppTheme.fluorescentCyan, AppTheme.amberGold],
                       ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
                   ),
                 ),

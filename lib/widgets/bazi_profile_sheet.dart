@@ -28,9 +28,10 @@ class BaziProfileSheet extends StatelessWidget {
 
     return Container(
       constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: AppTheme.spiritGlass.withOpacity(0.95),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border.all(color: AppTheme.amberGold.withOpacity(0.25), width: 0.8),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -41,7 +42,7 @@ class BaziProfileSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppTheme.amberGold.withOpacity(0.35),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -58,19 +59,19 @@ class BaziProfileSheet extends StatelessWidget {
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.deepVoidBlue,
+                    color: AppTheme.warmYellow,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, color: AppTheme.warmYellow),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
 
-          const Divider(height: 1),
+          Divider(height: 1, color: AppTheme.amberGold.withOpacity(0.18)),
 
           // 内容区域
           Flexible(
@@ -155,7 +156,7 @@ class BaziProfileSheet extends StatelessWidget {
               style: GoogleFonts.notoSerifSc(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.deepVoidBlue,
+                color: AppTheme.warmYellow,
               ),
             ),
           ],
@@ -192,7 +193,7 @@ class BaziProfileSheet extends StatelessWidget {
           label,
           style: GoogleFonts.notoSerifSc(
             fontSize: 14,
-            color: AppTheme.deepVoidBlue.withOpacity(0.6),
+            color: AppTheme.inkText.withOpacity(0.72),
           ),
         ),
         Text(
@@ -200,7 +201,7 @@ class BaziProfileSheet extends StatelessWidget {
           style: GoogleFonts.notoSerifSc(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppTheme.deepVoidBlue,
+            color: AppTheme.inkText,
           ),
         ),
       ],
@@ -250,7 +251,7 @@ class BaziProfileSheet extends StatelessWidget {
         decoration: BoxDecoration(
           color: isMain
               ? AppTheme.jadeGreen.withOpacity(0.15)
-              : AppTheme.deepVoidBlue.withOpacity(0.05),
+              : AppTheme.spiritGlass.withOpacity(0.35),
           borderRadius: BorderRadius.circular(12),
           border: isMain
               ? Border.all(color: AppTheme.jadeGreen, width: 2)
@@ -262,7 +263,7 @@ class BaziProfileSheet extends StatelessWidget {
               label,
               style: GoogleFonts.notoSerifSc(
                 fontSize: 12,
-                color: AppTheme.deepVoidBlue.withOpacity(0.6),
+                color: AppTheme.inkText.withOpacity(0.72),
               ),
             ),
             const SizedBox(height: 8),
@@ -303,7 +304,7 @@ class BaziProfileSheet extends StatelessWidget {
                 hideGan.join(' '),
                 style: GoogleFonts.notoSerifSc(
                   fontSize: 10,
-                  color: AppTheme.deepVoidBlue.withOpacity(0.5),
+                  color: AppTheme.inkText.withOpacity(0.65),
                 ),
               ),
             ],
@@ -314,7 +315,7 @@ class BaziProfileSheet extends StatelessWidget {
                 zhiTenGods.map((e) => e.toString()).join(' '),
                 style: GoogleFonts.notoSerifSc(
                   fontSize: 9,
-                  color: AppTheme.deepVoidBlue.withOpacity(0.6),
+                  color: AppTheme.inkText.withOpacity(0.72),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -326,7 +327,7 @@ class BaziProfileSheet extends StatelessWidget {
                 nayin,
                 style: GoogleFonts.notoSerifSc(
                   fontSize: 10,
-                  color: AppTheme.deepVoidBlue.withOpacity(0.5),
+                  color: AppTheme.inkText.withOpacity(0.65),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -349,7 +350,7 @@ class BaziProfileSheet extends StatelessWidget {
         return const Color(0xFFFF9800); // 橙色 - 食伤
       case '正财':
       case '偏财':
-        return const Color(0xFFFFD700); // 金色 - 财星
+        return AppTheme.amberGold; // 古金 - 财星
       case '正官':
       case '七杀':
         return const Color(0xFF2196F3); // 蓝色 - 官杀
@@ -359,7 +360,7 @@ class BaziProfileSheet extends StatelessWidget {
       case '日主':
         return AppTheme.jadeGreen;
       default:
-        return AppTheme.deepVoidBlue.withOpacity(0.7);
+        return AppTheme.inkText.withOpacity(0.7);
     }
   }
 
@@ -376,7 +377,7 @@ class BaziProfileSheet extends StatelessWidget {
             _buildElementBar('木', elements['木'] ?? 0, total, const Color(0xFF4CAF50)),
             _buildElementBar('火', elements['火'] ?? 0, total, const Color(0xFFF44336)),
             _buildElementBar('土', elements['土'] ?? 0, total, const Color(0xFFFF9800)),
-            _buildElementBar('金', elements['金'] ?? 0, total, const Color(0xFFFFD700)),
+            _buildElementBar('金', elements['金'] ?? 0, total, AppTheme.amberGold),
             _buildElementBar('水', elements['水'] ?? 0, total, const Color(0xFF2196F3)),
           ],
         ),
@@ -395,7 +396,7 @@ class BaziProfileSheet extends StatelessWidget {
                   '五行力量',
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 12,
-                    color: AppTheme.deepVoidBlue.withOpacity(0.6),
+                    color: AppTheme.inkText.withOpacity(0.72),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -422,7 +423,7 @@ class BaziProfileSheet extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: value / 100,
-                              backgroundColor: Colors.grey.shade200,
+                              backgroundColor: Colors.black.withOpacity(0.35),
                               valueColor: AlwaysStoppedAnimation(_getElementColorByName(e)),
                               minHeight: 8,
                             ),
@@ -435,7 +436,7 @@ class BaziProfileSheet extends StatelessWidget {
                             '${value.toStringAsFixed(1)}%',
                             style: GoogleFonts.notoSerifSc(
                               fontSize: 12,
-                              color: AppTheme.deepVoidBlue.withOpacity(0.7),
+                              color: AppTheme.inkText.withOpacity(0.75),
                             ),
                             textAlign: TextAlign.right,
                           ),
@@ -519,7 +520,7 @@ class BaziProfileSheet extends StatelessWidget {
                   e.key,
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 14,
-                    color: AppTheme.deepVoidBlue.withOpacity(0.6),
+                    color: AppTheme.inkText.withOpacity(0.72),
                   ),
                 ),
                 Text(
@@ -527,7 +528,7 @@ class BaziProfileSheet extends StatelessWidget {
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppTheme.deepVoidBlue,
+                    color: AppTheme.inkText,
                   ),
                 ),
               ],
@@ -598,7 +599,7 @@ class BaziProfileSheet extends StatelessWidget {
                     pattern.description,
                     style: GoogleFonts.notoSerifSc(
                       fontSize: 13,
-                      color: AppTheme.deepVoidBlue.withOpacity(0.8),
+                      color: AppTheme.inkText.withOpacity(0.82),
                       height: 1.6,
                     ),
                   ),
@@ -630,7 +631,7 @@ class BaziProfileSheet extends StatelessWidget {
                     style: GoogleFonts.notoSerifSc(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.deepVoidBlue.withOpacity(0.6),
+                      color: AppTheme.warmYellow.withOpacity(0.85),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -645,7 +646,7 @@ class BaziProfileSheet extends StatelessWidget {
                             feature,
                             style: GoogleFonts.notoSerifSc(
                               fontSize: 12,
-                              color: AppTheme.deepVoidBlue.withOpacity(0.7),
+                              color: AppTheme.inkText.withOpacity(0.78),
                               height: 1.4,
                             ),
                           ),
@@ -703,7 +704,7 @@ class BaziProfileSheet extends StatelessWidget {
             label,
             style: GoogleFonts.notoSerifSc(
               fontSize: 12,
-              color: AppTheme.deepVoidBlue.withOpacity(0.6),
+              color: AppTheme.inkText.withOpacity(0.72),
             ),
           ),
         ),
@@ -712,7 +713,7 @@ class BaziProfileSheet extends StatelessWidget {
             value,
             style: GoogleFonts.notoSerifSc(
               fontSize: 12,
-              color: AppTheme.deepVoidBlue.withOpacity(0.8),
+              color: AppTheme.inkText.withOpacity(0.82),
               height: 1.4,
             ),
           ),
@@ -766,13 +767,13 @@ class BaziProfileSheet extends StatelessWidget {
   Color _getLevelColor(String level) {
     switch (level) {
       case 'high':
-        return const Color(0xFFFFD700); // 金色 - 贵格
+        return AppTheme.amberGold; // 古金 - 贵格
       case 'medium':
         return AppTheme.jadeGreen; // 绿色 - 常格
       case 'low':
         return Colors.grey; // 灰色 - 破格
       default:
-        return AppTheme.deepVoidBlue;
+        return AppTheme.inkText.withOpacity(0.75);
     }
   }
 
@@ -806,11 +807,11 @@ class BaziProfileSheet extends StatelessWidget {
       case '土':
         return const Color(0xFFFF9800);
       case '金':
-        return const Color(0xFFFFD700);
+        return AppTheme.amberGold;
       case '水':
         return const Color(0xFF2196F3);
       default:
-        return AppTheme.deepVoidBlue;
+        return AppTheme.inkText.withOpacity(0.75);
     }
   }
 }

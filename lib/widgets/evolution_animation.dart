@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:primordial_spirit/config/app_theme.dart';
 
 /// 觉醒动画组件 - 灵石进化为元神
 ///
@@ -122,7 +123,7 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
         angle: random.nextDouble() * 2 * math.pi,
         distance: 100 + random.nextDouble() * 300,
         scale: random.nextDouble() * 1.5,
-        color: i % 2 == 0 ? const Color(0xFF00BCD4) : const Color(0xFFFFD700), // 青色和金色
+        color: i % 2 == 0 ? AppTheme.fluorescentCyan : AppTheme.amberGold,
         delay: random.nextDouble() * 300,
       ));
     }
@@ -337,8 +338,8 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Colors.cyan.withValues(alpha: opacity * 0.6),
-                  Colors.amber.withValues(alpha: opacity * 0.3),
+                  AppTheme.fluorescentCyan.withValues(alpha: opacity * 0.6),
+                  AppTheme.amberGold.withValues(alpha: opacity * 0.3),
                   Colors.transparent,
                 ],
               ),
@@ -411,8 +412,8 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
               gradient: RadialGradient(
                 colors: [
                   Colors.white.withValues(alpha: opacity),
-                  Colors.amber.withValues(alpha: opacity * 0.7),
-                  Colors.cyan.withValues(alpha: opacity * 0.5),
+                  AppTheme.amberGold.withValues(alpha: opacity * 0.7),
+                  AppTheme.fluorescentCyan.withValues(alpha: opacity * 0.5),
                   Colors.transparent,
                 ],
               ),
@@ -445,13 +446,15 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: index % 2 == 0
-                        ? Colors.cyan.withValues(alpha: opacity)
-                        : Colors.amber.withValues(alpha: opacity),
+                        ? AppTheme.fluorescentCyan.withValues(alpha: opacity)
+                        : AppTheme.amberGold.withValues(alpha: opacity),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: (index % 2 == 0 ? Colors.cyan : Colors.amber)
+                      color: (index % 2 == 0
+                              ? AppTheme.fluorescentCyan
+                              : AppTheme.amberGold)
                           .withValues(alpha: opacity * 0.5),
                       blurRadius: 30,
                       spreadRadius: 5,
@@ -610,8 +613,8 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Colors.cyan.withValues(alpha: opacity * 0.4),
-                  Colors.amber.withValues(alpha: opacity * 0.2),
+                  AppTheme.fluorescentCyan.withValues(alpha: opacity * 0.4),
+                  AppTheme.amberGold.withValues(alpha: opacity * 0.2),
                   Colors.transparent,
                 ],
               ),
@@ -655,7 +658,7 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
                       fontWeight: FontWeight.bold,
                       foreground: Paint()
                         ..shader = const LinearGradient(
-                          colors: [Colors.amber, Colors.cyan],
+                          colors: [AppTheme.amberGold, AppTheme.fluorescentCyan],
                         ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
                     ),
                   ),

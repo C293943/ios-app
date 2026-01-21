@@ -40,7 +40,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
         title: Text(
           '开启命轮',
           style: TextStyle(
-            color: AppTheme.accentJade,
+            color: AppTheme.warmYellow,
             fontWeight: FontWeight.w300,
             letterSpacing: 1.5,
           ),
@@ -62,7 +62,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                     style: GoogleFonts.notoSerifSc(
                       fontSize: 24,
                       fontWeight: FontWeight.w400,
-                      color: AppTheme.deepVoidBlue,
+                      color: AppTheme.warmYellow,
                       letterSpacing: 2,
                     ),
                   ),
@@ -71,7 +71,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                     '唤醒您的五行守护灵',
                     style: GoogleFonts.notoSerifSc(
                       fontSize: 14,
-                      color: AppTheme.deepVoidBlue.withValues(alpha: 0.6),
+                      color: AppTheme.inkText.withOpacity(0.72),
                       letterSpacing: 1,
                     ),
                   ),
@@ -211,7 +211,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       child: Text(
         text,
         style: GoogleFonts.notoSerifSc(
-          color: AppTheme.deepVoidBlue.withOpacity(0.8),
+          color: AppTheme.warmYellow.withOpacity(0.85),
           fontSize: 12,
           fontWeight: FontWeight.w600,
           letterSpacing: 1,
@@ -229,24 +229,30 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected 
-              ? AppTheme.accentJade.withOpacity(0.3) 
+              ? AppTheme.jadeGreen.withOpacity(0.14) 
               : Colors.transparent,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: isSelected ? AppTheme.accentJade : AppTheme.deepVoidBlue.withOpacity(0.1),
+            color: isSelected
+                ? AppTheme.jadeGreen.withOpacity(0.55)
+                : AppTheme.amberGold.withOpacity(0.22),
           ),
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              color: isSelected ? AppTheme.deepVoidBlue : AppTheme.deepVoidBlue.withOpacity(0.4),
+              color: isSelected
+                  ? AppTheme.warmYellow
+                  : AppTheme.inkText.withOpacity(0.65),
             ),
             const SizedBox(height: 4),
             Text(
               value,
               style: GoogleFonts.notoSerifSc(
-                color: isSelected ? AppTheme.deepVoidBlue : AppTheme.deepVoidBlue.withOpacity(0.4),
+                color: isSelected
+                    ? AppTheme.warmYellow
+                    : AppTheme.inkText.withOpacity(0.65),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -267,24 +273,24 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.deepVoidBlue.withOpacity(0.08), // Slightly darker for contrast
+          color: AppTheme.spiritGlass.withOpacity(0.35),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: AppTheme.deepVoidBlue.withOpacity(0.2)), // Stronger border
+          border: Border.all(color: AppTheme.amberGold.withOpacity(0.22)),
         ),
         child: Row(
           children: [
             Text(
               value,
               style: GoogleFonts.notoSerifSc(
-                color: value.contains('选择') 
-                    ? AppTheme.deepVoidBlue.withOpacity(0.6) 
-                    : AppTheme.deepVoidBlue,
+                color: value.contains('选择')
+                    ? AppTheme.inkText.withOpacity(0.55)
+                    : AppTheme.inkText,
                 fontSize: 16,
                 fontWeight: value.contains('选择') ? FontWeight.normal : FontWeight.w500,
               ),
             ),
             const Spacer(),
-            Icon(icon, color: AppTheme.deepVoidBlue.withOpacity(0.8), size: 20),
+            Icon(icon, color: AppTheme.amberGold.withOpacity(0.85), size: 20),
           ],
         ),
       ),
@@ -326,8 +332,9 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
         return Container(
           constraints: BoxConstraints(maxHeight: maxHeight),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.spiritGlass.withOpacity(0.95),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(color: AppTheme.amberGold.withOpacity(0.25), width: 0.8),
           ),
           padding: EdgeInsets.only(bottom: bottomPadding),
           child: Column(
@@ -340,11 +347,11 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.deepVoidBlue,
+                    color: AppTheme.warmYellow,
                   ),
                 ),
               ),
-              const Divider(height: 1),
+              Divider(height: 1, color: AppTheme.amberGold.withOpacity(0.18)),
               Flexible(
                 child: GridView.builder(
                   shrinkWrap: true,
@@ -366,12 +373,12 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppTheme.accentJade.withOpacity(0.3)
-                              : AppTheme.deepVoidBlue.withOpacity(0.05),
+                              ? AppTheme.jadeGreen.withOpacity(0.18)
+                              : AppTheme.spiritGlass.withOpacity(0.35),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isSelected
-                                ? AppTheme.accentJade
+                                ? AppTheme.jadeGreen.withOpacity(0.7)
                                 : Colors.transparent,
                           ),
                         ),
@@ -379,7 +386,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                           city,
                           style: GoogleFonts.notoSerifSc(
                             fontSize: 14,
-                            color: AppTheme.deepVoidBlue,
+                            color: AppTheme.inkText,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           ),
                         ),

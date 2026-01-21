@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
 import 'dart:math' as math;
 
 /// 水晶菜单项定义
@@ -91,7 +92,7 @@ class _EggCrystalMenuState extends State<EggCrystalMenu>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withValues(alpha: 0.3),
+            color: AppTheme.fluorescentCyan.withValues(alpha: 0.22),
             blurRadius: 20,
             spreadRadius: 5,
           ),

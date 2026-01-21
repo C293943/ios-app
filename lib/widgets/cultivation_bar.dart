@@ -71,8 +71,8 @@ class CultivationBar extends StatelessWidget {
                     color: AppTheme.voidBackground.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(height / 2),
                     border: Border.all(
-                      color: AppTheme.fluorescentCyan.withValues(alpha: 0.2),
-                      width: 1,
+                      color: AppTheme.amberGold.withOpacity(0.22),
+                      width: 0.8,
                     ),
                   ),
                 ),
@@ -84,21 +84,33 @@ class CultivationBar extends StatelessWidget {
                   height: height,
                   width: width != null ? width! * progress : null,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.fluorescentCyan,
-                        AppTheme.electricBlue,
-                        AppTheme.amberGold,
+                    borderRadius: BorderRadius.circular(height / 2),
+                    boxShadow: AppTheme.qiGlowShadows(
+                      color: AppTheme.jadeGreen,
+                      intensity: 0.55,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(height / 2),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.inkGreen.withOpacity(0.9),
+                                  AppTheme.jadeGreen,
+                                  AppTheme.inkGreen.withOpacity(0.9),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (progress > 0.02)
+                          const Positioned.fill(child: _ShimmerOverlay()),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(height / 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.fluorescentCyan.withValues(alpha: 0.5),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ],
                   ),
                 ),
 
@@ -244,6 +256,68 @@ class CultivationIndicator extends StatelessWidget {
                   ),
                 ),
             ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ShimmerOverlay extends StatefulWidget {
+  const _ShimmerOverlay();
+
+  @override
+  State<_ShimmerOverlay> createState() => _ShimmerOverlayState();
+}
+
+class _ShimmerOverlayState extends State<_ShimmerOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final width = constraints.maxWidth;
+            final dx = (width * 2) * (_controller.value - 0.5);
+            return Transform.translate(
+              offset: Offset(dx, 0),
+              child: child,
+            );
+          },
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.transparent,
+                    AppTheme.warmYellow.withOpacity(0.18),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
           ),
         );
       },

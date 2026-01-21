@@ -7,6 +7,7 @@ import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
 
 /// 设置页面
@@ -28,7 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text(
           '设置',
           style: GoogleFonts.notoSerifSc(
-            color: AppTheme.deepVoidBlue,
+            color: AppTheme.warmYellow,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -36,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.deepVoidBlue),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.warmYellow),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -89,6 +90,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const SizedBox(height: 24),
 
+                // 个人信息
+                _buildSectionTitle('个人中心'),
+                const SizedBox(height: 12),
+                _buildSettingTile(
+                  icon: Icons.person,
+                  title: '个人信息',
+                  subtitle: '查看和管理个人资料',
+                  onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
+                ),
+                const SizedBox(height: 24),
+
                 // 生辰设置
                 _buildSectionTitle('生辰信息'),
                 const SizedBox(height: 12),
@@ -123,7 +135,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       style: GoogleFonts.notoSerifSc(
         fontSize: 18,
         fontWeight: FontWeight.bold, // Bolder
-        color: AppTheme.deepVoidBlue, 
+        color: AppTheme.warmYellow,
         letterSpacing: 1.0,
       ),
     );
@@ -135,7 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       style: GoogleFonts.notoSerifSc(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: AppTheme.deepVoidBlue.withOpacity(0.8), // Darker
+        color: AppTheme.warmYellow.withOpacity(0.85),
         letterSpacing: 1.0,
       ),
     );
@@ -158,7 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: isSelected ? AppTheme.jadeGreen.withOpacity(0.95) : Colors.transparent, // More solid
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-               color: isSelected ? AppTheme.jadeGreen : AppTheme.deepVoidBlue.withOpacity(0.1), // Solid border when selected
+               color: isSelected ? AppTheme.jadeGreen : AppTheme.amberGold.withOpacity(0.25),
                width: isSelected ? 2 : 1,
             ),
           ),
@@ -167,7 +179,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Icon(
                 icon,
-                color: isSelected ? Colors.white : AppTheme.deepVoidBlue, // Full opacity unselected
+                color: isSelected ? Colors.white : AppTheme.inkText.withOpacity(0.9),
                 size: 24,
               ),
               const SizedBox(height: 4),
@@ -176,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.notoSerifSc(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600, // Bolder
-                  color: isSelected ? Colors.white : AppTheme.deepVoidBlue.withOpacity(0.9), // Darker unselected
+                  color: isSelected ? Colors.white : AppTheme.inkText.withOpacity(0.92),
                 ),
               ),
             ],
@@ -224,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.deepVoidBlue,
+                    color: AppTheme.inkText,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -232,7 +244,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   '支持 .glb, .gltf, .obj 格式',
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 12,
-                    color: AppTheme.deepVoidBlue.withOpacity(0.6),
+                    color: AppTheme.inkText.withOpacity(0.72),
                   ),
                 ),
               ],
@@ -240,7 +252,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Icon(
             Icons.file_upload_outlined,
-            color: AppTheme.deepVoidBlue.withOpacity(0.5),
+            color: AppTheme.amberGold.withOpacity(0.75),
           ),
         ],
       ),
@@ -269,7 +281,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppTheme.jadeGreen.withOpacity(0.25)
-                    : AppTheme.deepVoidBlue.withOpacity(0.05),
+                    : AppTheme.spiritGlass.withOpacity(0.35),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: isSelected ? AppTheme.jadeGreen : Colors.transparent,
@@ -280,7 +292,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 isSelected ? Icons.check_circle : Icons.view_in_ar,
                 color: isSelected
                     ? AppTheme.jadeGreen
-                    : AppTheme.deepVoidBlue.withOpacity(0.5),
+                    : AppTheme.inkText.withOpacity(0.65),
                 size: 22,
               ),
             ),
@@ -297,7 +309,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       fontSize: 15,
                       fontWeight:
                           isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: AppTheme.deepVoidBlue,
+                      color: isSelected ? AppTheme.warmYellow : AppTheme.inkText,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -323,10 +335,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // 操作按钮
             if (!isBuiltIn)
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert, color: AppTheme.deepVoidBlue.withOpacity(0.5)),
-                color: Colors.white.withOpacity(0.9),
+                icon: Icon(Icons.more_vert, color: AppTheme.inkText.withOpacity(0.75)),
+                color: AppTheme.spiritGlass.withOpacity(0.95),
                 elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: AppTheme.amberGold.withOpacity(0.35),
+                    width: 0.8,
+                  ),
+                ),
                 onSelected: (value) {
                   if (value == 'rename') {
                     _showRenameDialog(model, modelManager);
@@ -398,10 +416,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppTheme.deepVoidBlue.withOpacity(0.1), // Darker bg
+              color: AppTheme.spiritGlass.withOpacity(0.35),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: AppTheme.deepVoidBlue, size: 24), // Full opacity
+            child: Icon(icon, color: AppTheme.amberGold.withOpacity(0.9), size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -413,20 +431,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 15, 
                     fontWeight: FontWeight.bold, // Bolder
-                    color: AppTheme.deepVoidBlue,
+                    color: AppTheme.inkText,
                   ),
                 ),
                 Text(
                   subtitle,
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 12,
-                    color: AppTheme.deepVoidBlue.withOpacity(0.7), // Darker
+                    color: AppTheme.inkText.withOpacity(0.72),
                   ),
                 ),
               ],
             ),
           ),
-          if (onTap != null) Icon(Icons.chevron_right, color: AppTheme.deepVoidBlue.withOpacity(0.5)),
+          if (onTap != null)
+            Icon(Icons.chevron_right, color: AppTheme.amberGold.withOpacity(0.7)),
         ],
       ),
     );
@@ -502,28 +521,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: Text('模型名称', style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue)),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: '请输入模型名称',
-            border: OutlineInputBorder(),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: GlassContainer(
+          variant: GlassVariant.spirit,
+          blurSigma: 16,
+          glowColor: AppTheme.jadeGreen,
+          borderRadius: BorderRadius.circular(22),
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '模型名称',
+                style: GoogleFonts.notoSerifSc(
+                  color: AppTheme.warmYellow,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(hintText: '请输入模型名称'),
+                autofocus: true,
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  MysticButton(
+                    text: '取消',
+                    isOutline: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    fontSize: 14,
+                    letterSpacing: 1.0,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  MysticButton(
+                    text: '确定',
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    fontSize: 14,
+                    letterSpacing: 1.0,
+                    onPressed: () => Navigator.pop(context, controller.text),
+                  ),
+                ],
+              ),
+            ],
           ),
-          autofocus: true,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.jadeGreen),
-            child: const Text('确定', style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
     );
   }
@@ -536,28 +586,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final newName = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: Text('重命名模型', style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue)),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: '请输入新名称',
-            border: OutlineInputBorder(),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: GlassContainer(
+          variant: GlassVariant.spirit,
+          blurSigma: 16,
+          glowColor: AppTheme.jadeGreen,
+          borderRadius: BorderRadius.circular(22),
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '重命名模型',
+                style: GoogleFonts.notoSerifSc(
+                  color: AppTheme.warmYellow,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(hintText: '请输入新名称'),
+                autofocus: true,
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  MysticButton(
+                    text: '取消',
+                    isOutline: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    fontSize: 14,
+                    letterSpacing: 1.0,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  MysticButton(
+                    text: '确定',
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    fontSize: 14,
+                    letterSpacing: 1.0,
+                    onPressed: () => Navigator.pop(context, controller.text),
+                  ),
+                ],
+              ),
+            ],
           ),
-          autofocus: true,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.jadeGreen),
-            child: const Text('确定', style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
     );
 
@@ -587,21 +668,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: Text('删除模型', style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue)),
-        content: Text('确定要删除模型 "${model.name}" 吗？\n此操作不可恢复。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: GlassContainer(
+          variant: GlassVariant.spirit,
+          blurSigma: 16,
+          glowColor: AppTheme.amberGold,
+          borderRadius: BorderRadius.circular(22),
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '删除模型',
+                style: GoogleFonts.notoSerifSc(
+                  color: AppTheme.warmYellow,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '确定要删除模型 "${model.name}" 吗？\n此操作不可恢复。',
+                style: TextStyle(color: AppTheme.inkText.withOpacity(0.9), height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  MysticButton(
+                    text: '取消',
+                    isOutline: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    fontSize: 14,
+                    letterSpacing: 1.0,
+                    onPressed: () => Navigator.pop(context, false),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    child: const Text('删除'),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('删除', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+        ),
       ),
     );
 

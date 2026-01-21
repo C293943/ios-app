@@ -172,7 +172,7 @@ class FiveElementsModel {
       case '土':
         return const Color(0xFF795548); // 棕色
       case '金':
-        return const Color(0xFFFFD700); // 金色
+        return const Color(0xFFC8AA6E); // 古金
       case '水':
         return const Color(0xFF2196F3); // 蓝色
       default:

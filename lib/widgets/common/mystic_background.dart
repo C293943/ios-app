@@ -39,23 +39,29 @@ class _MysticBackgroundState extends State<MysticBackground> with SingleTickerPr
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 1. Deep "Dai" Background Gradient
+        // 1) Void Background Gradient (Deep Teal + Depth)
         Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppTheme.voidBackground,
-                AppTheme.inkGreen,
-                AppTheme.voidBackground, // darker at bottom again for grounding
-              ],
-              stops: [0.0, 0.4, 1.0], // Adjusted stops for better depth
+            gradient: AppTheme.voidGradient,
+          ),
+        ),
+
+        // 2) Atmospheric Fog (Radial)
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: AppTheme.fogGradient(
+                  center: const Alignment(0.0, -0.2),
+                  opacity: 0.14,
+                  radius: 1.25,
+                ),
+              ),
             ),
           ),
         ),
         
-        // 2. Moonlight Halo (Top Center)
+        // 3) Moonlight Halo (Top Center, warm highlight)
         Positioned(
           top: -100,
           left: 0,
@@ -67,7 +73,7 @@ class _MysticBackgroundState extends State<MysticBackground> with SingleTickerPr
                 center: Alignment.topCenter,
                 radius: 1.2,
                 colors: [
-                  AppTheme.moonHalo.withOpacity(0.15),
+                  AppTheme.moonHalo.withOpacity(0.12),
                   Colors.transparent,
                 ],
                 stops: const [0.0, 0.7],
@@ -76,7 +82,7 @@ class _MysticBackgroundState extends State<MysticBackground> with SingleTickerPr
           ),
         ),
         
-        // 3. Flowing Clouds (Animated opacity/position)
+        // 4) Flowing Clouds (Animated)
         AnimatedBuilder(
           animation: _cloudAnimation,
           builder: (context, child) {
@@ -88,7 +94,7 @@ class _MysticBackgroundState extends State<MysticBackground> with SingleTickerPr
           },
         ),
 
-        // 4. Far Mountains (Silhouettes at bottom)
+        // 5) Far Mountains (Silhouettes)
         Positioned(
           bottom: 0,
           left: 0,
@@ -99,7 +105,27 @@ class _MysticBackgroundState extends State<MysticBackground> with SingleTickerPr
           ),
         ),
 
-        // 5. Main Content with subtle noise/grain if needed (optional)
+        // 6) Vignette (Darken edges for depth & readability)
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.2,
+                  colors: [
+                    Colors.transparent,
+                    AppTheme.voidDeeper.withOpacity(0.45),
+                    AppTheme.voidDeeper.withOpacity(0.75),
+                  ],
+                  stops: const [0.0, 0.65, 1.0],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // 7) Main Content
         widget.child,
       ],
     );
@@ -114,7 +140,7 @@ class MountainPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     // Layer 1: Farthest, lightest (Foggy)
-    paint.color = AppTheme.inkGreen.withOpacity(0.3);
+    paint.color = AppTheme.inkGreen.withOpacity(0.25);
     final path1 = Path();
     path1.moveTo(0, size.height * 0.6);
     path1.cubicTo(size.width * 0.3, size.height * 0.5, size.width * 0.6, size.height * 0.7, size.width, size.height * 0.55);
@@ -124,7 +150,7 @@ class MountainPainter extends CustomPainter {
     canvas.drawPath(path1, paint);
 
     // Layer 2: Middle
-    paint.color = AppTheme.inkGreen.withOpacity(0.6);
+    paint.color = AppTheme.inkGreen.withOpacity(0.55);
     final path2 = Path();
     path2.moveTo(0, size.height * 0.75);
     path2.cubicTo(size.width * 0.2, size.height * 0.65, size.width * 0.7, size.height * 0.85, size.width, size.height * 0.7);
@@ -134,7 +160,7 @@ class MountainPainter extends CustomPainter {
     canvas.drawPath(path2, paint);
     
     // Layer 3: Closest, Darkest
-    paint.color = AppTheme.voidBackground; // Merges with bottom
+    paint.color = AppTheme.voidDeeper; // Grounding
     final path3 = Path();
     path3.moveTo(0, size.height);
     path3.cubicTo(size.width * 0.1, size.height * 0.9, size.width * 0.4, size.height * 0.95, size.width * 0.6, size.height);
@@ -156,7 +182,7 @@ class CloudPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppTheme.cloudMistWhite.withOpacity(0.08) // Warmer mist
+      ..color = AppTheme.jadeGreen.withOpacity(0.05) // Jade mist
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20); // Soften edges
 

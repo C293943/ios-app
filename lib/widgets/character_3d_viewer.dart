@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_3d_controller/flutter_3d_controller.dart';
 import 'package:provider/provider.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 
 /// 3D角色查看器组件
@@ -530,15 +531,15 @@ class Character3DViewerState extends State<Character3DViewer> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.purple.shade400
-                      : Colors.white.withValues(alpha: 0.2),
+                      ? AppTheme.jadeGreen.withValues(alpha: 0.32)
+                      : AppTheme.spiritGlass.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   _formatAnimationName(anim),
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppTheme.inkText,
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),

@@ -65,9 +65,9 @@ class BaziSummaryOverlay extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: AppTheme.spiritGlass.withOpacity(0.35),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.15)),
+            border: Border.all(color: AppTheme.amberGold.withOpacity(0.22)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -84,7 +84,7 @@ class BaziSummaryOverlay extends StatelessWidget {
                 '${birth.year}.${birth.month}.${birth.day} ${birth.hour}:${birth.minute.toString().padLeft(2, '0')} ${birth.city}',
                 style: GoogleFonts.notoSerifSc(
                   fontSize: 11,
-                  color: AppTheme.deepVoidBlue.withOpacity(0.6),
+                  color: AppTheme.inkText.withOpacity(0.75),
                 ),
               ),
             ],
@@ -141,9 +141,9 @@ class BaziSummaryOverlay extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: AppTheme.spiritGlass.withOpacity(0.35),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.amberGold.withOpacity(0.18)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -180,7 +180,7 @@ class BaziSummaryOverlay extends StatelessWidget {
             label,
             style: GoogleFonts.notoSerifSc(
               fontSize: 8,
-              color: AppTheme.deepVoidBlue.withOpacity(0.4),
+              color: AppTheme.inkText.withOpacity(0.55),
             ),
           ),
           const SizedBox(height: 2),
@@ -214,9 +214,9 @@ class BaziSummaryOverlay extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: AppTheme.spiritGlass.withOpacity(0.35),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.amberGold.withOpacity(0.18)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -227,7 +227,7 @@ class BaziSummaryOverlay extends StatelessWidget {
           const SizedBox(height: 6),
           _buildElementVertical('土', elements['土'] ?? 0, const Color(0xFFFF9800)),
           const SizedBox(height: 6),
-          _buildElementVertical('金', elements['金'] ?? 0, const Color(0xFFFFD700)),
+          _buildElementVertical('金', elements['金'] ?? 0, AppTheme.amberGold),
           const SizedBox(height: 6),
           _buildElementVertical('水', elements['水'] ?? 0, const Color(0xFF2196F3)),
         ],
@@ -264,7 +264,7 @@ class BaziSummaryOverlay extends StatelessWidget {
           style: GoogleFonts.notoSerifSc(
             fontSize: 10,
             fontWeight: FontWeight.bold,
-            color: AppTheme.deepVoidBlue.withOpacity(0.5),
+            color: AppTheme.inkText.withOpacity(0.75),
           ),
         ),
       ],
@@ -274,13 +274,13 @@ class BaziSummaryOverlay extends StatelessWidget {
   Color _getLevelColor(String level) {
     switch (level) {
       case 'high':
-        return const Color(0xFFFFD700);
+        return AppTheme.amberGold;
       case 'medium':
         return AppTheme.jadeGreen;
       case 'low':
         return Colors.grey;
       default:
-        return AppTheme.deepVoidBlue;
+        return AppTheme.inkText.withOpacity(0.75);
     }
   }
 
@@ -308,11 +308,11 @@ class BaziSummaryOverlay extends StatelessWidget {
       case '土':
         return const Color(0xFFFF9800);
       case '金':
-        return const Color(0xFFFFD700);
+        return AppTheme.amberGold;
       case '水':
         return const Color(0xFF2196F3);
       default:
-        return AppTheme.deepVoidBlue;
+        return AppTheme.inkText.withOpacity(0.75);
     }
   }
 }

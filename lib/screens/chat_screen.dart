@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_config.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
@@ -121,11 +122,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             // 返回按钮
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: AppTheme.spiritGlass.withOpacity(0.35),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: const Icon(Icons.arrow_back, color: AppTheme.warmYellow),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
@@ -142,7 +143,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         const Text(
                           '元灵',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppTheme.warmYellow,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -151,17 +152,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.3),
+                            color: AppTheme.jadeGreen.withOpacity(0.18),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: Colors.green.withValues(alpha: 0.5),
+                              color: AppTheme.jadeGreen.withOpacity(0.55),
                               width: 1,
                             ),
                           ),
                           child: const Text(
                             '在线',
                             style: TextStyle(
-                              color: Colors.green,
+                              color: AppTheme.jadeGreen,
                               fontSize: 10,
                             ),
                           ),
@@ -172,7 +173,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   Text(
                     '你的专属命理伙伴',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: AppTheme.inkText.withOpacity(0.72),
                       fontSize: 12,
                     ),
                   ),
@@ -183,11 +184,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             // 更多选项
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: AppTheme.spiritGlass.withOpacity(0.35),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
+                icon: const Icon(Icons.more_vert, color: AppTheme.warmYellow),
                 onPressed: () {
                   _showMoreOptions(context);
                 },
@@ -241,8 +242,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.purple.withValues(alpha: 0.3),
-            Colors.blue.withValues(alpha: 0.2),
+            AppTheme.jadeGreen.withOpacity(0.12),
+            AppTheme.electricBlue.withValues(alpha: 0.18),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -288,12 +289,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.95),
+              color: AppTheme.spiritGlass.withOpacity(0.55),
               borderRadius: const BorderRadius.all(Radius.circular(20)),
+              border: Border.all(color: AppTheme.amberGold.withOpacity(0.18), width: 0.8),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 8,
+                  color: Colors.black.withOpacity(0.35),
+                  blurRadius: 18,
                   offset: const Offset(0, 2),
                 ),
               ],
@@ -312,7 +314,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       height: 8,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.purple.withValues(alpha: 0.3 + opacity * 0.7),
+                        color: AppTheme.jadeGreen.withOpacity(0.25 + opacity * 0.6),
                       ),
                     );
                   }),
@@ -362,20 +364,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: AppTheme.spiritGlass.withOpacity(0.35),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AppTheme.amberGold.withOpacity(0.22),
                         width: 1,
                       ),
                     ),
                     child: TextField(
                       controller: _messageController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: AppTheme.inkText),
                       decoration: InputDecoration(
                         hintText: '与元灵对话...',
                         hintStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: AppTheme.inkText.withOpacity(0.55),
                         ),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
@@ -410,11 +412,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppTheme.spiritGlass.withOpacity(0.35),
         shape: BoxShape.circle,
       ),
       child: IconButton(
-        icon: Icon(icon, color: Colors.white),
+        icon: Icon(icon, color: AppTheme.warmYellow),
         onPressed: onPressed,
       ),
     );
@@ -424,17 +426,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildSendButton() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.purple.shade500,
-            Colors.purple.shade700,
-          ],
-        ),
+        gradient: AppTheme.spiritStoneGradient(intensity: 1.0),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withValues(alpha: 0.4),
-            blurRadius: 8,
+            color: AppTheme.jadeGreen.withOpacity(0.25),
+            blurRadius: 18,
             spreadRadius: 1,
           ),
         ],
@@ -446,10 +443,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(AppTheme.warmYellow),
                 ),
               )
-            : const Icon(Icons.send, color: Colors.white),
+            : const Icon(Icons.send, color: AppTheme.warmYellow),
         onPressed: _isLoading ? null : _sendMessage,
       ),
     );
@@ -459,6 +457,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildMessageBubble(ChatMessage message, bool isSmallScreen) {
     final markdownConfig = _buildMarkdownConfig(message.isUser);
     final isUser = message.isUser;
+    final markdownText = message.text
+        .replaceAll(r'\r\n', '\n')
+        .replaceAll(r'\n', '\n');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
@@ -481,25 +482,25 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    gradient: isUser
-                        ? LinearGradient(
-                            colors: [
-                              Colors.purple.shade700,
-                              Colors.purple.shade900,
-                            ],
-                          )
-                        : null,
-                    color: isUser ? null : Colors.white.withValues(alpha: 0.95),
+                    color: isUser
+                        ? AppTheme.jadeGreen.withOpacity(0.14)
+                        : AppTheme.spiritGlass.withOpacity(0.55),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(20),
                       topRight: const Radius.circular(20),
                       bottomLeft: Radius.circular(isUser ? 20 : 4),
                       bottomRight: Radius.circular(isUser ? 4 : 20),
                     ),
+                    border: Border.all(
+                      color: isUser
+                          ? AppTheme.jadeGreen.withOpacity(0.28)
+                          : AppTheme.amberGold.withOpacity(0.22),
+                      width: 0.8,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
+                        color: Colors.black.withOpacity(0.35),
+                        blurRadius: 18,
                         offset: const Offset(0, 2),
                       ),
                     ],
@@ -508,7 +509,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       MarkdownWidget(
-                        data: message.text,
+                        data: markdownText,
                         selectable: true,
                         shrinkWrap: true,
                         config: markdownConfig,
@@ -517,9 +518,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       Text(
                         _formatTime(message.timestamp),
                         style: TextStyle(
-                          color: isUser
-                              ? Colors.white.withValues(alpha: 0.6)
-                              : Colors.grey.shade500,
+                          color: AppTheme.inkText.withOpacity(0.55),
                           fontSize: 10,
                         ),
                       ),
@@ -548,14 +547,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         shape: BoxShape.circle,
         gradient: isUser
             ? LinearGradient(
-                colors: [Colors.blue.shade400, Colors.blue.shade600],
+                colors: [AppTheme.jadeGreen, AppTheme.electricBlue],
               )
             : LinearGradient(
-                colors: [Colors.purple.shade400, Colors.purple.shade600],
+                colors: [AppTheme.amberGold, AppTheme.bronzeGold],
               ),
         boxShadow: [
           BoxShadow(
-            color: (isUser ? Colors.blue : Colors.purple).withValues(alpha: 0.3),
+            color: (isUser ? AppTheme.jadeGreen : AppTheme.amberGold).withOpacity(0.25),
             blurRadius: 8,
             spreadRadius: 1,
           ),
@@ -726,12 +725,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   MarkdownConfig _buildMarkdownConfig(bool isUser) {
-    final textColor = isUser ? Colors.white : Colors.black87;
-    final codeBackground =
-        isUser ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.04);
-    final quoteBorderColor =
-        isUser ? Colors.white.withValues(alpha: 0.5) : Colors.purple.shade200;
-    final linkColor = isUser ? Colors.lightBlueAccent : Colors.blue;
+    final textColor = AppTheme.inkText;
+    final codeBackground = Colors.black.withOpacity(isUser ? 0.22 : 0.18);
+    final quoteBorderColor = isUser
+        ? AppTheme.jadeGreen.withOpacity(0.65)
+        : AppTheme.amberGold.withOpacity(0.55);
+    final linkColor = AppTheme.fluorescentCyan;
 
     final textStyle = TextStyle(
       color: textColor,
@@ -740,7 +739,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
 
     // 使用 darkConfig 或 defaultConfig 作为基础，确保所有行内样式正确渲染
-    final baseConfig = isUser ? MarkdownConfig.darkConfig : MarkdownConfig.defaultConfig;
+    final baseConfig = MarkdownConfig.darkConfig;
 
     return baseConfig.copy(
       configs: [
@@ -876,7 +875,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.cleaning_services, color: Colors.purple),
+                leading:
+                    const Icon(Icons.cleaning_services, color: AppTheme.warmYellow),
                 title: const Text('清空对话'),
                 onTap: () {
                   setState(() {
@@ -891,7 +891,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.history, color: Colors.purple),
+                leading: const Icon(Icons.history, color: AppTheme.warmYellow),
                 title: const Text('对话历史'),
                 onTap: () {
                   Navigator.pop(context);
@@ -899,7 +899,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.settings, color: Colors.purple),
+                leading: const Icon(Icons.settings, color: AppTheme.warmYellow),
                 title: const Text('设置'),
                 onTap: () {
                   Navigator.pop(context);

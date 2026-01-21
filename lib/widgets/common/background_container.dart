@@ -9,18 +9,7 @@ class BackgroundContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppTheme.primaryBlack,
-            AppTheme.primaryDeepIndigo,
-            Color(0xFF001015), // Very dark teal for depth
-          ],
-          stops: [0.0, 0.6, 1.0],
-        ),
-      ),
+      decoration: const BoxDecoration(gradient: AppTheme.voidGradient),
       child: Stack(
         children: [
           // Optional: Add subtle particle or noise overlay here later
@@ -33,7 +22,7 @@ class BackgroundContainer extends StatelessWidget {
                     center: Alignment(0.0, -0.5),
                     radius: 0.8,
                     colors: [
-                      AppTheme.accentJade,
+                      AppTheme.jadeGreen,
                       Colors.transparent,
                     ],
                   ),

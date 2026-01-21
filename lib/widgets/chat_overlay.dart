@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
@@ -222,10 +223,12 @@ class _ChatOverlayState extends State<ChatOverlay> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppTheme.deepVoidBlue.withValues(alpha: 1.0),
-            AppTheme.inkGreen.withValues(alpha: 1.0),
-            AppTheme.deepVoidBlue.withValues(alpha: 1.0),
+            AppTheme.voidDeeper,
+            AppTheme.voidBackground,
+            AppTheme.inkGreen,
+            AppTheme.voidDeeper,
           ],
+          stops: const [0.0, 0.25, 0.7, 1.0],
         ),
       ),
     );
@@ -239,9 +242,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppTheme.deepVoidBlue.withValues(alpha: 0.70),
-            AppTheme.deepVoidBlue.withValues(alpha: 0.82),
-            AppTheme.deepVoidBlue.withValues(alpha: 0.92),
+            AppTheme.voidDeeper.withOpacity(0.55),
+            AppTheme.voidDeeper.withOpacity(0.70),
+            AppTheme.voidDeeper.withOpacity(0.82),
           ],
           stops: const [0.0, 0.5, 1.0],
         ),
@@ -265,7 +268,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
               ),
               child: const Icon(
                 Icons.keyboard_arrow_down,
-                color: AppTheme.deepVoidBlue,
+                color: AppTheme.warmYellow,
                 size: 28,
               ),
             ),
@@ -279,6 +282,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   Widget _buildMessageBubble(ChatMessage message) {
     final isUser = message.isUser;
+    final markdownConfig = _buildMarkdownConfig(isUser);
+    final markdownText = message.text
+        .replaceAll(r'\r\n', '\n')
+        .replaceAll(r'\n', '\n');
     // Organic shapes: "Water Drop" feel
     final borderRadius = isUser
         ? const BorderRadius.only(
@@ -313,34 +320,159 @@ class _ChatOverlayState extends State<ChatOverlay> {
               ), // Limit width for readability
               decoration: BoxDecoration(
                 color: isUser
-                    ? AppTheme.jadeGreen.withOpacity(0.2)
-                    : Colors.white.withOpacity(0.25),
+                    ? AppTheme.jadeGreen.withOpacity(0.14)
+                    : AppTheme.spiritGlass.withOpacity(0.55),
                 borderRadius: borderRadius,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 0.5,
+                  color: isUser
+                      ? AppTheme.jadeGreen.withOpacity(0.28)
+                      : AppTheme.amberGold.withOpacity(0.22),
+                  width: 0.8,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.deepVoidBlue.withOpacity(0.05),
-                    blurRadius: 10,
+                    color: Colors.black.withOpacity(0.35),
+                    blurRadius: 18,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Text(
-                message.text,
-                style: GoogleFonts.notoSerifSc(
-                  color: AppTheme.deepVoidBlue,
-                  fontSize: 16,
-                  height: 1.6,
-                ),
+              child: MarkdownWidget(
+                data: markdownText,
+                selectable: true,
+                shrinkWrap: true,
+                config: markdownConfig,
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  MarkdownConfig _buildMarkdownConfig(bool isUser) {
+    final textColor = AppTheme.inkText;
+    final codeBackground = Colors.black.withOpacity(isUser ? 0.22 : 0.18);
+    final quoteBorderColor = isUser
+        ? AppTheme.jadeGreen.withOpacity(0.65)
+        : AppTheme.amberGold.withOpacity(0.55);
+    final linkColor = AppTheme.fluorescentCyan;
+
+    final textStyle = GoogleFonts.notoSansSc(
+      color: textColor,
+      fontSize: 16,
+      height: 1.6,
+    );
+
+    final baseConfig = MarkdownConfig.darkConfig;
+
+    return baseConfig.copy(
+      configs: [
+        PConfig(textStyle: textStyle),
+        H1Config(style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow, fontSize: 24)),
+        H2Config(style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow, fontSize: 20)),
+        H3Config(style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow, fontSize: 18)),
+        H4Config(style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow, fontSize: 16)),
+        H5Config(style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow, fontSize: 15)),
+        H6Config(style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow, fontSize: 14)),
+        CodeConfig(
+          style: TextStyle(
+            color: textColor,
+            backgroundColor: codeBackground,
+            fontFamily: 'monospace',
+            fontSize: 14,
+          ),
+        ),
+        PreConfig(
+          decoration: BoxDecoration(
+            color: codeBackground,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: TextStyle(
+            color: textColor,
+            fontFamily: 'monospace',
+            fontSize: 14,
+          ),
+          language: '',
+        ),
+        BlockquoteConfig(
+          sideColor: quoteBorderColor,
+          textColor: textColor,
+        ),
+        ListConfig(
+          marker: (isOrdered, depth, index) {
+            if (isOrdered) {
+              return Container(
+                margin: const EdgeInsets.only(right: 8),
+                child: Text(
+                  '${index + 1}.',
+                  style: TextStyle(color: textColor, fontSize: 16),
+                ),
+              );
+            }
+            final markers = ['•', '◦', '▪'];
+            return Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: Text(
+                markers[depth % markers.length],
+                style: TextStyle(color: textColor, fontSize: 16),
+              ),
+            );
+          },
+        ),
+        LinkConfig(
+          style: TextStyle(
+            color: linkColor,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+        ImgConfig(
+          builder: (url, attributes) {
+            return Image.network(
+              url,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: codeBackground,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.broken_image, color: textColor, size: 16),
+                      const SizedBox(width: 4),
+                      Text('图片加载失败', style: TextStyle(color: textColor, fontSize: 12)),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        TableConfig(
+          headerStyle: textStyle.copyWith(fontWeight: FontWeight.bold),
+          bodyStyle: textStyle,
+          border: TableBorder.all(
+            color: textColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        HrConfig(color: textColor.withValues(alpha: 0.3)),
+        CheckBoxConfig(
+          builder: (checked) {
+            return Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: Icon(
+                checked ? Icons.check_box : Icons.check_box_outline_blank,
+                size: 18,
+                color: checked ? (isUser ? Colors.lightGreenAccent : Colors.green) : textColor,
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -375,19 +507,19 @@ class _ChatOverlayState extends State<ChatOverlay> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppTheme.jadeGreen
-                        : AppTheme.deepVoidBlue.withOpacity(0.1),
+                        : AppTheme.spiritGlass.withOpacity(0.35),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected
                           ? Colors.transparent
-                          : AppTheme.deepVoidBlue.withOpacity(0.2),
+                          : AppTheme.amberGold.withOpacity(0.22),
                     ),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     _formatAnimationName(anim),
                     style: GoogleFonts.notoSerifSc(
-                      color: isSelected ? Colors.white : AppTheme.deepVoidBlue,
+                      color: isSelected ? Colors.white : AppTheme.inkText.withOpacity(0.92),
                       fontSize: 12,
                       fontWeight: isSelected
                           ? FontWeight.bold
@@ -419,17 +551,17 @@ class _ChatOverlayState extends State<ChatOverlay> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         child: Row(
           children: [
-            Icon(Icons.mic_none, color: AppTheme.deepVoidBlue.withOpacity(0.6)),
+            Icon(Icons.mic_none, color: AppTheme.amberGold.withOpacity(0.75)),
             const SizedBox(width: 12),
             Expanded(
               child: TextField(
                 controller: _messageController,
-                style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue),
-                cursorColor: AppTheme.deepVoidBlue,
+                style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
+                cursorColor: AppTheme.jadeGreen,
                 decoration: InputDecoration(
                   hintText: '向元灵倾诉...',
                   hintStyle: GoogleFonts.notoSerifSc(
-                    color: AppTheme.deepVoidBlue.withOpacity(0.4),
+                    color: AppTheme.inkText.withOpacity(0.45),
                   ),
                   border: InputBorder.none,
                   isDense: true,
@@ -443,10 +575,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
               onTap: _sendMessage,
               child: CircleAvatar(
                 radius: 18,
-                backgroundColor: AppTheme.deepVoidBlue.withOpacity(0.1),
+                backgroundColor: AppTheme.spiritGlass.withOpacity(0.4),
                 child: Icon(
                   Icons.arrow_upward,
-                  color: AppTheme.deepVoidBlue,
+                  color: AppTheme.warmYellow,
                   size: 20,
                 ),
               ),
