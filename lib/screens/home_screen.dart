@@ -582,12 +582,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Positioned(
                 top: MediaQuery.of(context).padding.top + 10,
                 right: 20,
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.settings_outlined,
-                    color: AppTheme.moonHalo,
-                  ),
-                  onPressed: _openSettings,
+                child: Column(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.settings_outlined,
+                        color: AppTheme.moonHalo,
+                      ),
+                      onPressed: _openSettings,
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.person_outline,
+                        color: AppTheme.moonHalo,
+                      ),
+                      onPressed: () => Navigator.of(context).pushNamed(AppRoutes.profile),
+                    ),
+                  ],
                 ),
               ),
 

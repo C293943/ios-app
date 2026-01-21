@@ -90,16 +90,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const SizedBox(height: 24),
 
-                // 个人信息
-                _buildSectionTitle('个人中心'),
-                const SizedBox(height: 12),
-                _buildSettingTile(
-                  icon: Icons.person,
-                  title: '个人信息',
-                  subtitle: '查看和管理个人资料',
-                  onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
-                ),
-                const SizedBox(height: 24),
 
                 // 生辰设置
                 _buildSectionTitle('生辰信息'),
