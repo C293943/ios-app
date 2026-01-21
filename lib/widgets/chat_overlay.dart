@@ -1,4 +1,6 @@
+// 聊天覆盖层，负责元神对话与背景切换（觉醒/未觉醒）。
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:markdown_widget/markdown_widget.dart';
@@ -6,8 +8,10 @@ import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
+import 'package:primordial_spirit/services/cultivation_service.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
+import 'package:primordial_spirit/services/video_cache_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:video_player/video_player.dart';
 
@@ -43,7 +47,11 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   VideoPlayerController? _backgroundVideoController;
   Future<void>? _backgroundVideoInitialize;
-  String? _backgroundVideoUrl;
+  String? _backgroundVideoSource;
+  bool _backgroundVideoIsLocal = false;
+  bool _showEggBackground = false;
+  String? _backgroundKey;
+  final VideoCacheService _videoCacheService = VideoCacheService();
 
   @override
   void initState() {
@@ -62,12 +70,18 @@ class _ChatOverlayState extends State<ChatOverlay> {
   @override
   Widget build(BuildContext context) {
     final modelManager = context.watch<ModelManagerService>();
+    final cultivationService = context.watch<CultivationService>();
     final imageUrl = modelManager.image2dUrl;
     final videoUrl = (imageUrl != null && imageUrl.isNotEmpty)
         ? modelManager.getMotionVideoUrl(imageUrl)
         : null;
+    final isAwakened = cultivationService.isAwakened;
 
-    _scheduleBackgroundVideoUpdate(videoUrl);
+    _scheduleBackgroundVideoUpdate(
+      isAwakened: isAwakened,
+      imageUrl: imageUrl,
+      remoteVideoUrl: videoUrl,
+    );
 
     return Stack(
       children: [
@@ -101,20 +115,63 @@ class _ChatOverlayState extends State<ChatOverlay> {
     );
   }
 
-  void _scheduleBackgroundVideoUpdate(String? nextUrl) {
-    final normalized = (nextUrl != null && nextUrl.isNotEmpty) ? nextUrl : null;
-    if (normalized == _backgroundVideoUrl) return;
+  void _scheduleBackgroundVideoUpdate({
+    required bool isAwakened,
+    required String? imageUrl,
+    required String? remoteVideoUrl,
+  }) {
+    final nextKey =
+        '${isAwakened ? '1' : '0'}|${imageUrl ?? ''}|${remoteVideoUrl ?? ''}';
+    if (nextKey == _backgroundKey) return;
+    _backgroundKey = nextKey;
 
-    _backgroundVideoUrl = normalized;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      unawaited(_setBackgroundVideo(normalized));
+
+      if (!isAwakened) {
+        if (!_showEggBackground) {
+          setState(() => _showEggBackground = true);
+        }
+        unawaited(_setBackgroundVideo(null));
+        return;
+      }
+
+      if (_showEggBackground) {
+        setState(() => _showEggBackground = false);
+      }
+
+      if (imageUrl == null || imageUrl.isEmpty) {
+        unawaited(_setBackgroundVideo(null));
+        return;
+      }
+
+      final localPath = await _videoCacheService.getLocalPathForImage(imageUrl);
+      if (!mounted) return;
+      if (localPath != null) {
+        unawaited(_setBackgroundVideo(localPath, isLocal: true));
+        return;
+      }
+
+      if (remoteVideoUrl != null && remoteVideoUrl.isNotEmpty) {
+        unawaited(_setBackgroundVideo(remoteVideoUrl));
+        unawaited(
+          _videoCacheService.cacheVideoForImage(
+            imageUrl: imageUrl,
+            videoUrl: remoteVideoUrl,
+          ),
+        );
+        return;
+      }
+
+      unawaited(_setBackgroundVideo(null));
     });
   }
 
-  Future<void> _setBackgroundVideo(String? url) async {
-    if (url == null) {
+  Future<void> _setBackgroundVideo(String? source, {bool isLocal = false}) async {
+    if (source == null) {
       await _disposeBackgroundVideoController();
+      _backgroundVideoSource = null;
+      _backgroundVideoIsLocal = false;
       if (mounted) {
         setState(() {
           _backgroundVideoInitialize = null;
@@ -123,17 +180,32 @@ class _ChatOverlayState extends State<ChatOverlay> {
       return;
     }
 
+    if (source == _backgroundVideoSource && isLocal == _backgroundVideoIsLocal) {
+      return;
+    }
+
+    _backgroundVideoSource = source;
+    _backgroundVideoIsLocal = isLocal;
+
     // 先销毁旧 controller，避免同时占用解码资源。
     await _disposeBackgroundVideoController();
 
     VideoPlayerController controller;
     try {
-      controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      if (isLocal) {
+        final file = File(source);
+        if (!await file.exists()) {
+          return;
+        }
+        controller = VideoPlayerController.file(file);
+      } else {
+        controller = VideoPlayerController.networkUrl(Uri.parse(source));
+      }
     } catch (_) {
       // URL 不合法时直接回退到图片背景
       if (mounted) {
         setState(() {
-          _backgroundVideoUrl = null;
+          _backgroundVideoSource = null;
           _backgroundVideoInitialize = null;
         });
       }
@@ -160,7 +232,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
       // 初始化/播放失败回退到图片背景
       await _disposeBackgroundVideoController();
       setState(() {
-        _backgroundVideoUrl = null;
+        _backgroundVideoSource = null;
         _backgroundVideoInitialize = null;
       });
     }
@@ -175,6 +247,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
   }
 
   Widget _buildDynamicBackground({required String? imageUrl}) {
+    if (_showEggBackground) {
+      return _buildEggBackground();
+    }
+
     if (_backgroundVideoController != null &&
         _backgroundVideoInitialize != null) {
       final controller = _backgroundVideoController!;
@@ -200,6 +276,29 @@ class _ChatOverlayState extends State<ChatOverlay> {
     }
 
     return _buildImageBackground(imageUrl);
+  }
+
+  Widget _buildEggBackground() {
+    return Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppTheme.voidDeeper,
+            AppTheme.voidBackground,
+            AppTheme.inkGreen,
+          ],
+        ),
+      ),
+      child: Image.asset(
+        'assets/images/spirit-stone-egg.png',
+        width: 240,
+        height: 280,
+        fit: BoxFit.contain,
+      ),
+    );
   }
 
   Widget _buildImageBackground(String? imageUrl) {

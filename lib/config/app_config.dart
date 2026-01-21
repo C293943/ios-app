@@ -1,3 +1,4 @@
+// 应用全局配置与API端点集中管理。
 import 'dart:io';
 
 /// APP全局配置
@@ -112,6 +113,10 @@ class AppConfig {
   static const String imageStatusEndpoint = '/api/v1/status';
   static const String imageStreamEndpoint = '/api/v1/stream';
   static const String imageGenerateSyncEndpoint = '/api/v1/generate/sync';
+
+  // ============ 关系合盘 ============
+  static const String relationshipReportEndpoint = '/api/v1/relationship/report';
+  static const String relationshipStreamEndpoint = '/api/v1/relationship/stream';
 
   // 缓存配置
   static const int maxCacheSize = 100 * 1024 * 1024; // 100MB

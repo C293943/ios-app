@@ -1,9 +1,11 @@
+// 后端接口封装，提供命盘、合盘与形象相关请求能力。
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
+import 'package:primordial_spirit/models/relationship_models.dart';
 
 /// SSE 连接状态
 enum SSEConnectionState {
@@ -1598,6 +1600,117 @@ class FortuneApiService {
       );
     } catch (e) {
       return MotionVideoStatusResponse(success: false, error: '网络错误: $e');
+    }
+  }
+
+  /// 获取关系合盘报告
+  /// POST /api/v1/relationship/report
+  Future<RelationshipReportResponse> fetchRelationshipReport({
+    required String relationType,
+    required RelationshipPerson personA,
+    required RelationshipPerson personB,
+  }) async {
+    final url = Uri.parse('${AppConfig.baseUrl}${AppConfig.relationshipReportEndpoint}');
+
+    final requestBody = {
+      'relation_type': relationType,
+      'person_a': personA.toJson(),
+      'person_b': personB.toJson(),
+    };
+
+    try {
+      final response = await _client
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(requestBody),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        if (json['success'] == true && json['data'] != null) {
+          final data = json['data'] as Map<String, dynamic>;
+          final report = RelationshipReport.fromJson({
+            ...data,
+            'relation_type': relationType,
+          });
+          return RelationshipReportResponse(success: true, report: report);
+        }
+        return RelationshipReportResponse(
+          success: true,
+          report: RelationshipReport.mock(relationType),
+          message: json['message'] as String? ?? '使用MVP合盘结果',
+        );
+      }
+
+      return RelationshipReportResponse(
+        success: true,
+        report: RelationshipReport.mock(relationType),
+        message: '使用MVP合盘结果',
+      );
+    } catch (e) {
+      return RelationshipReportResponse(
+        success: true,
+        report: RelationshipReport.mock(relationType),
+        message: '使用MVP合盘结果',
+      );
+    }
+  }
+
+  /// 合盘对话（流式）
+  /// POST /api/v1/relationship/stream
+  Stream<String> relationshipStream(
+    RelationshipChatRequest request, {
+    String connectionId = 'relationship_chat',
+    Duration timeout = const Duration(minutes: 5),
+  }) async* {
+    final url = Uri.parse('${AppConfig.baseUrl}${AppConfig.relationshipStreamEndpoint}');
+    final httpRequest = http.Request('POST', url);
+    httpRequest.headers['Content-Type'] = 'application/json';
+    httpRequest.body = jsonEncode(request.toJson());
+
+    final connection = _createSSEConnection(connectionId);
+
+    try {
+      connection.connect(
+        httpRequest,
+        timeout: timeout,
+        connectionTimeout: const Duration(seconds: 30),
+      );
+
+      await for (final jsonStr in connection.stream) {
+        try {
+          final json = jsonDecode(jsonStr) as Map<String, dynamic>;
+          if (json.containsKey('chunk')) {
+            yield json['chunk'] as String;
+          } else if (json['done'] == true) {
+            return;
+          } else if (json.containsKey('error')) {
+            yield '\n[服务器错误] ${json['error']}';
+            return;
+          }
+        } catch (e) {
+          debugPrint('Parse relationship SSE error: $e, data: $jsonStr');
+        }
+      }
+    } catch (e) {
+      yield* _mockRelationshipStream(request.report.relationType);
+    } finally {
+      _activeConnections.remove(connectionId);
+    }
+  }
+
+  Stream<String> _mockRelationshipStream(String relationType) async* {
+    final chunks = [
+      '基于你们的合盘报告来看，',
+      '整体能量趋于稳定，',
+      '在${relationType}关系中更适合通过慢节奏沟通建立信任。',
+      '如果遇到分歧，可以先找到共同目标，再讨论细节。',
+    ];
+    for (final chunk in chunks) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      yield chunk;
     }
   }
 

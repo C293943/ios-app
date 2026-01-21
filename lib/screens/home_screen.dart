@@ -1,3 +1,4 @@
+// 主页入口与核心交互编排，承载觉醒/对话/菜单入口。
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
@@ -304,6 +305,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         metadata: {
           'trigger': 'awakening',
           'awakened_at': DateTime.now().millisecondsSinceEpoch,
+          'image_url': imageUrl,
         },
       );
 
@@ -368,7 +370,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         subtitle: '两人互动',
         icon: Icons.favorite,
         color: AppTheme.electricBlue,
-        onTap: _showBaziProfile,
+        onTap: () => Navigator.of(context).pushNamed(
+          AppRoutes.relationshipSelect,
+        ),
         unlockLevel: 3,
         isLocked: currentLevel < 3,
       ),
@@ -386,7 +390,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         subtitle: '年运分析',
         icon: Icons.calendar_today,
         color: AppTheme.bronzeGold,
-        onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
+        onTap: _showBaziProfile,
         unlockLevel: 5,
         isLocked: currentLevel < 5,
       ),

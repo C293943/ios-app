@@ -1,6 +1,8 @@
+// 后台任务管理服务，负责生图/生视频任务的调度与状态维护。
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
+import 'package:primordial_spirit/services/video_cache_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 任务类型
@@ -379,6 +381,20 @@ class TaskManagerService extends ChangeNotifier {
       case TaskType.videoGeneration:
         // 视频生成完成
         debugPrint('[TaskManager] 视频生成完成: ${task.resultUrl}');
+        final videoUrl = task.resultUrl;
+        if (videoUrl != null && videoUrl.isNotEmpty) {
+          final imageUrl = task.metadata['image_url'] as String?;
+          if (imageUrl != null && imageUrl.isNotEmpty) {
+            unawaited(
+              VideoCacheService().cacheVideoForImage(
+                imageUrl: imageUrl,
+                videoUrl: videoUrl,
+              ),
+            );
+          } else {
+            unawaited(VideoCacheService().cacheVideoByUrl(videoUrl));
+          }
+        }
         break;
       case TaskType.avatar3d:
         // 3D形象生成完成
@@ -482,6 +498,9 @@ class TaskManagerService extends ChangeNotifier {
         notifyListeners();
 
         debugPrint('[TaskManager] 生视频任务快速完成: ${task.id}');
+        if (task.isCompletedSuccessfully) {
+          _onTaskCompleted(task);
+        }
         return task;
       }
 

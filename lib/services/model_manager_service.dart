@@ -1,3 +1,5 @@
+// 模型管理服务，维护用户命盘数据与形象资源缓存。
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -52,6 +54,7 @@ class ModelManagerService extends ChangeNotifier {
   static const String _fortuneDataKey = 'fortune_data';
   static const String _visitorIdKey = 'visitor_id';
   static const String _image2dCacheKey = 'image_2d_cache';
+  static const String _motionVideoCacheKey = 'motion_video_cache';
 
   List<Model3DConfig> _customModels = [];
   String? _selectedModelId;
@@ -172,6 +175,7 @@ class ModelManagerService extends ChangeNotifier {
   void setMotionVideoUrl(String imageUrl, String videoUrl) {
     if (imageUrl.isEmpty || videoUrl.isEmpty) return;
     _motionVideoCache[imageUrl] = videoUrl;
+    unawaited(_saveMotionVideoCache());
     notifyListeners();
   }
 
@@ -246,6 +250,23 @@ class ModelManagerService extends ChangeNotifier {
       }
     }
 
+    // 轻动作视频缓存
+    final motionJson = prefs.getString(_motionVideoCacheKey);
+    if (motionJson != null) {
+      try {
+        final cached = jsonDecode(motionJson) as Map<String, dynamic>;
+        _motionVideoCache
+          ..clear()
+          ..addAll(
+            cached.map(
+              (key, value) => MapEntry(key, value.toString()),
+            ),
+          );
+      } catch (e) {
+        debugPrint('加载轻动作视频缓存失败: $e');
+      }
+    }
+
     _isInitialized = true;
     notifyListeners();
 
@@ -254,6 +275,18 @@ class ModelManagerService extends ChangeNotifier {
     // if (_displayMode == DisplayMode.mode2D) {
     //   ensure2DImageGenerated();
     // }
+  }
+
+  Future<void> _saveMotionVideoCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _motionVideoCacheKey,
+        jsonEncode(_motionVideoCache),
+      );
+    } catch (e) {
+      debugPrint('保存轻动作视频缓存失败: $e');
+    }
   }
 
   /// 保存自定义模型到本地
