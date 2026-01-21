@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +8,7 @@ import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
+import 'package:primordial_spirit/services/task_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
 
@@ -28,6 +30,8 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
   String _detailText = '';
   double _progress = 0.0;
   bool _hasError = false;
+  TaskManagerService? _taskManager;
+  StreamSubscription<TaskManagerService>? _taskManagerSubscription;
 
   @override
   void initState() {
@@ -46,10 +50,18 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
     _startGeneration();
   }
 
+  @override
+  void dispose() {
+    _taskManagerSubscription?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<void> _startGeneration() async {
     _controller.forward();
 
     final modelManager = context.read<ModelManagerService>();
+    final taskManager = _taskManager ??= context.read<TaskManagerService>();
 
     // 保存用户八字数据（兼容旧逻辑）
     if (widget.baziData != null) {
@@ -145,7 +157,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       final is2DMode = currentMode == DisplayMode.mode2D || currentMode == DisplayMode.live2D;
 
       setState(() {
-        _statusText = is2DMode ? '正在生成2D形象...' : '正在生成3D元神形象...';
+        _statusText = is2DMode ? '正在准备2D形象...' : '正在准备3D元神形象...';
         _detailText = response.ziweiInfo?.mingGong.isNotEmpty == true
             ? '命宫: ${response.ziweiInfo!.mingGong}'
             : '日主: ${response.baziInfo!.dayGan}';
@@ -155,26 +167,15 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
       // 根据模式调用不同的生成API
       if (is2DMode) {
-        // 2D模式：调用图片生成API
-        final imageUrl = await _generate2DImage(
+        // 2D模式：后台提交图片生成任务（不等待）
+        // ✅ 关键：不使用await，立即继续执行，让用户马上进入主页
+        _submit2DImageTaskInBackground(
           baziInfo: response.baziInfo!,
           gender: birthInfo.gender,
+          visitorId: modelManager.visitorId ?? 'default',
+          fortuneData: fortuneData,
+          modelManager: modelManager,
         );
-
-        // 保存2D图片URL到fortuneData（复用avatar3dInfo字段存储）
-        if (imageUrl != null) {
-          fortuneData = fortuneData.copyWith(
-            avatar3dInfo: Avatar3dInfo(
-              taskId: DateTime.now().millisecondsSinceEpoch.toString(),
-              status: 'SUCCEEDED',
-              thumbnailUrl: imageUrl, // 使用thumbnailUrl存储2D图片URL
-              glbUrl: imageUrl, // 同时使用glbUrl存储，方便访问
-              prompt: '2D形象',
-              createdAt: DateTime.now(),
-              isRefined: true,
-            ),
-          );
-        }
       } else {
         // 3D模式：调用3D生成API
         final avatar3dInfo = await _generate3dAvatar(
@@ -234,54 +235,67 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
     );
   }
 
-  /// 生成2D形象（通过后端图片生成API）
-  /// 使用同步生成接口，快速返回图片URL
-  Future<String?> _generate2DImage({
+  /// 后台提交2D图片生成任务（不阻塞UI）
+  ///
+  /// 使用默认的egg图片prompt,在后台生成
+  /// 用户可以立即继续使用应用,不用等待
+  /// 任务完成后会自动更新fortuneData
+  void _submit2DImageTaskInBackground({
     required BaziInfo baziInfo,
     required String gender,
-  }) async {
-    try {
-      setState(() {
-        _statusText = '正在绘制形象...';
-        _detailText = '根据八字生成专属画像';
-      });
+    required String visitorId,
+    required FortuneData fortuneData,
+    required ModelManagerService modelManager,
+  }) {
+    final taskManager = context.read<TaskManagerService>();
 
-      final apiService = FortuneApiService();
+    // 构建默认的egg图片prompt
+    final prompt = _buildImagePrompt(baziInfo, gender);
 
-      // 构建图片生成提示词（基于八字信息）
-      final prompt = _buildImagePrompt(baziInfo, gender);
+    debugPrint('[后台生图] 提交任务, prompt: $prompt');
 
-      debugPrint('[2D生成] 提示词: $prompt');
+    // ✅ 关键：不等待任务完成，立即继续执行
+    // TaskManagerService会在后台处理，完成后通过notifyListeners通知
+    taskManager.submitImageGenerationTask(
+      prompt: prompt,
+      visitorId: visitorId,
+      metadata: {
+        'bazi_info': baziInfo.toJson(),
+        'gender': gender,
+        'prompt': prompt,
+      },
+    ).then((task) {
+      // ✅ 异步回调：任务完成后更新fortuneData
+      if (task != null && task.isCompletedSuccessfully && task.resultUrl != null) {
+        debugPrint('[后台生图] 任务完成,更新fortuneData: ${task.resultUrl}');
 
-      // 调用同步图片生成API
-      final response = await apiService.generateImageSync(
-        prompt: prompt,
-        aspectRatio: 'portrait', // 竖版肖像
-        visitorId: 'user-${DateTime.now().millisecondsSinceEpoch}',
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-      );
+        final updatedFortuneData = fortuneData.copyWith(
+          avatar3dInfo: Avatar3dInfo(
+            taskId: task.taskId,
+            status: 'SUCCEEDED',
+            thumbnailUrl: task.resultUrl,
+            glbUrl: task.resultUrl,
+            prompt: prompt,
+            createdAt: DateTime.now(),
+            isRefined: true,
+          ),
+        );
 
-      if (response.success && response.resultUrl != null) {
-        debugPrint('[2D生成] 生成成功: ${response.resultUrl}');
-        setState(() {
-          _statusText = '生成完成!';
-          _detailText = '2D形象已就绪';
+        modelManager.saveFortuneData(updatedFortuneData).then((_) {
+          debugPrint('[后台生图] fortuneData已更新');
         });
-        return response.resultUrl;
-      } else {
-        debugPrint('[2D生成] 生成失败: ${response.error}');
-        setState(() {
-          _detailText = '图片生成失败: ${response.error}';
-        });
-        return null;
       }
-    } catch (e) {
-      debugPrint('[2D生成] 异常: $e');
+    });
+
+    // 显示提示信息
+    if (mounted) {
       setState(() {
-        _detailText = '2D生成出错: $e';
+        _statusText = '生成任务已提交';
+        _detailText = '形象正在后台绘制中...';
       });
-      return null;
     }
+
+    debugPrint('[后台生图] 任务已提交,用户可继续使用应用');
   }
 
   /// 构建图片生成提示词
@@ -640,11 +654,5 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

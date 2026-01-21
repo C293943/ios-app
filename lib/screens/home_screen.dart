@@ -5,6 +5,7 @@ import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/character_display.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/cultivation_service.dart';
+import 'package:primordial_spirit/services/task_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/chat_overlay.dart';
 import 'package:primordial_spirit/widgets/bazi_profile_sheet.dart';
@@ -34,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isChatMode = false;
   final GlobalKey<CharacterDisplayState> _characterDisplayKey = GlobalKey();
   CultivationService? _cultivationService;
+  TaskManagerService? _taskManager;
 
   // 觉醒动画状态
   bool _showEvolutionAnimation = false;
@@ -49,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncCultivationState();
       _initCultivationListener();
+      _initTaskManagerListener();
     });
   }
 
@@ -56,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     // 移除状态监听器
     _cultivationService?.removeListener(_onCultivationChanged);
+    _taskManager?.removeListener(_onTaskManagerChanged);
     super.dispose();
   }
 
@@ -70,6 +74,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     setState(() {
       _isCharacterVisible = cultivationService.isAwakened;
     });
+  }
+
+  /// 初始化TaskManagerService状态监听
+  void _initTaskManagerListener() {
+    if (!mounted) return;
+    final taskManager = _taskManager ??= context.read<TaskManagerService>();
+
+    // 监听任务状态变化
+    taskManager.addListener(_onTaskManagerChanged);
+  }
+
+  /// TaskManagerService状态变化回调
+  void _onTaskManagerChanged() {
+    if (!mounted) return;
+    final taskManager = _taskManager;
+    if (taskManager == null) return;
+
+    // 检查是否有新完成的任务
+    final completedTasks = taskManager.tasks.where((t) =>
+        t.isCompletedSuccessfully &&
+        t.completedAt != null &&
+        DateTime.now().difference(t.completedAt!).inSeconds < 10
+    ).toList();
+
+    for (final task in completedTasks) {
+      if (task.type == TaskType.imageGeneration) {
+        // 图片生成完成，显示提示
+        ToastOverlay.show(
+          context,
+          message: '形象绘制完成！',
+          icon: Icons.check_circle,
+          backgroundColor: AppTheme.jadeGreen,
+          duration: const Duration(seconds: 3),
+        );
+        debugPrint('[HomeScreen] 形象绘制完成: ${task.resultUrl}');
+      } else if (task.type == TaskType.videoGeneration) {
+        // 视频生成完成，显示提示
+        ToastOverlay.show(
+          context,
+          message: '元神动画已就绪！',
+          icon: Icons.video_library,
+          backgroundColor: AppTheme.amberGold,
+          duration: const Duration(seconds: 3),
+        );
+        debugPrint('[HomeScreen] 视频生成完成: ${task.resultUrl}');
+      }
+    }
   }
 
   /// 初始化CultivationService状态监听
@@ -138,7 +189,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       imageUrl: imageUrl,
       visitorId: modelManager.visitorId,
       cachedVideoUrl: cachedVideoUrl,
-      onVideoUrlReady: (videoUrl) => modelManager.setMotionVideoUrl(imageUrl, videoUrl),
+      onVideoUrlReady: (videoUrl) =>
+          modelManager.setMotionVideoUrl(imageUrl, videoUrl),
     );
   }
 
@@ -198,7 +250,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         cultivationService.maxCultivationValue) {
       ToastOverlay.show(
         context,
-        message: '修行尚未圆满，当前 ${cultivationService.cultivationValue}/${cultivationService.maxCultivationValue}',
+        message:
+            '修行尚未圆满，当前 ${cultivationService.cultivationValue}/${cultivationService.maxCultivationValue}',
         backgroundColor: AppTheme.electricBlue,
         duration: const Duration(seconds: 2),
       );
@@ -215,6 +268,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void _onEvolutionComplete() async {
     debugPrint('[HomeScreen] 觉醒动画完成');
     final cultivationService = context.read<CultivationService>();
+    final modelManager = context.read<ModelManagerService>();
+    final taskManager = context.read<TaskManagerService>();
 
     // 标记为已觉醒
     await cultivationService.awaken();
@@ -237,6 +292,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         backgroundColor: AppTheme.amberGold,
         duration: const Duration(seconds: 3),
       );
+    }
+
+    // 觉醒后自动触发视频生成任务(后台)
+    final imageUrl = modelManager.image2dUrl;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      debugPrint('[HomeScreen] 觉醒完成,提交后台视频生成任务');
+      taskManager.submitVideoGenerationTask(
+        imageUrl: imageUrl,
+        visitorId: modelManager.visitorId,
+        metadata: {
+          'trigger': 'awakening',
+          'awakened_at': DateTime.now().millisecondsSinceEpoch,
+        },
+      );
+
+      // 提示用户视频正在生成中
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          ToastOverlay.show(
+            context,
+            message: '元神动画正在生成中...',
+            backgroundColor: AppTheme.fluorescentCyan,
+            duration: const Duration(seconds: 2),
+          );
+        }
+      });
+    } else {
+      debugPrint('[HomeScreen] 觉醒完成,但没有2D形象URL,跳过视频生成');
     }
   }
 
@@ -348,6 +431,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final modelManager = context.read<ModelManagerService>(); // ✅ 添加modelManager引用
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -405,7 +489,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     children: [
                       // 五行进度条和元气汇总组合容器（紧凑）
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
@@ -474,10 +561,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             const SizedBox(width: 10),
                             // 右：元气值汇总（一行布局）
                             const Expanded(
-                              child: CompactQiSummary(
-                                totalQi: 450,
-                                maxQi: 500,
-                              ),
+                              child: CompactQiSummary(totalQi: 450, maxQi: 500),
                             ),
                           ],
                         ),
@@ -515,8 +599,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     children: [
                       Rotating3DMenu(
                         menuItems: _buildMenuItems(),
-                        radius: _isCharacterVisible ? 220 : 160, // 觉醒后扩大半径，避免遮挡元神
-                        centerChild: _isCharacterVisible ? null : _buildSpiritStone(),
+                        radius: _isCharacterVisible
+                            ? 220
+                            : 160, // 觉醒后扩大半径，避免遮挡元神
+                        centerChild: _isCharacterVisible
+                            ? null
+                            : _buildSpiritStone(),
                       ),
                       // 菜单底部的金色水波动效
                       DivineRipple(
@@ -537,17 +625,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     isTriggered: _showEvolutionAnimation,
                     onComplete: _onEvolutionComplete,
                     spiritStoneAsset: 'assets/images/spirit-stone-egg.png',
-                    avatarSpiritAsset: 'assets/images/back-1.png',
+                    avatarSpiritAsset: modelManager.image2dUrl ?? 'assets/images/back-1.png', // ✅ 使用生成的图片
                   ),
                 ),
 
               // 聊天覆盖层（只占据底部和中间部分，保留顶部背景可见）
               if (_isChatMode)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  top: size.height * 0.4, // 从屏幕40%处开始，留出顶部背景
+                Positioned.fill(
                   child: ChatOverlay(
                     onBack: () {
                       setState(() {
@@ -590,9 +674,10 @@ class _SpiritStoneGlowState extends State<_SpiritStoneGlow>
       vsync: this,
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _pulseAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -611,8 +696,12 @@ class _SpiritStoneGlowState extends State<_SpiritStoneGlow>
             shape: BoxShape.circle,
             gradient: RadialGradient(
               colors: [
-                AppTheme.fluorescentCyan.withValues(alpha: _pulseAnimation.value * 0.3),
-                AppTheme.fluorescentCyan.withValues(alpha: _pulseAnimation.value * 0.1),
+                AppTheme.fluorescentCyan.withValues(
+                  alpha: _pulseAnimation.value * 0.3,
+                ),
+                AppTheme.fluorescentCyan.withValues(
+                  alpha: _pulseAnimation.value * 0.1,
+                ),
                 Colors.transparent,
               ],
             ),

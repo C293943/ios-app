@@ -5,6 +5,7 @@ import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/cultivation_service.dart';
+import 'package:primordial_spirit/services/task_manager_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,20 +18,27 @@ void main() async {
   final cultivationService = CultivationService();
   await cultivationService.initialize();
 
+  // 初始化任务管理服务
+  final taskManager = TaskManagerService();
+  await taskManager.init();
+
   runApp(MyApp(
     modelManager: modelManager,
     cultivationService: cultivationService,
+    taskManager: taskManager,
   ));
 }
 
 class MyApp extends StatelessWidget {
   final ModelManagerService modelManager;
   final CultivationService cultivationService;
+  final TaskManagerService taskManager;
 
   const MyApp({
     super.key,
     required this.modelManager,
     required this.cultivationService,
+    required this.taskManager,
   });
 
   @override
@@ -44,6 +52,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: modelManager),
         ChangeNotifierProvider.value(value: cultivationService),
+        ChangeNotifierProvider.value(value: taskManager),
       ],
       child: MaterialApp(
         title: AppConfig.appName,

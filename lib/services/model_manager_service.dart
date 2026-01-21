@@ -148,7 +148,8 @@ class ModelManagerService extends ChangeNotifier {
     if (_fortuneData?.avatar3dInfo?.glbUrl != null &&
         _fortuneData!.avatar3dInfo!.glbUrl!.isNotEmpty &&
         (_fortuneData!.avatar3dInfo!.glbUrl!.startsWith('http://') ||
-         _fortuneData!.avatar3dInfo!.glbUrl!.startsWith('https://'))) {
+         _fortuneData!.avatar3dInfo!.glbUrl!.startsWith('https://') ||
+         _fortuneData!.avatar3dInfo!.glbUrl!.startsWith('data:image/'))) { // ✅ 支持base64 URL
       return _fortuneData!.avatar3dInfo!.glbUrl;
     }
     // 否则使用缓存

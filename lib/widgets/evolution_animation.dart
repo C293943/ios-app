@@ -548,12 +548,7 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
                     _buildSpiritGlow(),
 
                     // 元神图片
-                    Image.asset(
-                      widget.avatarSpiritAsset ?? 'assets/images/back-1.png',
-                      width: 192,
-                      height: 192,
-                      fit: BoxFit.contain,
-                    ),
+                    _buildAvatarImage(),
                   ],
                 ),
               ),
@@ -562,6 +557,39 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
         );
       },
     );
+  }
+
+  // 构建元神图片（支持本地资源和base64 URL）
+  Widget _buildAvatarImage() {
+    final asset = widget.avatarSpiritAsset ?? 'assets/images/back-1.png';
+
+    // 判断是base64 URL还是本地资源
+    if (asset.startsWith('data:image/')) {
+      // base64格式，使用Image.network
+      return Image.network(
+        asset,
+        width: 192,
+        height: 192,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          // 加载失败时使用默认资源
+          return Image.asset(
+            'assets/images/back-1.png',
+            width: 192,
+            height: 192,
+            fit: BoxFit.contain,
+          );
+        },
+      );
+    } else {
+      // 本地资源，使用Image.asset
+      return Image.asset(
+        asset,
+        width: 192,
+        height: 192,
+        fit: BoxFit.contain,
+      );
+    }
   }
 
   // 元神灵气光环

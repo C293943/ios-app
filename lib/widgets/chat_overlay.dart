@@ -8,6 +8,7 @@ import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:video_player/video_player.dart';
 
 class ChatOverlay extends StatefulWidget {
   final VoidCallback onBack;
@@ -39,50 +40,210 @@ class _ChatOverlayState extends State<ChatOverlay> {
   /// 当前聊天会话的唯一ID，用于管理 SSE 连接
   String _currentChatSessionId = '';
 
+  VideoPlayerController? _backgroundVideoController;
+  Future<void>? _backgroundVideoInitialize;
+  String? _backgroundVideoUrl;
+
   @override
   void initState() {
     super.initState();
-    _currentChatSessionId = 'overlay_chat_${DateTime.now().millisecondsSinceEpoch}';
-    _messages.add(ChatMessage(
-      text: '在存亮透过的瞬息，谢谢结缘的距离？\n元神的经过的瞬息，意不如型诚语...',
-      isUser: false,
-      timestamp: DateTime.now(),
-    ));
+    _currentChatSessionId =
+        'overlay_chat_${DateTime.now().millisecondsSinceEpoch}';
+    _messages.add(
+      ChatMessage(
+        text: '在存亮透过的瞬息，谢谢结缘的距离？\n元神的经过的瞬息，意不如型诚语...',
+        isUser: false,
+        timestamp: DateTime.now(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // 半透明背景，可以看到后面的主体
-    return Container(
+    final modelManager = context.watch<ModelManagerService>();
+    final imageUrl = modelManager.image2dUrl;
+    final videoUrl = (imageUrl != null && imageUrl.isNotEmpty)
+        ? modelManager.getMotionVideoUrl(imageUrl)
+        : null;
+
+    _scheduleBackgroundVideoUpdate(videoUrl);
+
+    return Stack(
+      children: [
+        Positioned.fill(child: _buildDynamicBackground(imageUrl: imageUrl)),
+        Positioned.fill(child: _buildBackgroundScrim()),
+        SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 8.0,
+                  ),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+                    return _buildMessageBubble(message);
+                  },
+                ),
+              ),
+              // 动画选择器（在输入框上方）
+              if (widget.animations.isNotEmpty) _buildAnimationSelector(),
+              _buildInputArea(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _scheduleBackgroundVideoUpdate(String? nextUrl) {
+    final normalized = (nextUrl != null && nextUrl.isNotEmpty) ? nextUrl : null;
+    if (normalized == _backgroundVideoUrl) return;
+
+    _backgroundVideoUrl = normalized;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_setBackgroundVideo(normalized));
+    });
+  }
+
+  Future<void> _setBackgroundVideo(String? url) async {
+    if (url == null) {
+      await _disposeBackgroundVideoController();
+      if (mounted) {
+        setState(() {
+          _backgroundVideoInitialize = null;
+        });
+      }
+      return;
+    }
+
+    // 先销毁旧 controller，避免同时占用解码资源。
+    await _disposeBackgroundVideoController();
+
+    VideoPlayerController controller;
+    try {
+      controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    } catch (_) {
+      // URL 不合法时直接回退到图片背景
+      if (mounted) {
+        setState(() {
+          _backgroundVideoUrl = null;
+          _backgroundVideoInitialize = null;
+        });
+      }
+      return;
+    }
+
+    controller
+      ..setLooping(true)
+      ..setVolume(0);
+
+    final initialize = controller.initialize();
+    setState(() {
+      _backgroundVideoController = controller;
+      _backgroundVideoInitialize = initialize;
+    });
+
+    try {
+      await initialize;
+      if (!mounted) return;
+      await controller.play();
+      if (mounted) setState(() {});
+    } catch (_) {
+      if (!mounted) return;
+      // 初始化/播放失败回退到图片背景
+      await _disposeBackgroundVideoController();
+      setState(() {
+        _backgroundVideoUrl = null;
+        _backgroundVideoInitialize = null;
+      });
+    }
+  }
+
+  Future<void> _disposeBackgroundVideoController() async {
+    final controller = _backgroundVideoController;
+    _backgroundVideoController = null;
+    if (controller != null) {
+      await controller.dispose();
+    }
+  }
+
+  Widget _buildDynamicBackground({required String? imageUrl}) {
+    if (_backgroundVideoController != null &&
+        _backgroundVideoInitialize != null) {
+      final controller = _backgroundVideoController!;
+      return FutureBuilder<void>(
+        future: _backgroundVideoInitialize,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done ||
+              !controller.value.isInitialized) {
+            return _buildImageBackground(imageUrl);
+          }
+
+          final size = controller.value.size;
+          return FittedBox(
+            fit: BoxFit.cover,
+            child: SizedBox(
+              width: size.width,
+              height: size.height,
+              child: VideoPlayer(controller),
+            ),
+          );
+        },
+      );
+    }
+
+    return _buildImageBackground(imageUrl);
+  }
+
+  Widget _buildImageBackground(String? imageUrl) {
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallbackBackground();
+        },
+      );
+    }
+    return _buildFallbackBackground();
+  }
+
+  Widget _buildFallbackBackground() {
+    return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppTheme.deepVoidBlue.withValues(alpha: 0.85), // 顶部较透明
-            AppTheme.deepVoidBlue.withValues(alpha: 0.95), // 底部较不透明
+            AppTheme.deepVoidBlue.withValues(alpha: 1.0),
+            AppTheme.inkGreen.withValues(alpha: 1.0),
+            AppTheme.deepVoidBlue.withValues(alpha: 1.0),
           ],
         ),
       ),
-      child: SafeArea(
-        child: Column(
-          children: [
-             _buildHeader(context),
-             Expanded(
-               child: ListView.builder(
-                 controller: _scrollController,
-                 padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-                 itemCount: _messages.length,
-                 itemBuilder: (context, index) {
-                   final message = _messages[index];
-                   return _buildMessageBubble(message);
-                 },
-               ),
-             ),
-             // 动画选择器（在输入框上方）
-             if (widget.animations.isNotEmpty) _buildAnimationSelector(),
-             _buildInputArea(),
+    );
+  }
+
+  Widget _buildBackgroundScrim() {
+    // 让前景内容可读：对视频/图片背景做暗化渐变。
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppTheme.deepVoidBlue.withValues(alpha: 0.70),
+            AppTheme.deepVoidBlue.withValues(alpha: 0.82),
+            AppTheme.deepVoidBlue.withValues(alpha: 0.92),
           ],
+          stops: const [0.0, 0.5, 1.0],
         ),
       ),
     );
@@ -102,7 +263,11 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 color: Colors.white.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.keyboard_arrow_down, color: AppTheme.deepVoidBlue, size: 28),
+              child: const Icon(
+                Icons.keyboard_arrow_down,
+                color: AppTheme.deepVoidBlue,
+                size: 28,
+              ),
             ),
           ),
           const Spacer(),
@@ -115,7 +280,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
   Widget _buildMessageBubble(ChatMessage message) {
     final isUser = message.isUser;
     // Organic shapes: "Water Drop" feel
-    final borderRadius = isUser 
+    final borderRadius = isUser
         ? const BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
@@ -132,20 +297,24 @@ class _ChatOverlayState extends State<ChatOverlay> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-           if (!isUser) ...[
-             // Avatar placeholder or small dot if needed, currently just bubble
-             const SizedBox(width: 0), 
-           ],
-           Flexible(
+          if (!isUser) ...[
+            // Avatar placeholder or small dot if needed, currently just bubble
+            const SizedBox(width: 0),
+          ],
+          Flexible(
             child: Container(
-              constraints: const BoxConstraints(maxWidth: 280), // Limit width for readability
+              constraints: const BoxConstraints(
+                maxWidth: 280,
+              ), // Limit width for readability
               decoration: BoxDecoration(
-                color: isUser 
-                  ? AppTheme.jadeGreen.withOpacity(0.2) 
-                  : Colors.white.withOpacity(0.25),
+                color: isUser
+                    ? AppTheme.jadeGreen.withOpacity(0.2)
+                    : Colors.white.withOpacity(0.25),
                 borderRadius: borderRadius,
                 border: Border.all(
                   color: Colors.white.withOpacity(0.3),
@@ -163,7 +332,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
               child: Text(
                 message.text,
                 style: GoogleFonts.notoSerifSc(
-                  color: AppTheme.deepVoidBlue, 
+                  color: AppTheme.deepVoidBlue,
                   fontSize: 16,
                   height: 1.6,
                 ),
@@ -199,14 +368,19 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppTheme.jadeGreen
                         : AppTheme.deepVoidBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? Colors.transparent : AppTheme.deepVoidBlue.withOpacity(0.2),
+                      color: isSelected
+                          ? Colors.transparent
+                          : AppTheme.deepVoidBlue.withOpacity(0.2),
                     ),
                   ),
                   alignment: Alignment.center,
@@ -215,7 +389,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     style: GoogleFonts.notoSerifSc(
                       color: isSelected ? Colors.white : AppTheme.deepVoidBlue,
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                     ),
                   ),
                 ),
@@ -243,32 +419,38 @@ class _ChatOverlayState extends State<ChatOverlay> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         child: Row(
           children: [
-             Icon(Icons.mic_none, color: AppTheme.deepVoidBlue.withOpacity(0.6)),
-             const SizedBox(width: 12),
-             Expanded(
-               child: TextField(
-                 controller: _messageController,
-                 style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue),
-                 cursorColor: AppTheme.deepVoidBlue,
-                 decoration: InputDecoration(
-                   hintText: '向元灵倾诉...',
-                   hintStyle: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue.withOpacity(0.4)),
-                   border: InputBorder.none,
-                   isDense: true,
-                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                 ),
-                 onSubmitted: (_) => _sendMessage(),
-               ),
-             ),
-             const SizedBox(width: 8),
-             GestureDetector(
-               onTap: _sendMessage,
-               child: CircleAvatar(
-                 radius: 18,
-                 backgroundColor: AppTheme.deepVoidBlue.withOpacity(0.1),
-                 child: Icon(Icons.arrow_upward, color: AppTheme.deepVoidBlue, size: 20),
-               ),
-             ),
+            Icon(Icons.mic_none, color: AppTheme.deepVoidBlue.withOpacity(0.6)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                style: GoogleFonts.notoSerifSc(color: AppTheme.deepVoidBlue),
+                cursorColor: AppTheme.deepVoidBlue,
+                decoration: InputDecoration(
+                  hintText: '向元灵倾诉...',
+                  hintStyle: GoogleFonts.notoSerifSc(
+                    color: AppTheme.deepVoidBlue.withOpacity(0.4),
+                  ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                onSubmitted: (_) => _sendMessage(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: _sendMessage,
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: AppTheme.deepVoidBlue.withOpacity(0.1),
+                child: Icon(
+                  Icons.arrow_upward,
+                  color: AppTheme.deepVoidBlue,
+                  size: 20,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -285,11 +467,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
     }
 
     setState(() {
-      _messages.add(ChatMessage(
-        text: text,
-        isUser: true,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(
+        ChatMessage(text: text, isUser: true, timestamp: DateTime.now()),
+      );
       _isLoading = true;
     });
 
@@ -316,7 +496,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
     _apiService.cancelFortuneStream(connectionId: _currentChatSessionId);
 
     // 如果最后一条消息是空的 AI 消息，更新为取消提示
-    if (_messages.isNotEmpty && !_messages.last.isUser && _messages.last.text.isEmpty) {
+    if (_messages.isNotEmpty &&
+        !_messages.last.isUser &&
+        _messages.last.text.isEmpty) {
       setState(() {
         _messages[_messages.length - 1] = ChatMessage(
           text: '[已取消]',
@@ -332,10 +514,12 @@ class _ChatOverlayState extends State<ChatOverlay> {
     // 构建消息历史
     final messages = <ChatMessageModel>[];
     for (final msg in _messages) {
-      messages.add(ChatMessageModel(
-        role: msg.isUser ? 'user' : 'assistant',
-        content: msg.text,
-      ));
+      messages.add(
+        ChatMessageModel(
+          role: msg.isUser ? 'user' : 'assistant',
+          content: msg.text,
+        ),
+      );
     }
 
     // 构建请求
@@ -350,11 +534,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
     // 添加一个空的AI消息用于流式填充
     final aiMessageIndex = _messages.length;
     setState(() {
-      _messages.add(ChatMessage(
-        text: '',
-        isUser: false,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(
+        ChatMessage(text: '', isUser: false, timestamp: DateTime.now()),
+      );
     });
 
     // 先取消之前的订阅（防止内存泄漏）
@@ -407,11 +589,13 @@ class _ChatOverlayState extends State<ChatOverlay> {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
-          _messages.add(ChatMessage(
-            text: '我听到了你的心声... \n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。',
-            isUser: false,
-            timestamp: DateTime.now(),
-          ));
+          _messages.add(
+            ChatMessage(
+              text: '我听到了你的心声... \n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。',
+              isUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
           _isLoading = false;
         });
         _scrollToBottom();
@@ -438,6 +622,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
     _streamSubscription?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
+    unawaited(_disposeBackgroundVideoController());
     super.dispose();
   }
 }

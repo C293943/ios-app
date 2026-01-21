@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
+import 'package:primordial_spirit/widgets/mystic_background.dart';
+import 'package:primordial_spirit/widgets/glass_container.dart';
 
-/// 聊天页面
+/// 聊天页面 - 带角色背景的沉浸式对话界面
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
@@ -15,7 +18,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
@@ -23,6 +26,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   bool _isLoading = false;
   StreamSubscription<String>? _streamSubscription;
+  late AnimationController _typingIndicatorController;
+  late Animation<double> _typingAnimation;
 
   /// 当前聊天会话的唯一ID，用于管理 SSE 连接
   String _currentChatSessionId = '';
@@ -31,6 +36,18 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _currentChatSessionId = 'chat_${DateTime.now().millisecondsSinceEpoch}';
+
+    // 打字动画
+    _typingIndicatorController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    _typingAnimation = CurvedAnimation(
+      parent: _typingIndicatorController,
+      curve: Curves.easeInOut,
+    );
+
     // 添加欢迎消息
     _messages.add(ChatMessage(
       text: '你好,我是你的专属元灵。我会陪伴你,倾听你的心声,也会在需要时给你一些人生的建议。',
@@ -40,115 +57,267 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
+  void dispose() {
+    _typingIndicatorController.dispose();
+    // 取消 SSE 连接
+    _apiService.cancelFortuneStream(connectionId: _currentChatSessionId);
+    _streamSubscription?.cancel();
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+    final isSmallScreen = screenSize.width < 360;
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.purple.shade700,
-        title: Row(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      body: MysticBackground(
+        child: Column(
           children: [
-            CircleAvatar(
-              backgroundColor: Colors.white.withValues(alpha: 0.3),
-              child: const Icon(Icons.auto_awesome, color: Colors.white),
+            // 自定义AppBar
+            _buildCustomAppBar(context),
+
+            // 聊天主体区域
+            Expanded(
+              child: Stack(
+                children: [
+                  // 角色背景(元灵形象)
+                  _buildCharacterBackground(isTablet),
+
+                  // 消息列表
+                  _buildMessageList(isSmallScreen),
+                ],
+              ),
             ),
+
+            // 输入框区域
+            _buildInputArea(context, isSmallScreen),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 自定义AppBar
+  Widget _buildCustomAppBar(BuildContext context) {
+    // 获取状态栏高度
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return GlassContainer(
+      child: Container(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: statusBarHeight + 8, // 状态栏高度 + 上边距
+          bottom: 8,
+        ),
+        child: Row(
+          children: [
+            // 返回按钮
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+
             const SizedBox(width: 12),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '元灵',
-                  style: TextStyle(fontSize: 16),
-                ),
-                Text(
-                  '在线',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w300),
-                ),
-              ],
+
+            // 角色信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                        const Text(
+                          '元灵',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Colors.green.withValues(alpha: 0.5),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Text(
+                            '在线',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '你的专属命理伙伴',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 更多选项
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.more_vert, color: Colors.white),
+                onPressed: () {
+                  _showMoreOptions(context);
+                },
+              ),
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // TODO: 显示更多选项
-            },
-          ),
-        ],
       ),
-      body: Column(
+    );
+  }
+
+  /// 角色背景(元灵形象)
+  Widget _buildCharacterBackground(bool isTablet) {
+    return Positioned(
+      right: isTablet ? -100 : -50,
+      top: 100,
+      bottom: 200,
+      width: isTablet ? 400 : 300,
+      child: Opacity(
+        opacity: 0.3,
+        child: Consumer<ModelManagerService>(
+          builder: (context, modelManager, child) {
+            // 显示2D/3D角色形象
+            final imageUrl = modelManager.image2dUrl;
+
+            if (imageUrl != null && imageUrl.isNotEmpty) {
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _buildDefaultCharacter();
+                  },
+                ),
+              );
+            }
+
+            return _buildDefaultCharacter();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// 默认角色形象
+  Widget _buildDefaultCharacter() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple.withValues(alpha: 0.3),
+            Colors.blue.withValues(alpha: 0.2),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.auto_awesome,
+          size: 100,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  /// 消息列表
+  Widget _buildMessageList(bool isSmallScreen) {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        isSmallScreen ? 16 : 32, // 右侧留出空间给角色背景
+        100, // 底部留出空间给输入框
+      ),
+      itemCount: _messages.length + (_isLoading ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == _messages.length && _isLoading) {
+          return _buildTypingIndicator();
+        }
+
+        final message = _messages[index];
+        return _buildMessageBubble(message, isSmallScreen);
+      },
+    );
+  }
+
+  /// 打字指示器
+  Widget _buildTypingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20, left: 54),
+      child: Row(
         children: [
-          // 消息列表
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16.0),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildMessageBubble(message);
-              },
-            ),
-          ),
-          
-          // 输入框区域
           Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.white.withValues(alpha: 0.95),
+              borderRadius: const BorderRadius.all(Radius.circular(20)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, -2),
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                child: Row(
-                  children: [
-                    // 更多功能按钮
-                    IconButton(
-                      icon: Icon(Icons.add_circle_outline, color: Colors.grey.shade600),
-                      onPressed: () {
-                        // TODO: 显示更多功能
-                      },
-                    ),
-                    
-                    // 文本输入框
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: TextField(
-                          controller: _messageController,
-                          decoration: InputDecoration(
-                            hintText: '说点什么...',
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                          maxLines: null,
-                          textCapitalization: TextCapitalization.sentences,
-                        ),
+            child: AnimatedBuilder(
+              animation: _typingAnimation,
+              builder: (context, child) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(3, (index) {
+                    final delay = index * 0.3;
+                    final opacity = ((_typingAnimation.value - delay) % 1.0).clamp(0.0, 1.0);
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.purple.withValues(alpha: 0.3 + opacity * 0.7),
                       ),
-                    ),
-                    
-                    // 发送按钮
-                    IconButton(
-                      icon: Icon(
-                        Icons.send,
-                        color: Colors.purple.shade700,
-                      ),
-                      onPressed: _sendMessage,
-                    ),
-                  ],
-                ),
-              ),
+                    );
+                  }),
+                );
+              },
             ),
           ),
         ],
@@ -156,70 +325,246 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message) {
+  /// 输入框区域
+  Widget _buildInputArea(BuildContext context, bool isSmallScreen) {
+    // 获取底部安全区域高度(主要是手势条/导航栏)
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return GlassContainer(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(20),
+        topRight: Radius.circular(20),
+      ),
+      child: Container(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 12,
+          bottom: MediaQuery.of(context).viewInsets.bottom + bottomPadding + 12,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                // 更多功能按钮
+                _buildFunctionButton(
+                  icon: Icons.add_circle_outline,
+                  onPressed: () {
+                    // TODO: 显示更多功能
+                    HapticFeedback.lightImpact();
+                  },
+                ),
+
+                const SizedBox(width: 8),
+
+                // 文本输入框
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _messageController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: '与元灵对话...',
+                        hintStyle: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      maxLines: 4,
+                      minLines: 1,
+                      textCapitalization: TextCapitalization.sentences,
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // 发送按钮
+                _buildSendButton(),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 功能按钮
+  Widget _buildFunctionButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  /// 发送按钮
+  Widget _buildSendButton() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.purple.shade500,
+            Colors.purple.shade700,
+          ],
+        ),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withValues(alpha: 0.4),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: _isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(Icons.send, color: Colors.white),
+        onPressed: _isLoading ? null : _sendMessage,
+      ),
+    );
+  }
+
+  /// 消息气泡
+  Widget _buildMessageBubble(ChatMessage message, bool isSmallScreen) {
     final markdownConfig = _buildMarkdownConfig(message.isUser);
+    final isUser = message.isUser;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
-        mainAxisAlignment:
-            message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!message.isUser) ...[
-            CircleAvatar(
-              backgroundColor: Colors.purple.shade100,
-              child: Icon(Icons.auto_awesome, color: Colors.purple.shade700, size: 20),
-            ),
+          if (!isUser) ...[
+            _buildAvatar(isUser: false),
             const SizedBox(width: 8),
           ],
 
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: message.isUser
-                    ? Colors.purple.shade700
-                    : Colors.grey.shade100,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(message.isUser ? 16 : 4),
-                  bottomRight: Radius.circular(message.isUser ? 4 : 16),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MarkdownWidget(
-                    data: message.text,
-                    selectable: true,
-                    shrinkWrap: true,
-                    config: markdownConfig,
+            child: Column(
+              crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                Container(
+                  constraints: BoxConstraints(
+                    maxWidth: isSmallScreen ? 240 : 280,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatTime(message.timestamp),
-                    style: TextStyle(
-                      color: message.isUser
-                          ? Colors.white.withValues(alpha: 0.7)
-                          : Colors.grey.shade600,
-                      fontSize: 11,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: isUser
+                        ? LinearGradient(
+                            colors: [
+                              Colors.purple.shade700,
+                              Colors.purple.shade900,
+                            ],
+                          )
+                        : null,
+                    color: isUser ? null : Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(20),
+                      topRight: const Radius.circular(20),
+                      bottomLeft: Radius.circular(isUser ? 20 : 4),
+                      bottomRight: Radius.circular(isUser ? 4 : 20),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      MarkdownWidget(
+                        data: message.text,
+                        selectable: true,
+                        shrinkWrap: true,
+                        config: markdownConfig,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _formatTime(message.timestamp),
+                        style: TextStyle(
+                          color: isUser
+                              ? Colors.white.withValues(alpha: 0.6)
+                              : Colors.grey.shade500,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 
-          if (message.isUser) ...[
+          if (isUser) ...[
             const SizedBox(width: 8),
-            CircleAvatar(
-              backgroundColor: Colors.blue.shade100,
-              child: Icon(Icons.person, color: Colors.blue.shade700, size: 20),
-            ),
+            _buildAvatar(isUser: true),
           ],
         ],
+      ),
+    );
+  }
+
+  /// 头像组件
+  Widget _buildAvatar({required bool isUser}) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: isUser
+            ? LinearGradient(
+                colors: [Colors.blue.shade400, Colors.blue.shade600],
+              )
+            : LinearGradient(
+                colors: [Colors.purple.shade400, Colors.purple.shade600],
+              ),
+        boxShadow: [
+          BoxShadow(
+            color: (isUser ? Colors.blue : Colors.purple).withValues(alpha: 0.3),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Icon(
+        isUser ? Icons.person : Icons.auto_awesome,
+        color: Colors.white,
+        size: 20,
       ),
     );
   }
@@ -516,8 +861,59 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _showMoreOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GlassContainer(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.cleaning_services, color: Colors.purple),
+                title: const Text('清空对话'),
+                onTap: () {
+                  setState(() {
+                    _messages.clear();
+                    _messages.add(ChatMessage(
+                      text: '你好,我是你的专属元灵。我会陪伴你,倾听你的心声,也会在需要时给你一些人生的建议。',
+                      isUser: false,
+                      timestamp: DateTime.now(),
+                    ));
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.history, color: Colors.purple),
+                title: const Text('对话历史'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: 显示对话历史
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings, color: Colors.purple),
+                title: const Text('设置'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/settings');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _generateAIResponse(String userMessage) {
-    // 这里是临时的模拟回复,后续会接入真实的AI API
     final responses = [
       '我理解你的感受,让我们一起来探讨一下这个问题。',
       '从你的八字来看,这个阶段确实需要更多的耐心和坚持。',
@@ -541,16 +937,6 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       return '${time.month}月${time.day}日';
     }
-  }
-
-  @override
-  void dispose() {
-    // 取消 SSE 连接
-    _apiService.cancelFortuneStream(connectionId: _currentChatSessionId);
-    _streamSubscription?.cancel();
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
   }
 }
 
