@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/models/user_models.dart';
+import 'package:primordial_spirit/services/auth_service.dart';
 import 'package:primordial_spirit/widgets/common/mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 
@@ -14,6 +17,54 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   String _selectedVoice = '默认女声';
+  final AuthService _authService = AuthService();
+  AppUser? _user;
+  UserProfile? _profile;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await _authService.fetchProfile(preferCache: true);
+    final user = await _authService.loadCachedUser();
+    if (!mounted) return;
+    setState(() {
+      _profile = profile;
+      _user = user;
+      _loading = false;
+    });
+
+    final remote = await _authService.fetchProfile(preferCache: false);
+    if (!mounted || remote == null) return;
+    setState(() => _profile = remote);
+  }
+
+  String get _userIdLabel {
+    if (_loading) return '同步中...';
+    final id = _user?.id ?? '';
+    if (id.isEmpty) return '未登录';
+    return id.length > 10 ? id.substring(0, 10).toUpperCase() : id.toUpperCase();
+  }
+
+  String get _emailLabel {
+    if (_loading) return '同步中...';
+    return _user?.email ?? '未登录';
+  }
+
+  String get _profileStatusLabel {
+    if (_loading) return '同步中...';
+    if (_profile == null) return '未设置';
+    return _profile?.displayName?.isNotEmpty == true ? '已设置' : '已同步';
+  }
+
+  String get _profileSyncLabel {
+    if (_loading) return '同步中...';
+    return _profile?.updatedAt ?? '未同步';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +94,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildProfileItem(
               icon: Icons.person_outline,
               label: '用户编号',
-              value: 'USR20250121001',
+              value: _userIdLabel,
+            ),
+            const SizedBox(height: 12),
+
+            // 账号邮箱
+            _buildProfileItem(
+              icon: Icons.alternate_email,
+              label: '账号邮箱',
+              value: _emailLabel,
             ),
             const SizedBox(height: 12),
 
@@ -59,8 +118,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildProfileItem(
               icon: Icons.description_outlined,
               label: '档案',
-              value: '查看详情',
+              value: _profileStatusLabel,
               onTap: () => _showArchiveDialog(context),
+            ),
+            const SizedBox(height: 12),
+
+            // 同步时间
+            _buildProfileItem(
+              icon: Icons.sync,
+              label: '同步时间',
+              value: _profileSyncLabel,
             ),
             const SizedBox(height: 12),
 
@@ -115,6 +182,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: '用户协议',
               value: '查看',
               onTap: () => _showUserAgreementDialog(context),
+            ),
+            const SizedBox(height: 12),
+
+            // 退出登录
+            _buildProfileItem(
+              icon: Icons.logout,
+              label: '退出登录',
+              value: '退出',
+              onTap: () => _showLogoutDialog(context),
             ),
           ],
         ),
@@ -172,6 +248,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showArchiveDialog(BuildContext context) {
+    if (_profile == null) {
+      _showProfileEditDialog(context);
+      return;
+    }
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -185,10 +265,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDialogItem('姓名', '未设置'),
-              _buildDialogItem('性别', '未设置'),
-              _buildDialogItem('出生地', '未设置'),
-              _buildDialogItem('出生时间', '-- -- -- --:--'),
+              _buildDialogItem('姓名', _profile?.displayName ?? '未设置'),
+              _buildDialogItem('性别', _profile?.gender ?? '未设置'),
+              _buildDialogItem('出生地', _profile?.birthCity ?? '未设置'),
+              _buildDialogItem('出生时间', _birthDateLabel()),
             ],
           ),
         ),
@@ -198,6 +278,170 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(
               '关闭',
               style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showProfileEditDialog(context);
+            },
+            child: Text(
+              '编辑',
+              style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _birthDateLabel() {
+    if (_profile == null) return '-- -- -- --:--';
+    final year = _profile?.birthYear;
+    final month = _profile?.birthMonth;
+    final day = _profile?.birthDay;
+    final hour = _profile?.birthHour;
+    final minute = _profile?.birthMinute;
+    if (year == null || month == null || day == null || hour == null || minute == null) {
+      return '未设置';
+    }
+    final mm = minute.toString().padLeft(2, '0');
+    return '$year-$month-$day $hour:$mm';
+  }
+
+  void _showProfileEditDialog(BuildContext context) {
+    final nameController =
+        TextEditingController(text: _profile?.displayName ?? '');
+    final genderController =
+        TextEditingController(text: _profile?.gender ?? '');
+    final cityController =
+        TextEditingController(text: _profile?.birthCity ?? '');
+    final yearController = TextEditingController(
+        text: _profile?.birthYear?.toString() ?? '');
+    final monthController = TextEditingController(
+        text: _profile?.birthMonth?.toString() ?? '');
+    final dayController = TextEditingController(
+        text: _profile?.birthDay?.toString() ?? '');
+    final hourController = TextEditingController(
+        text: _profile?.birthHour?.toString() ?? '');
+    final minuteController = TextEditingController(
+        text: _profile?.birthMinute?.toString() ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.92),
+        title: Text(
+          '编辑档案',
+          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildTextField(nameController, '姓名'),
+              _buildTextField(genderController, '性别（男/女）'),
+              _buildTextField(cityController, '出生地'),
+              _buildTextField(yearController, '出生年'),
+              _buildTextField(monthController, '出生月'),
+              _buildTextField(dayController, '出生日'),
+              _buildTextField(hourController, '出生时'),
+              _buildTextField(minuteController, '出生分'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              '取消',
+              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final updated = UserProfile(
+                displayName: nameController.text.trim().isEmpty
+                    ? null
+                    : nameController.text.trim(),
+                gender: genderController.text.trim().isEmpty
+                    ? null
+                    : genderController.text.trim(),
+                birthCity: cityController.text.trim().isEmpty
+                    ? null
+                    : cityController.text.trim(),
+                birthYear: _parseInt(yearController.text),
+                birthMonth: _parseInt(monthController.text),
+                birthDay: _parseInt(dayController.text),
+                birthHour: _parseInt(hourController.text),
+                birthMinute: _parseInt(minuteController.text),
+              );
+
+              final result = await _authService.updateProfile(updated);
+              if (!mounted) return;
+              if (result != null) {
+                setState(() => _profile = result);
+                Navigator.pop(context);
+              }
+            },
+            child: Text(
+              '保存',
+              style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        controller: controller,
+        style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
+        decoration: InputDecoration(
+          labelText: label,
+        ),
+      ),
+    );
+  }
+
+  int? _parseInt(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return null;
+    return int.tryParse(trimmed);
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
+        title: Text(
+          '退出登录',
+          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
+        ),
+        content: Text(
+          '确定要退出当前账号吗？',
+          style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              '取消',
+              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _authService.logout();
+              if (!mounted) return;
+              Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+            },
+            child: Text(
+              '退出',
+              style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
             ),
           ),
         ],

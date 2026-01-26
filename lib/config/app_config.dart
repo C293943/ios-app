@@ -42,6 +42,12 @@ class AppConfig {
   static const String calculateEndpoint = '/api/v1/calculate';
   static const String fortuneStreamEndpoint = '/api/v1/fortune/stream';
 
+  // 认证与用户资料
+  static const String authRegisterEndpoint = '/api/v1/auth/register';
+  static const String authLoginEndpoint = '/api/v1/auth/login';
+  static const String authRefreshEndpoint = '/api/v1/auth/refresh';
+  static const String userMeEndpoint = '/api/v1/users/me';
+
   // 默认语言
   static const String defaultLanguage = '中文';
   
