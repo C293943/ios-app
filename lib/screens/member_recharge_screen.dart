@@ -17,6 +17,23 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Define text colors based on theme
+    final textColor = isDark ? Colors.white : AppTheme.inkText;
+    final subTextColor = isDark ? Colors.white.withOpacity(0.7) : AppTheme.inkText.withOpacity(0.6);
+
+    // Light mode background gradient
+    final lightBgGradient = const LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0xFFF5F7FA), // Very light grey-blue
+        Color(0xFFE8EAF6), // Light indigo tint
+        Color(0xFFE0F2F1), // Light teal tint
+      ],
+    );
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -26,16 +43,26 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.white,
               shape: BoxShape.circle,
+              boxShadow: isDark ? [] : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
             ),
-            child: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.white),
+            child: Icon(Icons.arrow_back_ios_new, size: 18, color: isDark ? Colors.white : AppTheme.inkText),
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           context.l10n.memberRechargeTitle,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: isDark ? Colors.white : AppTheme.inkText, 
+            fontWeight: FontWeight.bold
+          ),
         ),
         centerTitle: true,
       ),
@@ -45,7 +72,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                gradient: AppTheme.voidGradient,
+                gradient: isDark ? AppTheme.voidGradient : lightBgGradient,
               ),
             ),
           ),
@@ -60,35 +87,35 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildHeaderCard(context),
+                        _buildHeaderCard(context, isDark),
                         const SizedBox(height: 30),
                         Text(
                           context.l10n.memberPlans,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: textColor.withOpacity(0.9),
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildPlansRow(context),
+                        _buildPlansRow(context, isDark),
                         const SizedBox(height: 30),
                         Text(
                           context.l10n.paymentMethod,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: textColor.withOpacity(0.9),
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildPaymentMethod(context),
+                        _buildPaymentMethod(context, isDark),
                         const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
-                _buildBottomBar(context),
+                _buildBottomBar(context, isDark),
               ],
             ),
           ),
@@ -97,22 +124,30 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     );
   }
 
-  Widget _buildHeaderCard(BuildContext context) {
+  Widget _buildHeaderCard(BuildContext context, bool isDark) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
-        color: AppTheme.voidDeeper.withOpacity(0.6), // Deep dark background
+        // In light mode, use a colorful gradient to make it pop against the light background
+        gradient: isDark 
+            ? null 
+            : const LinearGradient(
+                colors: [Color(0xFF29B6F6), Color(0xFFAB47BC)], // Light Blue to Purple
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        color: isDark ? AppTheme.voidDeeper.withOpacity(0.8) : null,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.fluorescentCyan.withOpacity(0.3),
+          color: isDark ? AppTheme.fluorescentCyan.withOpacity(0.3) : Colors.white.withOpacity(0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: isDark ? Colors.black.withOpacity(0.4) : const Color(0xFFAB47BC).withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -121,23 +156,30 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
           Icon(
             Icons.diamond_outlined,
             size: 40,
-            color: AppTheme.fluorescentCyan,
+            color: isDark ? AppTheme.fluorescentCyan : Colors.white,
           ),
           const SizedBox(height: 16),
           Text(
             context.l10n.activateMember,
             style: TextStyle(
-              color: AppTheme.warmYellow,
+              color: isDark ? AppTheme.warmYellow : Colors.white,
               fontSize: 22,
               fontWeight: FontWeight.bold,
               letterSpacing: 1,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withOpacity(0.2),
+                  offset: const Offset(0, 2),
+                  blurRadius: 4,
+                )
+              ],
             ),
           ),
           const SizedBox(height: 8),
           Text(
             context.l10n.unlockFeatures,
             style: TextStyle(
-              color: AppTheme.inkText.withOpacity(0.7),
+              color: isDark ? AppTheme.inkText.withOpacity(0.7) : Colors.white.withOpacity(0.9),
               fontSize: 14,
             ),
           ),
@@ -146,7 +188,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     );
   }
 
-  Widget _buildPlansRow(BuildContext context) {
+  Widget _buildPlansRow(BuildContext context, bool isDark) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -165,10 +207,16 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             price: '19.9',
             priceUnit: '/${context.l10n.week}',
             tag: null,
-            gradientColors: [
-              AppTheme.voidDeeper.withOpacity(0.8),
-              AppTheme.inkGreen.withOpacity(0.6),
-            ],
+            gradientColors: isDark 
+              ? [
+                  AppTheme.voidDeeper.withOpacity(0.8),
+                  AppTheme.inkGreen.withOpacity(0.6),
+                ]
+              : [
+                  Colors.white,
+                  const Color(0xFFF5F5F5),
+                ],
+            isDark: isDark,
           ),
         ),
         const SizedBox(width: 8),
@@ -189,11 +237,17 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             priceUnit: '/${context.l10n.month}',
             tag: context.l10n.recommended,
             isGold: true,
-            gradientColors: [
-              const Color(0xFF2D1F18).withOpacity(0.9), // Deep bronze/black
-              const Color(0xFF4A3420).withOpacity(0.8), // Dark bronze
-            ],
+            gradientColors: isDark
+              ? [
+                  const Color(0xFF3E2723).withOpacity(0.95), // Deep brown
+                  const Color(0xFF5D4037).withOpacity(0.8),
+                ]
+              : [
+                  const Color(0xFFFFF8E1), // Light Amber
+                  const Color(0xFFFFECB3),
+                ],
             textColor: AppTheme.amberGold,
+            isDark: isDark,
           ),
         ),
         const SizedBox(width: 8),
@@ -215,10 +269,16 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             priceUnit: '/${context.l10n.year}',
             dailyPrice: context.l10n.pricePerDay('0.82'),
             tag: context.l10n.bestValue,
-            gradientColors: [
-              AppTheme.voidDeeper.withOpacity(0.8),
-              AppTheme.inkGreen.withOpacity(0.6),
-            ],
+            gradientColors: isDark
+              ? [
+                  AppTheme.voidDeeper.withOpacity(0.8),
+                  AppTheme.inkGreen.withOpacity(0.6),
+                ]
+              : [
+                  Colors.white,
+                  const Color(0xFFF5F5F5),
+                ],
+            isDark: isDark,
           ),
         ),
       ],
@@ -239,17 +299,50 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     bool isGold = false,
     required List<Color> gradientColors,
     Color textColor = Colors.white,
+    required bool isDark,
   }) {
     final isSelected = _selectedPlanIndex == index;
-    final baseTextColor = isGold ? textColor : AppTheme.inkText;
     
-    // Use darker, richer gradients for selected states
-    final effectiveGradient = isSelected && !isGold 
-        ? [
-            const Color(0xFF0F262A), // Dark cyan/black
-            const Color(0xFF163A3F), // Slightly lighter
-          ]
-        : gradientColors;
+    // Determine Colors based on mode and card type
+    Color effectiveTextColor;
+    if (isDark) {
+      effectiveTextColor = isGold ? textColor : AppTheme.inkText;
+    } else {
+      // Light mode text colors
+      if (isGold) {
+        effectiveTextColor = const Color(0xFF5D4037); // Dark brown
+      } else {
+        effectiveTextColor = isSelected ? const Color(0xFF00695C) : const Color(0xFF455A64); // Teal or Grey
+      }
+    }
+    
+    // Gradients
+    List<Color> effectiveGradient;
+    if (isSelected && !isGold) {
+      if (isDark) {
+        effectiveGradient = [
+          const Color(0xFF0F262A),
+          const Color(0xFF163A3F),
+        ];
+      } else {
+        effectiveGradient = [
+          const Color(0xFFE0F7FA), // Light Cyan
+          const Color(0xFFB2EBF2),
+        ];
+      }
+    } else {
+      effectiveGradient = gradientColors;
+    }
+
+    // Border
+    Color borderColor;
+    if (isSelected) {
+      borderColor = isGold 
+          ? AppTheme.amberGold 
+          : (isDark ? AppTheme.fluorescentCyan : const Color(0xFF26A69A));
+    } else {
+      borderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2);
+    }
 
     return GestureDetector(
       onTap: () => setState(() => _selectedPlanIndex = index),
@@ -269,25 +362,26 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected 
-                    ? (isGold ? AppTheme.amberGold : AppTheme.fluorescentCyan) 
-                    : Colors.white.withOpacity(0.1),
-                width: isSelected ? 1.5 : 1,
+                color: borderColor,
+                width: isSelected ? 2 : 1,
               ),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: (isGold ? AppTheme.amberGold : AppTheme.fluorescentCyan).withOpacity(0.15),
+                        color: (isGold 
+                            ? AppTheme.amberGold 
+                            : (isDark ? AppTheme.fluorescentCyan : const Color(0xFF26A69A))).withOpacity(0.3),
                         blurRadius: 12,
                         spreadRadius: 1,
+                        offset: const Offset(0, 4),
                       )
                     ]
                   : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 4),
+                      )
                   ],
             ),
             child: Column(
@@ -295,7 +389,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    color: isGold ? textColor : (isSelected ? AppTheme.fluorescentCyan : baseTextColor),
+                    color: effectiveTextColor,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -304,17 +398,15 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isGold ? AppTheme.amberGold.withOpacity(0.1) : Colors.black.withOpacity(0.2),
+                    color: isGold 
+                        ? (isDark ? AppTheme.amberGold.withOpacity(0.15) : Colors.white.withOpacity(0.6))
+                        : (isDark ? Colors.black.withOpacity(0.2) : Colors.grey.withOpacity(0.1)),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isGold ? AppTheme.amberGold.withOpacity(0.2) : Colors.transparent,
-                      width: 0.5,
-                    ),
                   ),
                   child: Text(
                     duration,
                     style: TextStyle(
-                      color: baseTextColor.withOpacity(0.8),
+                      color: effectiveTextColor.withOpacity(0.9),
                       fontSize: 12,
                     ),
                   ),
@@ -330,7 +422,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                         child: Text(
                           benefit,
                           style: TextStyle(
-                            color: baseTextColor.withOpacity(0.6),
+                            color: effectiveTextColor.withOpacity(0.7),
                             fontSize: 10,
                           ),
                           textAlign: TextAlign.center,
@@ -345,10 +437,10 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 Text(
                   '¥$originalPrice',
                   style: TextStyle(
-                    color: baseTextColor.withOpacity(0.3),
+                    color: effectiveTextColor.withOpacity(0.4),
                     fontSize: 12,
                     decoration: TextDecoration.lineThrough,
-                    decorationColor: baseTextColor.withOpacity(0.3),
+                    decorationColor: effectiveTextColor.withOpacity(0.4),
                   ),
                 ),
                 RichText(
@@ -357,7 +449,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                       TextSpan(
                         text: '¥',
                         style: TextStyle(
-                          color: isGold ? textColor : (isSelected ? AppTheme.fluorescentCyan : baseTextColor),
+                          color: effectiveTextColor,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -365,7 +457,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                       TextSpan(
                         text: price,
                         style: TextStyle(
-                          color: isGold ? textColor : (isSelected ? AppTheme.fluorescentCyan : baseTextColor),
+                          color: effectiveTextColor,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
@@ -373,7 +465,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                       TextSpan(
                         text: priceUnit,
                         style: TextStyle(
-                          color: baseTextColor.withOpacity(0.6),
+                          color: effectiveTextColor.withOpacity(0.8),
                           fontSize: 12,
                         ),
                       ),
@@ -384,7 +476,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                   Text(
                     dailyPrice,
                     style: TextStyle(
-                      color: baseTextColor.withOpacity(0.5),
+                      color: effectiveTextColor.withOpacity(0.6),
                       fontSize: 10,
                     ),
                   ),
@@ -402,8 +494,10 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: isGold 
-                      ? [AppTheme.amberGold, const Color(0xFFC6A700)]
-                      : [AppTheme.fluorescentCyan, const Color(0xFF00897B)],
+                      ? [AppTheme.amberGold, const Color(0xFFFFDF00)]
+                      : (isDark 
+                          ? [AppTheme.fluorescentCyan, const Color(0xFF00897B)]
+                          : [const Color(0xFF26A69A), const Color(0xFF80CBC4)]),
                   ),
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(16),
@@ -411,7 +505,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withOpacity(0.2),
                       blurRadius: 4,
                       offset: const Offset(1, 1),
                     )
@@ -419,8 +513,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 ),
                 child: Text(
                   tag,
-                  style: const TextStyle(
-                    color: Color(0xFF101010), 
+                  style: TextStyle(
+                    color: isDark ? Color(0xFF101010) : Colors.white, 
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -432,17 +526,26 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     );
   }
 
-  Widget _buildPaymentMethod(BuildContext context) {
+  Widget _buildPaymentMethod(BuildContext context, bool isDark) {
+    final textColor = isDark ? Colors.white : AppTheme.inkText;
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.voidDeeper.withOpacity(0.6),
+        color: isDark ? AppTheme.voidDeeper.withOpacity(0.6) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(0.05),
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -453,6 +556,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             icon: Icons.chat_bubble, 
             iconColor: const Color(0xFF09B83E),
             label: context.l10n.wechatPay,
+            textColor: textColor,
+            isDark: isDark,
           ),
           _buildPaymentOption(
             context,
@@ -460,20 +565,25 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             icon: Icons.payment,
             iconColor: const Color(0xFF1678FF),
             label: context.l10n.alipay,
+            textColor: textColor,
+            isDark: isDark,
           ),
         ],
       ),
     );
   }
-
+  
   Widget _buildPaymentOption(
     BuildContext context, {
     required int index,
     required IconData icon,
     required Color iconColor,
     required String label,
+    required Color textColor,
+    required bool isDark,
   }) {
     final isSelected = _selectedPaymentMethod == index;
+    final activeColor = isDark ? AppTheme.fluorescentCyan : const Color(0xFF009688);
     
     return GestureDetector(
       onTap: () => setState(() => _selectedPaymentMethod = index),
@@ -486,7 +596,9 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: isSelected ? AppTheme.fluorescentCyan : Colors.white.withOpacity(0.5),
+                color: isSelected 
+                  ? activeColor
+                  : (isDark ? Colors.white.withOpacity(0.5) : Colors.grey.withOpacity(0.3)),
                 width: 2,
               ),
             ),
@@ -495,7 +607,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 ? Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppTheme.fluorescentCyan,
+                      color: activeColor,
                     ),
                   )
                 : null,
@@ -505,8 +617,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
           const SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: textColor,
               fontSize: 14,
             ),
           ),
@@ -515,11 +627,9 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context) {
+  Widget _buildBottomBar(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
-      // Glass effect for bottom bar? Or just transparent? 
-      // Image shows it floating.
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -536,16 +646,21 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                   borderRadius: BorderRadius.circular(25),
                 ),
                 elevation: 8,
-                shadowColor: AppTheme.fluorescentCyan.withOpacity(0.4),
+                shadowColor: (isDark ? AppTheme.fluorescentCyan : const Color(0xFF26A69A)).withOpacity(0.4),
               ),
               child: Ink(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      AppTheme.fluorescentCyan,
-                      AppTheme.fluorescentCyan.withOpacity(0.7),
-                      const Color(0xFFE0C3FC), // Light purple hint
-                    ],
+                    colors: isDark 
+                      ? [
+                          AppTheme.fluorescentCyan,
+                          AppTheme.fluorescentCyan.withOpacity(0.7),
+                          const Color(0xFFE0C3FC), 
+                        ]
+                      : [
+                          const Color(0xFF26A69A), // Teal 400
+                          const Color(0xFF80CBC4), // Teal 200
+                        ],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
@@ -555,8 +670,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                   alignment: Alignment.center,
                   child: Text(
                     context.l10n.activateNow,
-                    style: const TextStyle(
-                      color: Color(0xFF1A1A2E), // Dark text on bright button
+                    style: TextStyle(
+                      color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -569,7 +684,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
           Text(
             context.l10n.agreementHint,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: isDark ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.4),
               fontSize: 10,
             ),
           ),
