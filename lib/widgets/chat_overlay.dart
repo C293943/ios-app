@@ -14,6 +14,7 @@ import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/video_cache_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:video_player/video_player.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class ChatOverlay extends StatefulWidget {
   final VoidCallback onBack;
@@ -58,13 +59,20 @@ class _ChatOverlayState extends State<ChatOverlay> {
     super.initState();
     _currentChatSessionId =
         'overlay_chat_${DateTime.now().millisecondsSinceEpoch}';
-    _messages.add(
-      ChatMessage(
-        text: '在存亮透过的瞬息，谢谢结缘的距离？\n元神的经过的瞬息，意不如型诚语...',
-        isUser: false,
-        timestamp: DateTime.now(),
-      ),
-    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_messages.isEmpty) {
+      _messages.add(
+        ChatMessage(
+          text: context.l10n.chatOverlayWelcomeMessage,
+          isUser: false,
+          timestamp: DateTime.now(),
+        ),
+      );
+    }
   }
 
   @override
@@ -543,7 +551,10 @@ class _ChatOverlayState extends State<ChatOverlay> {
                     children: [
                       Icon(Icons.broken_image, color: textColor, size: 16),
                       const SizedBox(width: 4),
-                      Text('图片加载失败', style: TextStyle(color: textColor, fontSize: 12)),
+                      Text(
+                        context.l10n.chatImageLoadFailed,
+                        style: TextStyle(color: textColor, fontSize: 12),
+                      ),
                     ],
                   ),
                 );
@@ -659,7 +670,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                 cursorColor: AppTheme.jadeGreen,
                 decoration: InputDecoration(
-                  hintText: '向元灵倾诉...',
+                  hintText: context.l10n.chatOverlayInputHint,
                   hintStyle: GoogleFonts.notoSerifSc(
                     color: AppTheme.inkText.withOpacity(0.45),
                   ),
@@ -733,7 +744,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         _messages.last.text.isEmpty) {
       setState(() {
         _messages[_messages.length - 1] = ChatMessage(
-          text: '[已取消]',
+          text: context.l10n.chatCanceled,
           isUser: false,
           timestamp: DateTime.now(),
         );
@@ -760,7 +771,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
       baziInfo: fortuneData.baziInfo,
       ziweiInfo: fortuneData.ziweiInfo,
       messages: messages,
-      language: AppConfig.defaultLanguage,
+      language: context.l10n.languageName,
     );
 
     // 添加一个空的AI消息用于流式填充
@@ -805,7 +816,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         if (!mounted) return;
         setState(() {
           _messages[aiMessageIndex] = ChatMessage(
-            text: '抱歉，我暂时无法回应。请稍后再试。',
+            text: context.l10n.chatErrorResponse,
             isUser: false,
             timestamp: DateTime.now(),
           );
@@ -823,7 +834,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
         setState(() {
           _messages.add(
             ChatMessage(
-              text: '我听到了你的心声... \n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。',
+              text: context.l10n.chatOverlayMockReply,
               isUser: false,
               timestamp: DateTime.now(),
             ),

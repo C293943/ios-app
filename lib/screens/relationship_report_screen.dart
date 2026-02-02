@@ -1,4 +1,4 @@
-﻿// 合盘报告页面，展示核心结论并进入合盘对话。
+// 合盘报告页面，展示核心结论并进入合盘对话。
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
@@ -8,6 +8,7 @@ import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class RelationshipReportScreen extends StatefulWidget {
   final String relationType;
@@ -30,7 +31,7 @@ class RelationshipReportScreen extends StatefulWidget {
 class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
   RelationshipReport? _report;
   bool _isLoading = true;
-  String _statusText = '正在生成合盘报告...';
+  String _statusText = '';
 
   @override
   void initState() {
@@ -43,13 +44,21 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_statusText.isEmpty) {
+      _statusText = context.l10n.relationshipReportGenerating;
+    }
+  }
+
   Future<void> _fetchReport() async {
     final personA = widget.personA;
     final personB = widget.personB;
     if (personA == null || personB == null) {
       setState(() {
         _isLoading = false;
-        _statusText = '缺少合盘信息';
+        _statusText = context.l10n.relationshipReportMissingInfo;
       });
       return;
     }
@@ -64,7 +73,7 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
     setState(() {
       _report = response.report;
       _isLoading = false;
-      _statusText = response.message ?? '报告已生成';
+      _statusText = response.message ?? context.l10n.relationshipReportReady;
     });
   }
 
@@ -75,7 +84,7 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          '合盘报告',
+          context.l10n.relationshipReportTitle,
           style: GoogleFonts.notoSerifSc(
             color: AppTheme.warmYellow,
             fontWeight: FontWeight.w600,
@@ -120,14 +129,14 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
             else ...[
               _buildScoreCard(report),
               const SizedBox(height: 16),
-              _buildSection('合盘概要', report.summary),
+              _buildSection(context.l10n.relationshipSummary, report.summary),
               const SizedBox(height: 16),
-              _buildListSection('亮点', report.highlights),
+              _buildListSection(context.l10n.relationshipHighlights, report.highlights),
               const SizedBox(height: 16),
-              _buildListSection('建议', report.advice),
+              _buildListSection(context.l10n.relationshipAdvice, report.advice),
               const SizedBox(height: 24),
               MysticButton(
-                text: '进入合盘对话',
+                text: context.l10n.relationshipEnterChat,
                 onPressed: () {
                   Navigator.of(context).pushNamed(
                     AppRoutes.relationshipChat,
@@ -181,7 +190,7 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '合盘匹配度',
+                  context.l10n.relationshipMatchScore,
                   style: GoogleFonts.notoSerifSc(
                     color: AppTheme.inkText.withOpacity(0.75),
                     fontSize: 12,

@@ -1,0 +1,446 @@
+{
+  "@@locale": "en",
+  "appName": "Primordial Spirit",
+  "accountSettings": "Account Settings",
+  "languageSelection": "Language",
+  "languageFeatureInProgress": "Multilingual support is in progress...",
+  "themeToggle": "Theme",
+  "aboutUs": "About Us",
+  "logout": "Log Out",
+  "spiritName": "Spirit",
+  "edit": "Edit",
+  "spiritStoneCount": "Spirit Stones",
+  "dailyChatCount": "Daily Chats",
+  "recharge": "Top Up",
+  "spiritNotes": "Spirit Notes",
+  "todayQiValue": "Today's Qi",
+  "luckyNumber": "Lucky Number",
+  "luckyColor": "Lucky Color",
+  "luckyDirection": "Lucky Direction",
+  "startSpiritChat": "Start Spirit Chat",
+  "navFortune": "Fortune",
+  "navBazi": "Bazi",
+  "navRelationship": "Compatibility",
+  "loginAgreeRequired": "Please read and agree to the user agreement first.",
+  "loginTitle": "Digital Spirit",
+  "loginPhoneTab": "Phone Login",
+  "loginEmailTab": "Email Login",
+  "loginPhoneHint": "Enter phone number",
+  "loginCodeHint": "Enter verification code",
+  "loginGetCode": "Get Code",
+  "loginEmailHint": "Enter email",
+  "loginPasswordHint": "Enter password",
+  "loginForgotPassword": "Forgot password?",
+  "loginAgreementPrefix": "I have read and agree to",
+  "loginUserAgreement": "User Agreement",
+  "loginPrivacyPolicy": "Privacy Policy",
+  "loginButton": "Log In",
+  "loginNoAccount": "No account yet? ",
+  "loginRegisterNow": "Sign Up",
+  "registerAgreeRequired": "Please read and agree to the user agreement first.",
+  "registerTitle": "Digital Spirit",
+  "registerPhoneTab": "Phone Sign Up",
+  "registerEmailTab": "Email Sign Up",
+  "registerNicknameHint": "Enter title / alias",
+  "registerPhoneHint": "Enter phone number",
+  "registerCodeHint": "Enter verification code",
+  "registerGetCode": "Get Code",
+  "registerEmailHint": "Enter email",
+  "registerPasswordHint": "Set password",
+  "registerAgreementPrefix": "I have read and agree to",
+  "registerUserAgreement": "User Agreement",
+  "registerPrivacyPolicy": "Privacy Policy",
+  "registerButton": "Sign Up",
+  "registerHasAccount": "Already have an account? ",
+  "registerLoginNow": "Log In",
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "aboutDescription": "Explore Eastern mysticism with technology.\\nPersonalized fortune insights and spiritual companionship.",
+  "aboutCopyright": "© 2026 Primordial Spirit Team",
+  "settingsTitle": "Settings",
+  "displayModeSection": "Display Mode",
+  "displayMode3d": "3D Spirit",
+  "displayMode2d": "2D",
+  "displayModeLive2d": "Live2D",
+  "themeSection": "Theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "modelManagementSection": "3D Model Management",
+  "builtInModels": "Built-in Models",
+  "customModels": "Custom Models",
+  "birthInfoSection": "Birth Info",
+  "resetBirthInfo": "Reset Birth Info",
+  "resetBirthInfoSubtitle": "Update birth date, time, and location",
+  "aboutSection": "About",
+  "versionLabel": "Version",
+  "addModelTitle": "Add 3D Model",
+  "addModelFormatsHint": "Supports .glb, .gltf, .obj formats",
+  "modelTagAnimated": "Animated",
+  "modelTagStatic": "Static",
+  "modelTagBuiltIn": "Built-in",
+  "modelTagCustom": "Custom",
+  "rename": "Rename",
+  "delete": "Delete",
+  "unsupportedModelFormat": "Unsupported format. Please choose a .glb, .gltf, or .obj file.",
+  "modelAddSuccess": "Model \"{name}\" added",
+  "@modelAddSuccess": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "modelAddFailed": "Failed to add model: {error}",
+  "@modelAddFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "modelNameTitle": "Model Name",
+  "modelNameHint": "Enter model name",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "renameModelTitle": "Rename Model",
+  "renameModelHint": "Enter new name",
+  "renameSuccess": "Rename successful",
+  "renameFailed": "Rename failed",
+  "deleteModelTitle": "Delete Model",
+  "deleteModelConfirm": "Delete model \"{name}\"?\\nThis action cannot be undone.",
+  "@deleteModelConfirm": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "deleteSuccess": "Deleted",
+  "deleteFailed": "Delete failed",
+  "noteQiGain": "Today's Qi +10",
+  "noteSampleDate1": "Oct 28 Tue",
+  "noteSampleDate2": "Oct 28 Wed",
+  "noteSampleContent": "We spoke at length today about dreams hidden in your heart. I felt the warmth and hope within, and told you that I will walk this path with you.",
+  "syncing": "Syncing...",
+  "notLoggedIn": "Not logged in",
+  "notSet": "Not set",
+  "notSynced": "Not synced",
+  "profileStatusSet": "Set",
+  "profileStatusSynced": "Synced",
+  "profileTitle": "Profile",
+  "profileUserId": "User ID",
+  "profileEmail": "Email",
+  "profileLevel": "User Level",
+  "profileLevelValue": "VIP 0",
+  "profileArchive": "Profile Archive",
+  "profileArchiveTitle": "Archive Details",
+  "profileSyncTime": "Sync Time",
+  "profileRecharge": "Membership",
+  "profileRechargeAction": "Recharge",
+  "profileVoice": "Voice",
+  "profileFeedback": "Feedback",
+  "profileFeedbackAction": "Submit",
+  "profilePrivacy": "Privacy Policy",
+  "profileRechargeAgreement": "Recharge Agreement",
+  "profileUserAgreement": "User Agreement",
+  "viewAction": "View",
+  "logoutAction": "Log Out",
+  "profileNameLabel": "Name",
+  "profileGenderLabel": "Gender",
+  "profileBirthCityLabel": "Birthplace",
+  "profileBirthTimeLabel": "Birth Time",
+  "birthDatePlaceholder": "-- -- -- --:--",
+  "profileEditTitle": "Edit Profile",
+  "profileGenderHint": "Gender (M/F)",
+  "profileBirthYearLabel": "Birth Year",
+  "profileBirthMonthLabel": "Birth Month",
+  "profileBirthDayLabel": "Birth Day",
+  "profileBirthHourLabel": "Birth Hour",
+  "profileBirthMinuteLabel": "Birth Minute",
+  "save": "Save",
+  "logoutConfirm": "Log out of this account?",
+  "featureInProgress": "Feature in progress...",
+  "voiceSelectionTitle": "Voice Selection",
+  "voiceDefaultFemale": "Default Female",
+  "voiceGentleFemale": "Gentle Female",
+  "voiceMagneticMale": "Magnetic Male",
+  "feedbackHint": "Enter your feedback...",
+  "submit": "Submit",
+  "privacyAgreementTitle": "Privacy Policy",
+  "rechargeAgreementTitle": "Recharge Agreement",
+  "userAgreementTitle": "User Agreement",
+  "close": "Close",
+  "privacyPolicyContent": "Privacy Policy\\n\\nWe respect and protect your privacy. We promise:\\n\\n1. Data Collection\\n   - Only necessary personal data\\n   - No sensitive data without consent\\n\\n2. Data Usage\\n   - Only for service delivery\\n   - Not for commercial use\\n\\n3. Data Protection\\n   - Encrypted storage\\n   - Regular security audits\\n\\n4. User Rights\\n   - Access your data\\n   - Request deletion\\n\\nContact us if you have questions.",
+  "rechargeAgreementContent": "Recharge Agreement\\n\\n1. Recharge Notes\\n   - Amounts are virtual currency\\n   - No refunds\\n\\n2. Payment Methods\\n   - Multiple options supported\\n   - Instant crediting\\n\\n3. Benefits\\n   - Receive virtual currency\\n   - Membership benefits\\n\\n4. Disclaimer\\n   - We are not responsible for delays due to network issues\\n   - Users must protect account information\\n\\n5. Other\\n   - Final interpretation belongs to the app\\n   - Changes reserved",
+  "userAgreementContent": "User Agreement\\n\\n1. Service Terms\\n   - The app provides entertainment services such as fortune and astrology\\n   - For reference only, not for decision-making\\n\\n2. User Responsibilities\\n   - Comply with laws and regulations\\n   - No illegal or prohibited activities\\n\\n3. Intellectual Property\\n   - All content belongs to the app\\n   - No redistribution without permission\\n\\n4. Disclaimer\\n   - We are not responsible for results\\n   - Users bear the risks\\n\\n5. Service Changes\\n   - We may modify or terminate services at any time\\n   - Users will be notified in advance\\n\\n6. Contact\\n   - Use the feedback feature to reach us",
+  "memberRechargeTitle": "Member Recharge",
+  "activateMember": "Premium Membership",
+  "unlockFeatures": "Unlock more chats and exclusive features",
+  "memberPlans": "Membership Plans",
+  "weeklyPlan": "Weekly",
+  "monthlyPlan": "Monthly",
+  "yearlyPlan": "Yearly",
+  "week": "week",
+  "month": "month",
+  "year": "year",
+  "days7": "7 Days",
+  "days30": "30 Days",
+  "days365": "365 Days",
+  "giftCoins": "{amount} Spirit Stones",
+  "@giftCoins": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "dailyChatLimit": "{count} Daily Chats",
+  "@dailyChatLimit": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "exclusiveBadge": "Exclusive Badge",
+  "priorityExperience": "Priority Features",
+  "customerService": "VIP Support",
+  "recommended": "Recommended",
+  "bestValue": "Best Value",
+  "pricePerDay": "Only ¥{price}/day",
+  "@pricePerDay": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "paymentMethod": "Payment Method",
+  "wechatPay": "WeChat Pay",
+  "alipay": "Alipay",
+  "activateNow": "Activate Now",
+  "agreementHint": "By activating, you agree to the Member Service Agreement",
+  "baziStartTitle": "Start Destiny Wheel",
+  "baziPromptTitle": "Enter your birth details",
+  "baziPromptSubtitle": "Awaken your Five-Element guardian",
+  "baziGenderLabel": "Yin/Yang (Gender)",
+  "genderMale": "Male",
+  "genderFemale": "Female",
+  "baziDateLabel": "Heavenly Stems (Date)",
+  "selectBirthDate": "Select birth date",
+  "birthDateFormat": "{year}-{month}-{day}",
+  "@birthDateFormat": {
+    "placeholders": {
+      "year": {},
+      "month": {},
+      "day": {}
+    }
+  },
+  "birthDateRequired": "Please select a birth date",
+  "baziTimeLabel": "Earthly Branches (Time)",
+  "selectBirthTime": "Select birth time",
+  "birthTimeFormat": "{hour}:{minute}",
+  "@birthTimeFormat": {
+    "placeholders": {
+      "hour": {},
+      "minute": {}
+    }
+  },
+  "birthTimeRequired": "Please select a birth time",
+  "baziCityLabel": "Birthplace (City)",
+  "selectBirthCity": "Select birth city",
+  "baziSubmit": "Converge Spirit",
+  "birthInfoIncomplete": "Please complete birth time for accurate calculation",
+  "avatarAnalyzingBazi": "Analyzing Bazi...",
+  "avatarMissingBirthInfo": "Missing birth info",
+  "avatarBirthInfo": "Birth: {date} {time}",
+  "@avatarBirthInfo": {
+    "placeholders": {
+      "date": {},
+      "time": {}
+    }
+  },
+  "avatarConnecting": "Connecting to {baseUrl}...",
+  "@avatarConnecting": {
+    "placeholders": {
+      "baseUrl": {}
+    }
+  },
+  "avatarParsingFiveElements": "Parsing Five Elements...",
+  "avatarBaziSummary": "Bazi: {yearPillar} {monthPillar} {dayPillar} {hourPillar}",
+  "@avatarBaziSummary": {
+    "placeholders": {
+      "yearPillar": {},
+      "monthPillar": {},
+      "dayPillar": {},
+      "hourPillar": {}
+    }
+  },
+  "avatarElementsSummary": "Elements: Wood {wood} Fire {fire} Earth {earth} Metal {metal} Water {water}",
+  "@avatarElementsSummary": {
+    "placeholders": {
+      "wood": {},
+      "fire": {},
+      "earth": {},
+      "metal": {},
+      "water": {}
+    }
+  },
+  "avatarPatternSummary": "Pattern: {pattern}",
+  "@avatarPatternSummary": {
+    "placeholders": {
+      "pattern": {}
+    }
+  },
+  "avatarPreparing2d": "Preparing 2D avatar...",
+  "avatarPreparing3d": "Preparing 3D spirit...",
+  "avatarMingGong": "Ming Gong: {value}",
+  "@avatarMingGong": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "avatarDayMaster": "Day Master: {value}",
+  "@avatarDayMaster": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "avatarDone": "Complete!",
+  "avatarReady": "Avatar is ready",
+  "avatarCalculationFailed": "Calculation failed",
+  "avatarGenerating3d": "Generating 3D avatar...",
+  "offlineMode": "(Offline mode)",
+  "avatarTaskSubmitted": "Task submitted",
+  "avatarTaskBackground": "Avatar is being generated in the background...",
+  "avatarConverging": "Converging spirit...",
+  "avatarConvergingDetail": "Generating a personalized avatar from Bazi",
+  "avatarServiceUnavailable": "3D generation service is unavailable",
+  "avatarConvergingSpirit": "Spirit is converging...",
+  "avatarPreviewConnecting": "Preview stage: connecting...",
+  "avatarTotalProgress": "Total progress: {progress}%",
+  "@avatarTotalProgress": {
+    "placeholders": {
+      "progress": {}
+    }
+  },
+  "avatarGeneratingMesh": "Generating 3D mesh...",
+  "avatarPreviewStage": "Preview stage",
+  "avatarApplyingTextures": "Applying textures...",
+  "avatarRefineStage": "Refinement stage (preview ready)",
+  "avatarPreviewReady": "Preview model ready",
+  "avatarRefining": "Refining...",
+  "avatarRefineFailedUsePreview": "Refinement failed, using preview model",
+  "avatarFailed": "Generation failed",
+  "avatarConnectionInterrupted": "Connection interrupted, using preview model",
+  "avatar3dError": "3D generation error: {error}",
+  "@avatar3dError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "avatarStageRefine": "Refine",
+  "avatarStagePreview": "Preview",
+  "avatarStagePending": "{stage} queued...",
+  "@avatarStagePending": {
+    "placeholders": {
+      "stage": {}
+    }
+  },
+  "avatarPreviewToRefine": "Preview complete, refining...",
+  "avatarStageFailed": "{stage} failed",
+  "@avatarStageFailed": {
+    "placeholders": {
+      "stage": {}
+    }
+  },
+  "canceled": "Canceled",
+  "processing": "Processing...",
+  "queueing": "Queued...",
+  "generating": "Generating...",
+  "previewQueueing": "Preview queued...",
+  "refineQueueing": "Refine queued...",
+  "avatarHint": "Based on your Bazi\\nWe are shaping your spirit...",
+  "relationshipSelectTitle": "Compatibility",
+  "relationshipLover": "Lovers",
+  "relationshipLoverSubtitle": "Emotional growth and harmony",
+  "relationshipSpouse": "Spouses",
+  "relationshipSpouseSubtitle": "Long-term rhythm and family life",
+  "relationshipFriend": "Friends",
+  "relationshipFriendSubtitle": "Complementary traits and trust",
+  "relationshipParentChild": "Parent & Child",
+  "relationshipParentChildSubtitle": "Companionship and growth",
+  "relationshipColleague": "Colleagues",
+  "relationshipColleagueSubtitle": "Collaboration and alignment",
+  "relationshipFormTitle": "{relationType} Compatibility",
+  "@relationshipFormTitle": {
+    "placeholders": {
+      "relationType": {}
+    }
+  },
+  "relationshipPersonATitle": "Person A",
+  "relationshipPersonBTitle": "Person B",
+  "relationshipGenerateReport": "Generate Compatibility Report",
+  "birthDateLabel": "Birth Date",
+  "selectDate": "Select date",
+  "birthTimeLabel": "Birth Time",
+  "selectTime": "Select time",
+  "birthCityLabel": "Birth City",
+  "selectorLabelValue": "{label}: {value}",
+  "@selectorLabelValue": {
+    "placeholders": {
+      "label": {},
+      "value": {}
+    }
+  },
+  "relationshipBirthInfoIncomplete": "Please complete both birth dates and times",
+  "relationshipReportGenerating": "Generating compatibility report...",
+  "relationshipReportMissingInfo": "Missing compatibility info",
+  "relationshipReportReady": "Report is ready",
+  "relationshipReportTitle": "Compatibility Report",
+  "relationshipSummary": "Summary",
+  "relationshipHighlights": "Highlights",
+  "relationshipAdvice": "Advice",
+  "relationshipEnterChat": "Enter Compatibility Chat",
+  "relationshipMatchScore": "Compatibility Score",
+  "relationshipChatTitle": "Compatibility Chat",
+  "relationshipChatHint": "Ask more about the compatibility details...",
+  "relationshipChatUnavailable": "Sorry, compatibility chat is unavailable.",
+  "relationshipSummaryMessage": "Summary: {summary}",
+  "@relationshipSummaryMessage": {
+    "placeholders": {
+      "summary": {}
+    }
+  },
+  "languageName": "English",
+  "chatWelcomeMessage": "Hi, I'm your personal spirit. I'll accompany you, listen to you, and offer guidance when needed.",
+  "chatStatusOnline": "Online",
+  "chatSubtitle": "Your personal destiny companion",
+  "chatInputHint": "Chat with your spirit...",
+  "chatCanceled": "[Canceled]",
+  "chatErrorResponse": "Sorry, I can't respond right now. Please try again later.",
+  "chatImageLoadFailed": "Image failed to load",
+  "chatClear": "Clear Chat",
+  "chatHistory": "Chat History",
+  "chatMockReply1": "I understand how you feel. Let's explore this together.",
+  "chatMockReply2": "From your Bazi, this stage calls for more patience and persistence.",
+  "chatMockReply3": "I'm here with you, and you can share your thoughts anytime.",
+  "chatMockReply4": "Based on your destiny chart, this is a good time to reflect and plan.",
+  "chatMockReply5": "Everyone faces challenges. What's important is how you respond. You're doing well.",
+  "timeJustNow": "Just now",
+  "timeMinutesAgo": "{minutes} min ago",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "timeHourMinute": "{hour}:{minute}",
+  "@timeHourMinute": {
+    "placeholders": {
+      "hour": {},
+      "minute": {}
+    }
+  },
+  "timeMonthDay": "{month}/{day}",
+  "@timeMonthDay": {
+    "placeholders": {
+      "month": {},
+      "day": {}
+    }
+  },
+  "chatOverlayWelcomeMessage": "In the fleeting moment of meeting, thank you for the bond between us...",
+  "chatOverlayInputHint": "Share your thoughts with the spirit...",
+  "chatOverlayMockReply": "I hear your heart... \\nA breeze rises from the tiniest ripple; perhaps this confusion is the prelude to awakening."
+}

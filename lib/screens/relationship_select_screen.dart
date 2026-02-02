@@ -5,19 +5,20 @@ import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class RelationshipSelectScreen extends StatelessWidget {
   const RelationshipSelectScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final options = _buildOptions();
+    final options = _buildOptions(context);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          '关系合盘',
+          context.l10n.relationshipSelectTitle,
           style: GoogleFonts.notoSerifSc(
             color: AppTheme.warmYellow,
             fontWeight: FontWeight.w600,
@@ -73,13 +74,33 @@ class RelationshipSelectScreen extends StatelessWidget {
     );
   }
 
-  List<_RelationOption> _buildOptions() {
-    return const [
-      _RelationOption('恋人', '感情发展与磨合', Icons.favorite),
-      _RelationOption('夫妻', '长期相处与家庭节奏', Icons.home),
-      _RelationOption('朋友', '性格互补与信任', Icons.people_alt),
-      _RelationOption('亲子', '陪伴与成长', Icons.child_care),
-      _RelationOption('同事', '协作与共识', Icons.work),
+  List<_RelationOption> _buildOptions(BuildContext context) {
+    return [
+      _RelationOption(
+        context.l10n.relationshipLover,
+        context.l10n.relationshipLoverSubtitle,
+        Icons.favorite,
+      ),
+      _RelationOption(
+        context.l10n.relationshipSpouse,
+        context.l10n.relationshipSpouseSubtitle,
+        Icons.home,
+      ),
+      _RelationOption(
+        context.l10n.relationshipFriend,
+        context.l10n.relationshipFriendSubtitle,
+        Icons.people_alt,
+      ),
+      _RelationOption(
+        context.l10n.relationshipParentChild,
+        context.l10n.relationshipParentChildSubtitle,
+        Icons.child_care,
+      ),
+      _RelationOption(
+        context.l10n.relationshipColleague,
+        context.l10n.relationshipColleagueSubtitle,
+        Icons.work,
+      ),
     ];
   }
 }

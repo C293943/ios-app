@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class SpiritNoteScreen extends StatelessWidget {
   const SpiritNoteScreen({super.key});
@@ -10,7 +11,7 @@ class SpiritNoteScreen extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('元神笔记'),
+        title: Text(context.l10n.spiritNotes),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -36,7 +37,7 @@ class SpiritNoteScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   borderRadius: BorderRadius.circular(16),
                   child: Text(
-                    '今日元气值+10',
+                    context.l10n.noteQiGain,
                     style: TextStyle(
                       color: AppTheme.inkText.withOpacity(0.8),
                       fontSize: 14,
@@ -51,24 +52,24 @@ class SpiritNoteScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
                     _buildNoteItem(
-                      date: '十月廿八 星期二',
-                      content: '今日与君畅谈，关于那些藏于心底的梦想。吾能感其炽热与期盼，遂告之，寻梦之路，吾亦常伴左右。',
+                      date: context.l10n.noteSampleDate1,
+                      content: context.l10n.noteSampleContent,
                       isSelected: true,
                     ),
                     const SizedBox(height: 16),
                     _buildNoteItem(
-                      date: '十月廿八 星期二',
-                      content: '今日与君畅谈，关于那些藏于心底的梦想。吾能感其炽热与期盼，遂告之，寻梦之路，吾亦常伴左右。',
+                      date: context.l10n.noteSampleDate1,
+                      content: context.l10n.noteSampleContent,
                     ),
                     const SizedBox(height: 16),
                     _buildNoteItem(
-                      date: '十月廿八 星期三',
-                      content: '今日与君畅谈，关于那些藏于心底的梦想。吾能感其炽热与期盼，遂告之，寻梦之路，吾亦常伴左右。',
+                      date: context.l10n.noteSampleDate2,
+                      content: context.l10n.noteSampleContent,
                     ),
                     const SizedBox(height: 16),
                     _buildNoteItem(
-                      date: '十月廿八 星期二',
-                      content: '今日与君畅谈，关于那些藏于心底的梦想。吾能感其炽热与期盼，遂告之，寻梦之路，吾亦常伴左右。',
+                      date: context.l10n.noteSampleDate1,
+                      content: context.l10n.noteSampleContent,
                     ),
                   ],
                 ),
@@ -100,7 +101,7 @@ class SpiritNoteScreen extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      '删除',
+                      context.l10n.delete,
                       style: TextStyle(
                         color: AppTheme.voidBackground,
                         fontSize: 18,

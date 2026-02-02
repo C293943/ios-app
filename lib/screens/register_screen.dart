@@ -4,6 +4,7 @@ import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -41,7 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _submit() async {
     if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先阅读并同意用户协议')),
+        SnackBar(content: Text(context.l10n.registerAgreeRequired)),
       );
       return;
     }
@@ -92,7 +93,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       
                       // Title
                       Text(
-                        '数字元神',
+                        context.l10n.registerTitle,
                         style: GoogleFonts.notoSerifSc(
                           fontSize: 42,
                           fontWeight: FontWeight.bold,
@@ -169,10 +170,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Row(
         children: [
           Expanded(
-            child: _buildTabItem(title: '手机注册', isActive: _isPhoneRegister, onTap: () => setState(() => _isPhoneRegister = true)),
+            child: _buildTabItem(
+              title: context.l10n.registerPhoneTab,
+              isActive: _isPhoneRegister,
+              onTap: () => setState(() => _isPhoneRegister = true),
+            ),
           ),
           Expanded(
-            child: _buildTabItem(title: '邮箱注册', isActive: !_isPhoneRegister, onTap: () => setState(() => _isPhoneRegister = false)),
+            child: _buildTabItem(
+              title: context.l10n.registerEmailTab,
+              isActive: !_isPhoneRegister,
+              onTap: () => setState(() => _isPhoneRegister = false),
+            ),
           ),
         ],
       ),
@@ -230,7 +239,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: _nicknameController,
             style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
             decoration: InputDecoration(
-              hintText: '请输入称谓/道号',
+              hintText: context.l10n.registerNicknameHint,
               hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
               icon: Padding(
                 padding: const EdgeInsets.only(left: 16),
@@ -267,7 +276,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   keyboardType: TextInputType.phone,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: '请输入手机号',
+                    hintText: context.l10n.registerPhoneHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -293,7 +302,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   keyboardType: TextInputType.number,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: '请输入验证码',
+                    hintText: context.l10n.registerCodeHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     icon: Padding(
                       padding: const EdgeInsets.only(left: 16),
@@ -326,7 +335,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
                   child: Text(
-                    '获取验证码',
+                    context.l10n.registerGetCode,
                     style: GoogleFonts.notoSansSc(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -347,7 +356,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: _nicknameController,
             style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
             decoration: InputDecoration(
-              hintText: '请输入称谓/道号',
+              hintText: context.l10n.registerNicknameHint,
               hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
               icon: Padding(
                 padding: const EdgeInsets.only(left: 16),
@@ -370,7 +379,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             keyboardType: TextInputType.emailAddress,
             style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
             decoration: InputDecoration(
-              hintText: '请输入邮箱',
+              hintText: context.l10n.registerEmailHint,
               hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
               icon: Padding(
                 padding: const EdgeInsets.only(left: 16),
@@ -397,7 +406,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscurePassword,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: '设置密码',
+                    hintText: context.l10n.registerPasswordHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     icon: Padding(
                       padding: const EdgeInsets.only(left: 16),
@@ -452,15 +461,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   fontSize: 12,
                 ),
                 children: [
-                  const TextSpan(text: '我已阅读并同意 '),
+                  TextSpan(text: context.l10n.registerAgreementPrefix),
                   TextSpan(
-                    text: '《用户协议》',
-                    style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.bold),
+                    text: context.l10n.registerUserAgreement,
+                    style: TextStyle(
+                      color: AppTheme.electricBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const TextSpan(text: ' '),
                   TextSpan(
-                    text: '《隐私政策》',
-                    style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.bold),
+                    text: context.l10n.registerPrivacyPolicy,
+                    style: TextStyle(
+                      color: AppTheme.electricBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -507,7 +522,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               )
             : Text(
-                '立即注册',
+                context.l10n.registerButton,
                 style: GoogleFonts.notoSansSc(
                   color: Colors.white,
                   fontSize: 18,
@@ -526,14 +541,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '已有账号? ',
+            context.l10n.registerHasAccount,
             style: GoogleFonts.notoSansSc(
               color: AppTheme.inkText.withOpacity(0.7),
               fontSize: 14,
             ),
           ),
           Text(
-            '立即登录',
+            context.l10n.registerLoginNow,
             style: GoogleFonts.notoSansSc(
               color: AppTheme.electricBlue,
               fontWeight: FontWeight.w600,

@@ -1,4 +1,4 @@
-﻿// 合盘对话页面，基于合盘报告进行后续咨询。
+// 合盘对话页面，基于合盘报告进行后续咨询。
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +8,7 @@ import 'package:primordial_spirit/models/relationship_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class RelationshipChatScreen extends StatefulWidget {
   final RelationshipReport report;
@@ -32,13 +33,20 @@ class _RelationshipChatScreenState extends State<RelationshipChatScreen> {
   void initState() {
     super.initState();
     _chatSessionId = 'relationship_${DateTime.now().millisecondsSinceEpoch}';
-    _messages.add(
-      _ChatMessage(
-        text: '合盘概要：${widget.report.summary}',
-        isUser: false,
-        timestamp: DateTime.now(),
-      ),
-    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_messages.isEmpty) {
+      _messages.add(
+        _ChatMessage(
+          text: context.l10n.relationshipSummaryMessage(widget.report.summary),
+          isUser: false,
+          timestamp: DateTime.now(),
+        ),
+      );
+    }
   }
 
   @override
@@ -56,7 +64,7 @@ class _RelationshipChatScreenState extends State<RelationshipChatScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          '合盘对话',
+          context.l10n.relationshipChatTitle,
           style: GoogleFonts.notoSerifSc(
             color: AppTheme.warmYellow,
             fontWeight: FontWeight.w600,
@@ -135,7 +143,7 @@ class _RelationshipChatScreenState extends State<RelationshipChatScreen> {
                 controller: _messageController,
                 style: TextStyle(color: AppTheme.inkText),
                 decoration: InputDecoration(
-                  hintText: '继续咨询合盘细节...',
+                  hintText: context.l10n.relationshipChatHint,
                   hintStyle: TextStyle(
                     color: AppTheme.inkText.withOpacity(0.55),
                   ),
@@ -197,7 +205,7 @@ class _RelationshipChatScreenState extends State<RelationshipChatScreen> {
     final request = RelationshipChatRequest(
       report: widget.report,
       messages: history,
-      language: AppConfig.defaultLanguage,
+      language: context.l10n.languageName,
     );
 
     final aiMessageIndex = _messages.length;
@@ -236,7 +244,7 @@ class _RelationshipChatScreenState extends State<RelationshipChatScreen> {
         if (!mounted) return;
         setState(() {
           _messages[aiMessageIndex] = _ChatMessage(
-            text: '抱歉，合盘对话暂时不可用。',
+            text: context.l10n.relationshipChatUnavailable,
             isUser: false,
             timestamp: DateTime.now(),
           );

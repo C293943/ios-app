@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:markdown_widget/markdown_widget.dart';
@@ -10,6 +10,7 @@ import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/glass_container.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 /// 聊天页面 - 带角色背景的沉浸式对话界面
 class ChatScreen extends StatefulWidget {
@@ -49,12 +50,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       curve: Curves.easeInOut,
     );
 
-    // 添加欢迎消息
-    _messages.add(ChatMessage(
-      text: '你好,我是你的专属元灵。我会陪伴你,倾听你的心声,也会在需要时给你一些人生的建议。',
-      isUser: false,
-      timestamp: DateTime.now(),
-    ));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_messages.isEmpty) {
+      _messages.add(ChatMessage(
+        text: context.l10n.chatWelcomeMessage,
+        isUser: false,
+        timestamp: DateTime.now(),
+      ));
+    }
   }
 
   @override
@@ -141,7 +148,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   Row(
                     children: [
                         Text(
-                          '元灵',
+                          context.l10n.spiritName,
                           style: TextStyle(
                             color: AppTheme.warmYellow,
                             fontSize: 18,
@@ -160,7 +167,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             ),
                           ),
                           child: Text(
-                            '在线',
+                            context.l10n.chatStatusOnline,
                             style: TextStyle(
                               color: AppTheme.jadeGreen,
                               fontSize: 10,
@@ -171,7 +178,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                   const SizedBox(height: 2),
                   Text(
-                    '你的专属命理伙伴',
+                    context.l10n.chatSubtitle,
                     style: TextStyle(
                       color: AppTheme.inkText.withOpacity(0.72),
                       fontSize: 12,
@@ -375,7 +382,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       controller: _messageController,
                       style: TextStyle(color: AppTheme.inkText),
                       decoration: InputDecoration(
-                        hintText: '与元灵对话...',
+                        hintText: context.l10n.chatInputHint,
                         hintStyle: TextStyle(
                           color: AppTheme.inkText.withOpacity(0.55),
                         ),
@@ -612,7 +619,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     if (_messages.isNotEmpty && !_messages.last.isUser && _messages.last.text.isEmpty) {
       setState(() {
         _messages[_messages.length - 1] = ChatMessage(
-          text: '[已取消]',
+          text: context.l10n.chatCanceled,
           isUser: false,
           timestamp: DateTime.now(),
         );
@@ -637,7 +644,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       baziInfo: fortuneData.baziInfo,
       ziweiInfo: fortuneData.ziweiInfo,
       messages: messages,
-      language: AppConfig.defaultLanguage,
+      language: context.l10n.languageName,
     );
 
     // 添加一个空的AI消息用于流式填充
@@ -684,7 +691,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         if (!mounted) return;
         setState(() {
           _messages[aiMessageIndex] = ChatMessage(
-            text: '抱歉，我暂时无法回应。请稍后再试。',
+            text: context.l10n.chatErrorResponse,
             isUser: false,
             timestamp: DateTime.now(),
           );
@@ -824,7 +831,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     children: [
                       Icon(Icons.broken_image, color: textColor, size: 16),
                       const SizedBox(width: 4),
-                      Text('图片加载失败', style: TextStyle(color: textColor, fontSize: 12)),
+                      Text(
+                        context.l10n.chatImageLoadFailed,
+                        style: TextStyle(color: textColor, fontSize: 12),
+                      ),
                     ],
                   ),
                 );
@@ -877,12 +887,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ListTile(
                 leading:
                     Icon(Icons.cleaning_services, color: AppTheme.warmYellow),
-                title: Text('清空对话'),
+                title: Text(context.l10n.chatClear),
                 onTap: () {
                   setState(() {
                     _messages.clear();
                     _messages.add(ChatMessage(
-                      text: '你好,我是你的专属元灵。我会陪伴你,倾听你的心声,也会在需要时给你一些人生的建议。',
+                      text: context.l10n.chatWelcomeMessage,
                       isUser: false,
                       timestamp: DateTime.now(),
                     ));
@@ -892,7 +902,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
               ListTile(
                 leading: Icon(Icons.history, color: AppTheme.warmYellow),
-                title: Text('对话历史'),
+                title: Text(context.l10n.chatHistory),
                 onTap: () {
                   Navigator.pop(context);
                   // TODO: 显示对话历史
@@ -900,7 +910,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
               ListTile(
                 leading: Icon(Icons.settings, color: AppTheme.warmYellow),
-                title: Text('设置'),
+                title: Text(context.l10n.settingsTitle),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/settings');
@@ -915,11 +925,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   String _generateAIResponse(String userMessage) {
     final responses = [
-      '我理解你的感受,让我们一起来探讨一下这个问题。',
-      '从你的八字来看,这个阶段确实需要更多的耐心和坚持。',
-      '我一直在这里陪伴你,无论什么时候你都可以和我分享你的想法。',
-      '根据你的命理,现在是一个适合思考和规划的时期。',
-      '每个人都会遇到困难,重要的是如何面对它们。你做得很好。',
+      context.l10n.chatMockReply1,
+      context.l10n.chatMockReply2,
+      context.l10n.chatMockReply3,
+      context.l10n.chatMockReply4,
+      context.l10n.chatMockReply5,
     ];
     return responses[DateTime.now().millisecond % responses.length];
   }
@@ -929,13 +939,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final difference = now.difference(time);
     
     if (difference.inMinutes < 1) {
-      return '刚刚';
+      return context.l10n.timeJustNow;
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}分钟前';
+      return context.l10n.timeMinutesAgo(difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+      return context.l10n.timeHourMinute(
+        time.hour,
+        time.minute.toString().padLeft(2, '0'),
+      );
     } else {
-      return '${time.month}月${time.day}日';
+      return context.l10n.timeMonthDay(time.month, time.day);
     }
   }
 }

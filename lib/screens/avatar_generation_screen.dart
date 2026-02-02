@@ -11,6 +11,7 @@ import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/task_manager_service.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 /// 3D形象生成页面（加载过渡页）
 class AvatarGenerationScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  String _statusText = '正在分析八字...';
+  String _statusText = '';
   String _detailText = '';
   double _progress = 0.0;
   bool _hasError = false;
@@ -51,6 +52,14 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_statusText.isEmpty) {
+      _statusText = context.l10n.avatarAnalyzingBazi;
+    }
+  }
+
+  @override
   void dispose() {
     _taskManagerSubscription?.cancel();
     _controller.dispose();
@@ -72,7 +81,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
     if (widget.baziData == null) {
       if (!mounted) return;
       setState(() {
-        _statusText = '缺少生辰信息';
+        _statusText = context.l10n.avatarMissingBirthInfo;
         _hasError = true;
       });
       await Future.delayed(const Duration(seconds: 2));
@@ -96,8 +105,14 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
     // 显示请求信息
     setState(() {
-      _statusText = '正在分析八字...';
-      _detailText = '出生: ${date.year}年${date.month}月${date.day}日 ${time.hour}:${time.minute}';
+      _statusText = context.l10n.avatarAnalyzingBazi;
+      _detailText = context.l10n.avatarBirthInfo(
+        context.l10n.birthDateFormat(date.year, date.month, date.day),
+        context.l10n.birthTimeFormat(
+          time.hour.toString(),
+          time.minute.toString().padLeft(2, '0'),
+        ),
+      );
     });
 
     // 调用计算API
@@ -110,7 +125,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       }
     };
 
-    setState(() => _detailText = '正在连接 ${AppConfig.baseUrl}...');
+    setState(() => _detailText = context.l10n.avatarConnecting(AppConfig.baseUrl));
 
     final response = await apiService.calculate(birthInfo);
 
@@ -118,8 +133,13 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
     if (response.success && response.baziInfo != null) {
       setState(() {
-        _statusText = '正在解析五行属性...';
-        _detailText = '八字: ${response.baziInfo!.yearPillar} ${response.baziInfo!.monthPillar} ${response.baziInfo!.dayPillar} ${response.baziInfo!.hourPillar}';
+        _statusText = context.l10n.avatarParsingFiveElements;
+        _detailText = context.l10n.avatarBaziSummary(
+          response.baziInfo!.yearPillar,
+          response.baziInfo!.monthPillar,
+          response.baziInfo!.dayPillar,
+          response.baziInfo!.hourPillar,
+        );
       });
       await Future.delayed(const Duration(milliseconds: 800));
       if (!mounted) return;
@@ -128,7 +148,13 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       if (response.baziInfo!.fiveElements != null) {
         final elements = response.baziInfo!.fiveElements!;
         setState(() {
-          _detailText = '五行: 木${elements['木'] ?? 0} 火${elements['火'] ?? 0} 土${elements['土'] ?? 0} 金${elements['金'] ?? 0} 水${elements['水'] ?? 0}';
+          _detailText = context.l10n.avatarElementsSummary(
+            elements['木'] ?? 0,
+            elements['火'] ?? 0,
+            elements['土'] ?? 0,
+            elements['金'] ?? 0,
+            elements['水'] ?? 0,
+          );
         });
         await Future.delayed(const Duration(milliseconds: 600));
         if (!mounted) return;
@@ -137,7 +163,9 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       // 显示格局信息
       if (response.baziInfo!.patterns != null && response.baziInfo!.patterns!.isNotEmpty) {
         setState(() {
-          _detailText = '格局: ${response.baziInfo!.patterns!.first.patternName}';
+          _detailText = context.l10n.avatarPatternSummary(
+            response.baziInfo!.patterns!.first.patternName,
+          );
         });
         await Future.delayed(const Duration(milliseconds: 600));
         if (!mounted) return;
@@ -157,10 +185,12 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       final is2DMode = currentMode == DisplayMode.mode2D || currentMode == DisplayMode.live2D;
 
       setState(() {
-        _statusText = is2DMode ? '正在准备2D形象...' : '正在准备3D元神形象...';
+        _statusText = is2DMode
+            ? context.l10n.avatarPreparing2d
+            : context.l10n.avatarPreparing3d;
         _detailText = response.ziweiInfo?.mingGong.isNotEmpty == true
-            ? '命宫: ${response.ziweiInfo!.mingGong}'
-            : '日主: ${response.baziInfo!.dayGan}';
+            ? context.l10n.avatarMingGong(response.ziweiInfo!.mingGong)
+            : context.l10n.avatarDayMaster(response.baziInfo!.dayGan);
       });
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
@@ -194,16 +224,16 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
       if (!mounted) return;
       setState(() {
-        _statusText = '生成完成!';
+        _statusText = context.l10n.avatarDone;
         // 检查是否有有效的形象数据（3D或2D）
         final hasAvatar = fortuneData.avatar3dInfo?.isReady == true ||
             fortuneData.avatar3dInfo?.thumbnailUrl != null;
-        _detailText = hasAvatar ? '元神形象已就绪' : '';
+        _detailText = hasAvatar ? context.l10n.avatarReady : '';
       });
     } else {
       // API调用失败，显示错误信息
       setState(() {
-        _statusText = '命盘计算失败';
+        _statusText = context.l10n.avatarCalculationFailed;
         _detailText = response.message;
         _hasError = true;
       });
@@ -212,14 +242,14 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
       // 仍然继续到主页，但没有命盘数据
       setState(() {
-        _statusText = '正在生成3D形象...';
-        _detailText = '(离线模式)';
+        _statusText = context.l10n.avatarGenerating3d;
+        _detailText = context.l10n.offlineMode;
         _hasError = false;
       });
       await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return;
       setState(() {
-        _statusText = '生成完成!';
+        _statusText = context.l10n.avatarDone;
         _detailText = '';
       });
     }
@@ -290,8 +320,8 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
     // 显示提示信息
     if (mounted) {
       setState(() {
-        _statusText = '生成任务已提交';
-        _detailText = '形象正在后台绘制中...';
+        _statusText = context.l10n.avatarTaskSubmitted;
+        _detailText = context.l10n.avatarTaskBackground;
       });
     }
 
@@ -351,8 +381,8 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
     try {
       setState(() {
-        _statusText = '正在凝聚元神...';
-        _detailText = '根据八字生成专属形象';
+        _statusText = context.l10n.avatarConverging;
+        _detailText = context.l10n.avatarConvergingDetail;
       });
 
       final apiService = FortuneApiService();
@@ -370,7 +400,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       if (!createResponse.success || createResponse.taskId == null) {
         debugPrint('[3D生成] 创建任务失败: ${createResponse.error}');
         setState(() {
-          _detailText = '3D生成服务暂时不可用';
+          _detailText = context.l10n.avatarServiceUnavailable;
         });
         return null;
       }
@@ -381,8 +411,8 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       debugPrint('[3D生成] 提示词: $prompt');
 
       setState(() {
-        _statusText = '元神正在凝聚...';
-        _detailText = '预览阶段：连接中...';
+        _statusText = context.l10n.avatarConvergingSpirit;
+        _detailText = context.l10n.avatarPreviewConnecting;
       });
 
       // 使用 SSE 流式获取进度（更优雅）
@@ -392,7 +422,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
           if (mounted) {
             setState(() {
               _statusText = _getStatusTextForStage(status, stage);
-              _detailText = '总进度: $totalProgress%';
+              _detailText = context.l10n.avatarTotalProgress(totalProgress);
               // 更新进度条（3D生成占后半段进度）
               _progress = 0.5 + (totalProgress / 100) * 0.5;
             });
@@ -402,11 +432,11 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
           if (mounted) {
             setState(() {
               if (stage == 'preview') {
-                _statusText = '正在生成3D网格...';
-                _detailText = '预览阶段';
+                _statusText = context.l10n.avatarGeneratingMesh;
+                _detailText = context.l10n.avatarPreviewStage;
               } else if (stage == 'refine') {
-                _statusText = '正在添加贴图...';
-                _detailText = '精细化阶段（预览模型已就绪）';
+                _statusText = context.l10n.avatarApplyingTextures;
+                _detailText = context.l10n.avatarRefineStage;
               }
             });
           }
@@ -430,8 +460,8 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
           if (mounted) {
             setState(() {
-              _statusText = '预览模型已就绪';
-              _detailText = '正在进行精细化处理...';
+              _statusText = context.l10n.avatarPreviewReady;
+              _detailText = context.l10n.avatarRefining;
             });
           }
         },
@@ -463,13 +493,13 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
         if (previewResult != null) {
           debugPrint('[3D生成] 返回预览结果作为备用');
           setState(() {
-            _detailText = '精细化失败，使用预览模型';
+            _detailText = context.l10n.avatarRefineFailedUsePreview;
           });
           return previewResult;
         }
 
         setState(() {
-          _detailText = taskStatus.error ?? '生成失败';
+          _detailText = taskStatus.error ?? context.l10n.avatarFailed;
         });
         return Avatar3dInfo(
           taskId: taskId,
@@ -485,56 +515,60 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
       if (previewResult != null) {
         debugPrint('[3D生成] 异常，返回预览结果');
         setState(() {
-          _detailText = '连接中断，使用预览模型';
+          _detailText = context.l10n.avatarConnectionInterrupted;
         });
         return previewResult;
       }
 
       setState(() {
-        _detailText = '3D生成出错: $e';
+        _detailText = context.l10n.avatar3dError(e.toString());
       });
       return null;
     }
   }
 
   String _getStatusTextForStage(String status, String stage) {
-    final stageText = stage == 'refine' ? '精细化' : '预览';
+    final stageText = stage == 'refine'
+        ? context.l10n.avatarStageRefine
+        : context.l10n.avatarStagePreview;
     switch (status) {
       case 'PENDING':
-        return '$stageText排队中...';
+        return context.l10n.avatarStagePending(stageText);
       case 'IN_PROGRESS':
-        return stage == 'refine' ? '正在添加贴图...' : '正在生成3D网格...';
+        return stage == 'refine'
+            ? context.l10n.avatarApplyingTextures
+            : context.l10n.avatarGeneratingMesh;
       case 'STAGE_CHANGE':
-        return '预览完成，开始精细化...';
+        return context.l10n.avatarPreviewToRefine;
       case 'SUCCEEDED':
-        return '生成完成!';
+        return context.l10n.avatarDone;
       case 'FAILED':
-        return '$stageText失败';
+        return context.l10n.avatarStageFailed(stageText);
       case 'CANCELED':
-        return '已取消';
+        return context.l10n.canceled;
       default:
-        return '处理中...';
+        return context.l10n.processing;
     }
   }
 
   String getStatusText(String status) {
     switch (status) {
       case 'PENDING':
-        return '排队中...';
+        return context.l10n.queueing;
       case 'IN_PROGRESS':
-        return '正在生成...';
+        return context.l10n.generating;
       case 'PREVIEW_PENDING':
-        return '预览排队中...';
+        return context.l10n.previewQueueing;
       case 'REFINE_PENDING':
-        return '精细化排队中...';
+        return context.l10n.refineQueueing;
       case 'SUCCEEDED':
-        return '生成完成!';
+        return context.l10n.avatarDone;
       case 'FAILED':
-        return '生成失败';
+        return context.l10n.avatarFailed;
       case 'CANCELED':
-        return '已取消';
+        return context.l10n.canceled;
       default:
-        return '处理中...';
+        return context.l10n.processing;
     }
   }
 
@@ -627,7 +661,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
 
                       // 提示文本
                       Text(
-                        '基于您的八字信息\n正在凝聚专属元神...',
+                        context.l10n.avatarHint,
                         style: GoogleFonts.notoSerifSc(
                           fontSize: 14,
                           color: AppTheme.inkText.withOpacity(0.78),

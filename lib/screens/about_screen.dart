@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -13,7 +14,7 @@ class AboutScreen extends StatelessWidget {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          '关于我们',
+          context.l10n.aboutUs,
           style: GoogleFonts.notoSerifSc(
             color: AppTheme.warmYellow,
             fontWeight: FontWeight.w500,
@@ -63,7 +64,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    '元神',
+                    context.l10n.spiritName,
                     style: GoogleFonts.notoSerifSc(
                       color: AppTheme.warmYellow,
                       fontSize: 24,
@@ -73,7 +74,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Version 1.0.0',
+                    context.l10n.aboutVersion('1.0.0'),
                     style: TextStyle(
                       color: AppTheme.inkText.withOpacity(0.6),
                       fontSize: 14,
@@ -81,7 +82,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    '以科技之力，探寻东方神秘文化。\n为您提供个性化的运势分析与灵性陪伴。',
+                    context.l10n.aboutDescription,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppTheme.inkText.withOpacity(0.9),
@@ -91,7 +92,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 40),
                   Text(
-                    '© 2026 Primordial Spirit Team',
+                    context.l10n.aboutCopyright,
                     style: TextStyle(
                       color: AppTheme.inkText.withOpacity(0.4),
                       fontSize: 12,

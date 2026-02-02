@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
@@ -6,6 +6,13 @@ import 'package:primordial_spirit/models/user_models.dart';
 import 'package:primordial_spirit/services/auth_service.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
+
+enum VoiceOption {
+  defaultFemale,
+  gentleFemale,
+  magneticMale,
+}
 
 /// 个人信息页面
 class ProfileScreen extends StatefulWidget {
@@ -16,7 +23,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _selectedVoice = '默认女声';
+  VoiceOption _selectedVoice = VoiceOption.defaultFemale;
   final AuthService _authService = AuthService();
   AppUser? _user;
   UserProfile? _profile;
@@ -44,26 +51,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String get _userIdLabel {
-    if (_loading) return '同步中...';
+    if (_loading) return context.l10n.syncing;
     final id = _user?.id ?? '';
-    if (id.isEmpty) return '未登录';
+    if (id.isEmpty) return context.l10n.notLoggedIn;
     return id.length > 10 ? id.substring(0, 10).toUpperCase() : id.toUpperCase();
   }
 
   String get _emailLabel {
-    if (_loading) return '同步中...';
-    return _user?.email ?? '未登录';
+    if (_loading) return context.l10n.syncing;
+    return _user?.email ?? context.l10n.notLoggedIn;
   }
 
   String get _profileStatusLabel {
-    if (_loading) return '同步中...';
-    if (_profile == null) return '未设置';
-    return _profile?.displayName?.isNotEmpty == true ? '已设置' : '已同步';
+    if (_loading) return context.l10n.syncing;
+    if (_profile == null) return context.l10n.notSet;
+    return _profile?.displayName?.isNotEmpty == true
+        ? context.l10n.profileStatusSet
+        : context.l10n.profileStatusSynced;
   }
 
   String get _profileSyncLabel {
-    if (_loading) return '同步中...';
-    return _profile?.updatedAt ?? '未同步';
+    if (_loading) return context.l10n.syncing;
+    return _profile?.updatedAt ?? context.l10n.notSynced;
+  }
+
+  String _voiceLabel(BuildContext context, VoiceOption option) {
+    switch (option) {
+      case VoiceOption.defaultFemale:
+        return context.l10n.voiceDefaultFemale;
+      case VoiceOption.gentleFemale:
+        return context.l10n.voiceGentleFemale;
+      case VoiceOption.magneticMale:
+        return context.l10n.voiceMagneticMale;
+    }
   }
 
   @override
@@ -72,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          '个人信息',
+          context.l10n.profileTitle,
           style: GoogleFonts.notoSerifSc(
             color: AppTheme.warmYellow,
             fontWeight: FontWeight.w500,
@@ -93,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 用户编号
             _buildProfileItem(
               icon: Icons.person_outline,
-              label: '用户编号',
+              label: context.l10n.profileUserId,
               value: _userIdLabel,
             ),
             const SizedBox(height: 12),
@@ -101,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 账号邮箱
             _buildProfileItem(
               icon: Icons.alternate_email,
-              label: '账号邮箱',
+              label: context.l10n.profileEmail,
               value: _emailLabel,
             ),
             const SizedBox(height: 12),
@@ -109,15 +129,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 用户等级
             _buildProfileItem(
               icon: Icons.star_outline,
-              label: '用户等级',
-              value: 'VIP 0',
+              label: context.l10n.profileLevel,
+              value: context.l10n.profileLevelValue,
             ),
             const SizedBox(height: 12),
 
             // 档案
             _buildProfileItem(
               icon: Icons.description_outlined,
-              label: '档案',
+              label: context.l10n.profileArchive,
               value: _profileStatusLabel,
               onTap: () => _showArchiveDialog(context),
             ),
@@ -126,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 同步时间
             _buildProfileItem(
               icon: Icons.sync,
-              label: '同步时间',
+              label: context.l10n.profileSyncTime,
               value: _profileSyncLabel,
             ),
             const SizedBox(height: 12),
@@ -134,8 +154,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 会员充值
             _buildProfileItem(
               icon: Icons.card_giftcard,
-              label: '会员充值',
-              value: '前往充值',
+              label: context.l10n.profileRecharge,
+              value: context.l10n.profileRechargeAction,
               onTap: () => _showRechargeDialog(context),
             ),
             const SizedBox(height: 12),
@@ -143,8 +163,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 语音选择
             _buildProfileItem(
               icon: Icons.volume_up_outlined,
-              label: '语音选择',
-              value: _selectedVoice,
+              label: context.l10n.profileVoice,
+              value: _voiceLabel(context, _selectedVoice),
               onTap: () => _showVoiceDialog(context),
             ),
             const SizedBox(height: 12),
@@ -152,8 +172,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 用户反馈
             _buildProfileItem(
               icon: Icons.feedback_outlined,
-              label: '用户反馈',
-              value: '提交反馈',
+              label: context.l10n.profileFeedback,
+              value: context.l10n.profileFeedbackAction,
               onTap: () => _showFeedbackDialog(context),
             ),
             const SizedBox(height: 12),
@@ -161,8 +181,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 隐私协议
             _buildProfileItem(
               icon: Icons.privacy_tip_outlined,
-              label: '隐私协议',
-              value: '查看',
+              label: context.l10n.profilePrivacy,
+              value: context.l10n.viewAction,
               onTap: () => _showPrivacyDialog(context),
             ),
             const SizedBox(height: 12),
@@ -170,8 +190,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 充值协议
             _buildProfileItem(
               icon: Icons.receipt_outlined,
-              label: '充值协议',
-              value: '查看',
+              label: context.l10n.profileRechargeAgreement,
+              value: context.l10n.viewAction,
               onTap: () => _showRechargeAgreementDialog(context),
             ),
             const SizedBox(height: 12),
@@ -179,8 +199,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 用户协议
             _buildProfileItem(
               icon: Icons.description,
-              label: '用户协议',
-              value: '查看',
+              label: context.l10n.profileUserAgreement,
+              value: context.l10n.viewAction,
               onTap: () => _showUserAgreementDialog(context),
             ),
             const SizedBox(height: 12),
@@ -188,8 +208,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // 退出登录
             _buildProfileItem(
               icon: Icons.logout,
-              label: '退出登录',
-              value: '退出',
+              label: context.l10n.logout,
+              value: context.l10n.logoutAction,
               onTap: () => _showLogoutDialog(context),
             ),
           ],
@@ -257,7 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
         title: Text(
-          '档案信息',
+          context.l10n.profileArchiveTitle,
           style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
         ),
         content: SingleChildScrollView(
@@ -265,10 +285,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDialogItem('姓名', _profile?.displayName ?? '未设置'),
-              _buildDialogItem('性别', _profile?.gender ?? '未设置'),
-              _buildDialogItem('出生地', _profile?.birthCity ?? '未设置'),
-              _buildDialogItem('出生时间', _birthDateLabel()),
+              _buildDialogItem(
+                context.l10n.profileNameLabel,
+                _profile?.displayName ?? context.l10n.notSet,
+              ),
+              _buildDialogItem(
+                context.l10n.profileGenderLabel,
+                _profile?.gender ?? context.l10n.notSet,
+              ),
+              _buildDialogItem(
+                context.l10n.profileBirthCityLabel,
+                _profile?.birthCity ?? context.l10n.notSet,
+              ),
+              _buildDialogItem(
+                context.l10n.profileBirthTimeLabel,
+                _birthDateLabel(),
+              ),
             ],
           ),
         ),
@@ -276,7 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '关闭',
+              context.l10n.close,
               style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
             ),
           ),
@@ -286,7 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _showProfileEditDialog(context);
             },
             child: Text(
-              '编辑',
+              context.l10n.edit,
               style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
             ),
           ),
@@ -296,14 +328,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _birthDateLabel() {
-    if (_profile == null) return '-- -- -- --:--';
+    if (_profile == null) return context.l10n.birthDatePlaceholder;
     final year = _profile?.birthYear;
     final month = _profile?.birthMonth;
     final day = _profile?.birthDay;
     final hour = _profile?.birthHour;
     final minute = _profile?.birthMinute;
     if (year == null || month == null || day == null || hour == null || minute == null) {
-      return '未设置';
+      return context.l10n.notSet;
     }
     final mm = minute.toString().padLeft(2, '0');
     return '$year-$month-$day $hour:$mm';
@@ -332,20 +364,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.92),
         title: Text(
-          '编辑档案',
+          context.l10n.profileEditTitle,
           style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
         ),
         content: SingleChildScrollView(
           child: Column(
             children: [
-              _buildTextField(nameController, '姓名'),
-              _buildTextField(genderController, '性别（男/女）'),
-              _buildTextField(cityController, '出生地'),
-              _buildTextField(yearController, '出生年'),
-              _buildTextField(monthController, '出生月'),
-              _buildTextField(dayController, '出生日'),
-              _buildTextField(hourController, '出生时'),
-              _buildTextField(minuteController, '出生分'),
+              _buildTextField(nameController, context.l10n.profileNameLabel),
+              _buildTextField(genderController, context.l10n.profileGenderHint),
+              _buildTextField(cityController, context.l10n.profileBirthCityLabel),
+              _buildTextField(yearController, context.l10n.profileBirthYearLabel),
+              _buildTextField(monthController, context.l10n.profileBirthMonthLabel),
+              _buildTextField(dayController, context.l10n.profileBirthDayLabel),
+              _buildTextField(hourController, context.l10n.profileBirthHourLabel),
+              _buildTextField(minuteController, context.l10n.profileBirthMinuteLabel),
             ],
           ),
         ),
@@ -353,7 +385,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '取消',
+              context.l10n.cancel,
               style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
             ),
           ),
@@ -384,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
             child: Text(
-              '保存',
+              context.l10n.save,
               style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
             ),
           ),
@@ -418,18 +450,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
         title: Text(
-          '退出登录',
+          context.l10n.logout,
           style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
         ),
         content: Text(
-          '确定要退出当前账号吗？',
+          context.l10n.logoutConfirm,
           style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '取消',
+              context.l10n.cancel,
               style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
             ),
           ),
@@ -440,7 +472,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.of(context).pushReplacementNamed(AppRoutes.login);
             },
             child: Text(
-              '退出',
+              context.l10n.logoutAction,
               style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
             ),
           ),
@@ -455,18 +487,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
         title: Text(
-          '会员充值',
+          context.l10n.profileRecharge,
           style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
         ),
         content: Text(
-          '充值功能开发中...',
+          context.l10n.featureInProgress,
           style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '确定',
+              context.l10n.confirm,
               style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
             ),
           ),
@@ -481,22 +513,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
         title: Text(
-          '语音选择',
+          context.l10n.voiceSelectionTitle,
           style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildVoiceOption('默认女声'),
-            _buildVoiceOption('温柔女声'),
-            _buildVoiceOption('磁性男声'),
+            _buildVoiceOption(VoiceOption.defaultFemale),
+            _buildVoiceOption(VoiceOption.gentleFemale),
+            _buildVoiceOption(VoiceOption.magneticMale),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '确定',
+              context.l10n.confirm,
               style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
             ),
           ),
@@ -505,22 +537,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildVoiceOption(String voice) {
+  Widget _buildVoiceOption(VoiceOption voice) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Radio<String>(
+          Radio<VoiceOption>(
             value: voice,
             groupValue: _selectedVoice,
             onChanged: (value) {
-              setState(() => _selectedVoice = value ?? '默认女声');
+              setState(() => _selectedVoice = value ?? VoiceOption.defaultFemale);
               Navigator.pop(context);
             },
             activeColor: AppTheme.fluorescentCyan,
           ),
           Text(
-            voice,
+            _voiceLabel(context, voice),
             style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
           ),
         ],
@@ -535,7 +567,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
         title: Text(
-          '用户反馈',
+          context.l10n.profileFeedback,
           style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
         ),
         content: TextField(
@@ -543,7 +575,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           maxLines: 4,
           style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
           decoration: InputDecoration(
-            hintText: '请输入您的反馈意见...',
+            hintText: context.l10n.feedbackHint,
             hintStyle: GoogleFonts.notoSerifSc(
               color: AppTheme.fluorescentCyan.withValues(alpha: 0.5),
             ),
@@ -556,14 +588,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '取消',
+              context.l10n.cancel,
               style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '提交',
+              context.l10n.submit,
               style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
             ),
           ),
@@ -573,15 +605,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showPrivacyDialog(BuildContext context) {
-    _showAgreementDialog(context, '隐私协议', _getPrivacyContent());
+    _showAgreementDialog(
+      context,
+      context.l10n.privacyAgreementTitle,
+      _getPrivacyContent(),
+    );
   }
 
   void _showRechargeAgreementDialog(BuildContext context) {
-    _showAgreementDialog(context, '充值协议', _getRechargeAgreementContent());
+    _showAgreementDialog(
+      context,
+      context.l10n.rechargeAgreementTitle,
+      _getRechargeAgreementContent(),
+    );
   }
 
   void _showUserAgreementDialog(BuildContext context) {
-    _showAgreementDialog(context, '用户协议', _getUserAgreementContent());
+    _showAgreementDialog(
+      context,
+      context.l10n.userAgreementTitle,
+      _getUserAgreementContent(),
+    );
   }
 
   void _showAgreementDialog(BuildContext context, String title, String content) {
@@ -606,7 +650,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '关闭',
+              context.l10n.close,
               style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
             ),
           ),
@@ -616,78 +660,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _getPrivacyContent() {
-    return '''隐私政策
-
-本应用尊重并保护用户的隐私。我们承诺：
-
-1. 数据收集
-   - 仅收集必要的个人信息
-   - 不会未经同意收集敏感信息
-
-2. 数据使用
-   - 仅用于提供服务
-   - 不会用于商业目的
-
-3. 数据保护
-   - 采用加密技术保护数据
-   - 定期进行安全审计
-
-4. 用户权利
-   - 有权查看个人数据
-   - 有权要求删除数据
-
-如有疑问，请联系我们。''';
+    return context.l10n.privacyPolicyContent;
   }
 
   String _getRechargeAgreementContent() {
-    return '''充值协议
-
-1. 充值说明
-   - 充值金额为虚拟货币
-   - 不支持退款
-
-2. 充值方式
-   - 支持多种支付方式
-   - 实时到账
-
-3. 充值权益
-   - 获得相应虚拟货币
-   - 享受会员权益
-
-4. 免责声明
-   - 因网络问题导致的充值延迟不承担责任
-   - 用户自行保管账户信息
-
-5. 其他
-   - 本协议最终解释权归本应用所有
-   - 保留修改权利''';
+    return context.l10n.rechargeAgreementContent;
   }
 
   String _getUserAgreementContent() {
-    return '''用户协议
-
-1. 服务条款
-   - 本应用提供占卜、命理等娱乐服务
-   - 仅供娱乐参考，不作为决策依据
-
-2. 用户责任
-   - 用户应遵守法律法规
-   - 不得进行违法违规操作
-
-3. 知识产权
-   - 所有内容版权归本应用所有
-   - 未经许可不得转载
-
-4. 免责声明
-   - 本应用不对服务结果负责
-   - 用户自行承担使用风险
-
-5. 服务变更
-   - 保留随时修改或终止服务的权利
-   - 将提前通知用户
-
-6. 联系方式
-   - 如有问题，请通过反馈功能联系我们''';
+    return context.l10n.userAgreementContent;
   }
 
   Widget _buildDialogItem(String label, String value) {

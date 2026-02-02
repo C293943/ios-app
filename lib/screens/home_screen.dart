@@ -9,6 +9,7 @@ import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/theme_service.dart';
 
 import 'package:primordial_spirit/widgets/home_drawer.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 /// 首页 - 仙侠主题沉浸式界面
 class HomeScreen extends StatefulWidget {
@@ -182,7 +183,7 @@ class _Header extends StatelessWidget {
                     color: AppTheme.inkText.withValues(alpha: 0.7),
                     fontSize: 10,
                   ),
-                  child: const Text('元神笔记'),
+                  child: Text(context.l10n.spiritNotes),
                 ),
               ],
             ),
@@ -232,22 +233,22 @@ class _StatsGlassCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _StatItem(
-                        title: '今日元气值',
+                        title: context.l10n.todayQiValue,
                         child: _GradientValueWithArrow(value: '88'),
                       ),
                       _divider(),
                       _StatItem(
-                        title: '吉数',
+                        title: context.l10n.luckyNumber,
                         child: _GradientNumber(value: '8'),
                       ),
                       _divider(),
                       _StatItem(
-                        title: '吉色',
+                        title: context.l10n.luckyColor,
                         child: _LuckyColorDot(),
                       ),
                       _divider(),
                       _StatItem(
-                        title: '吉位',
+                        title: context.l10n.luckyDirection,
                         child: Icon(
                           Icons.explore,
                           color: AppTheme.inkText,
@@ -506,7 +507,7 @@ class _CtaButton extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
-              child: const Text('开启元神对话'),
+              child: Text(context.l10n.startSpiritChat),
             ),
             const SizedBox(width: 8),
             _BlinkingStar(),
@@ -594,32 +595,32 @@ class _BottomNavBar extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _NavLabelOnly(
-                            label: '运势',
+                            label: context.l10n.navFortune,
                             isActive: currentRoute == AppRoutes.home,
                             onTap: () => _handleNavTap(context, _HomeNavTarget.home),
                           ),
                         ),
                         _NavItem(
                           icon: Icons.help_outline,
-                          label: '八字',
+                          label: context.l10n.navBazi,
                           isActive: currentRoute == AppRoutes.chat,
                           onTap: () => _handleNavTap(context, _HomeNavTarget.chat),
                         ),
                         _NavItem(
                           icon: Icons.favorite_border,
-                          label: '合盘',
+                          label: context.l10n.navRelationship,
                           isActive: currentRoute == AppRoutes.relationshipSelect,
                           onTap: () => _handleNavTap(context, _HomeNavTarget.relationship),
                         ),
                         _NavItem(
                           icon: Icons.auto_graph,
-                          label: '运势',
+                          label: context.l10n.navFortune,
                           isActive: currentRoute == AppRoutes.avatarGeneration,
                           onTap: () => _handleNavTap(context, _HomeNavTarget.fortune),
                         ),
                         _NavItem(
                           icon: Icons.grid_view,
-                          label: '八字',
+                          label: context.l10n.navBazi,
                           isActive: currentRoute == AppRoutes.baziInput,
                           onTap: () => _handleNavTap(context, _HomeNavTarget.bazi),
                         ),
@@ -910,7 +911,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar>
                 fontSize: 20,
                 fontWeight: FontWeight.w500,
               ),
-              child: const Text('元神'),
+              child: Text(context.l10n.spiritName),
             ),
           ],
         ),

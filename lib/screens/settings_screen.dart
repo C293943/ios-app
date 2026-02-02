@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +11,7 @@ import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
 import 'package:primordial_spirit/models/avatar_theme_config.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 /// 设置页面
 class SettingsScreen extends StatefulWidget {
@@ -29,7 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          '设置',
+          context.l10n.settingsTitle,
           style: GoogleFonts.notoSerifSc(
             color: AppTheme.warmYellow,
             fontWeight: FontWeight.w500,
@@ -50,38 +51,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
               children: [
                 // 显示模式设置
-                _buildSectionTitle('显示模式'),
+                _buildSectionTitle(context.l10n.displayModeSection),
                 const SizedBox(height: 12),
                 GlassContainer(
                   borderRadius: BorderRadius.circular(20),
                   padding: const EdgeInsets.all(8),
                   child: Row(
                     children: [
-                      _buildModeOption(modelManager, DisplayMode.mode3D, '3D 元灵', Icons.view_in_ar),
-                      _buildModeOption(modelManager, DisplayMode.mode2D, '2D 平面', Icons.image),
-                      _buildModeOption(modelManager, DisplayMode.live2D, 'Live2D', Icons.face),
+                      _buildModeOption(
+                        modelManager,
+                        DisplayMode.mode3D,
+                        context.l10n.displayMode3d,
+                        Icons.view_in_ar,
+                      ),
+                      _buildModeOption(
+                        modelManager,
+                        DisplayMode.mode2D,
+                        context.l10n.displayMode2d,
+                        Icons.image,
+                      ),
+                      _buildModeOption(
+                        modelManager,
+                        DisplayMode.live2D,
+                        context.l10n.displayModeLive2d,
+                        Icons.face,
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 // 主题设置
-                _buildSectionTitle('主题设置'),
+                _buildSectionTitle(context.l10n.themeSection),
                 const SizedBox(height: 12),
                 GlassContainer(
                   borderRadius: BorderRadius.circular(20),
                   padding: const EdgeInsets.all(8),
                   child: Row(
                     children: [
-                      _buildThemeOption(themeService, AvatarThemeMode.light, '浅色', Icons.light_mode),
-                      _buildThemeOption(themeService, AvatarThemeMode.dark, '深色', Icons.dark_mode),
+                      _buildThemeOption(
+                        themeService,
+                        AvatarThemeMode.light,
+                        context.l10n.themeLight,
+                        Icons.light_mode,
+                      ),
+                      _buildThemeOption(
+                        themeService,
+                        AvatarThemeMode.dark,
+                        context.l10n.themeDark,
+                        Icons.dark_mode,
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 // 3D 模型设置
-                _buildSectionTitle('3D 模型管理'),
+                _buildSectionTitle(context.l10n.modelManagementSection),
                 const SizedBox(height: 12),
 
                 // 添加模型按钮
@@ -89,7 +115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 16),
 
                 // 内置模型
-                _buildSubSectionTitle('内置模型'),
+                _buildSubSectionTitle(context.l10n.builtInModels),
                 const SizedBox(height: 8),
                 ...ModelManagerService.builtInModels.map(
                   (model) => _buildModelCard(model, modelManager, isBuiltIn: true),
@@ -98,7 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // 自定义模型
                 if (modelManager.customModels.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  _buildSubSectionTitle('自定义模型'),
+                  _buildSubSectionTitle(context.l10n.customModels),
                   const SizedBox(height: 8),
                   ...modelManager.customModels.map(
                     (model) => _buildModelCard(model, modelManager, isBuiltIn: false),
@@ -109,22 +135,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 
                 // 生辰设置
-                _buildSectionTitle('生辰信息'),
+                _buildSectionTitle(context.l10n.birthInfoSection),
                 const SizedBox(height: 12),
                 _buildSettingTile(
                   icon: Icons.calendar_month,
-                  title: '重新设置生辰',
-                  subtitle: '修改出生日期、时辰和地点',
+                  title: context.l10n.resetBirthInfo,
+                  subtitle: context.l10n.resetBirthInfoSubtitle,
                   onTap: () => _navigateToBaziInput(),
                 ),
                 const SizedBox(height: 24),
 
                 // 关于
-                _buildSectionTitle('关于'),
+                _buildSectionTitle(context.l10n.aboutSection),
                 const SizedBox(height: 12),
                 _buildSettingTile(
                   icon: Icons.info_outline,
-                  title: '版本',
+                  title: context.l10n.versionLabel,
                   subtitle: '1.0.0',
                   onTap: null,
                 ),
@@ -284,7 +310,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '添加 3D 模型',
+                  context.l10n.addModelTitle,
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -293,7 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '支持 .glb, .gltf, .obj 格式',
+                  context.l10n.addModelFormatsHint,
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 12,
                     color: AppTheme.inkText.withOpacity(0.72),
@@ -368,14 +394,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     children: [
                       _buildTag(
-                        model.defaultAnimation != null ? '带动画' : '静态',
+                        model.defaultAnimation != null
+                            ? context.l10n.modelTagAnimated
+                            : context.l10n.modelTagStatic,
                         model.defaultAnimation != null
                             ? AppTheme.jadeGreen
                             : AppTheme.fluidGold,
                       ),
                       const SizedBox(width: 6),
                       _buildTag(
-                        isBuiltIn ? '内置' : '自定义',
+                        isBuiltIn
+                            ? context.l10n.modelTagBuiltIn
+                            : context.l10n.modelTagCustom,
                         isBuiltIn ? AppTheme.celestialCyan : AppTheme.lotusPink,
                       ),
                     ],
@@ -411,7 +441,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         const Icon(Icons.edit, size: 18),
                         const SizedBox(width: 8),
-                        Text('重命名', style: GoogleFonts.notoSerifSc()),
+                        Text(
+                          context.l10n.rename,
+                          style: GoogleFonts.notoSerifSc(),
+                        ),
                       ],
                     ),
                   ),
@@ -421,7 +454,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         const Icon(Icons.delete, size: 18, color: Colors.red),
                         const SizedBox(width: 8),
-                        Text('删除', style: GoogleFonts.notoSerifSc(color: Colors.red)),
+                        Text(
+                          context.l10n.delete,
+                          style: GoogleFonts.notoSerifSc(color: Colors.red),
+                        ),
                       ],
                     ),
                   ),
@@ -525,7 +561,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (mounted) {
             ToastOverlay.show(
               context,
-              message: '不支持的文件格式，请选择 .glb, .gltf 或 .obj 文件',
+              message: context.l10n.unsupportedModelFormat,
               backgroundColor: Colors.orange,
             );
           }
@@ -544,7 +580,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (model != null && mounted) {
               ToastOverlay.show(
                 context,
-                message: '模型 "$name" 添加成功',
+                message: context.l10n.modelAddSuccess(name),
                 backgroundColor: AppTheme.jadeGreen,
               );
             }
@@ -555,7 +591,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ToastOverlay.show(
           context,
-          message: '添加模型失败: $e',
+          message: context.l10n.modelAddFailed(e.toString()),
           backgroundColor: Colors.red,
         );
       }
@@ -587,7 +623,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '模型名称',
+                context.l10n.modelNameTitle,
                 style: GoogleFonts.notoSerifSc(
                   color: AppTheme.warmYellow,
                   fontSize: 18,
@@ -597,7 +633,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
-                decoration: const InputDecoration(hintText: '请输入模型名称'),
+                decoration: InputDecoration(
+                  hintText: context.l10n.modelNameHint,
+                ),
                 autofocus: true,
               ),
               const SizedBox(height: 16),
@@ -607,7 +645,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 runSpacing: 12,
                 children: [
                   MysticButton(
-                    text: '取消',
+                    text: context.l10n.cancel,
                     isOutline: true,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                     fontSize: 14,
@@ -615,7 +653,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: () => Navigator.pop(context),
                   ),
                   MysticButton(
-                    text: '确定',
+                    text: context.l10n.confirm,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                     fontSize: 14,
                     letterSpacing: 1.0,
@@ -652,7 +690,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '重命名模型',
+                context.l10n.renameModelTitle,
                 style: GoogleFonts.notoSerifSc(
                   color: AppTheme.warmYellow,
                   fontSize: 18,
@@ -662,7 +700,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
-                decoration: const InputDecoration(hintText: '请输入新名称'),
+                decoration: InputDecoration(
+                  hintText: context.l10n.renameModelHint,
+                ),
                 autofocus: true,
               ),
               const SizedBox(height: 16),
@@ -672,7 +712,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 runSpacing: 12,
                 children: [
                   MysticButton(
-                    text: '取消',
+                    text: context.l10n.cancel,
                     isOutline: true,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                     fontSize: 14,
@@ -680,7 +720,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: () => Navigator.pop(context),
                   ),
                   MysticButton(
-                    text: '确定',
+                    text: context.l10n.confirm,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                     fontSize: 14,
                     letterSpacing: 1.0,
@@ -699,7 +739,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ToastOverlay.show(
           context,
-          message: success ? '重命名成功' : '重命名失败',
+          message: success
+              ? context.l10n.renameSuccess
+              : context.l10n.renameFailed,
           backgroundColor: success ? AppTheme.jadeGreen : Colors.red,
         );
       }
@@ -734,7 +776,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                '删除模型',
+                context.l10n.deleteModelTitle,
                 style: GoogleFonts.notoSerifSc(
                   color: AppTheme.warmYellow,
                   fontSize: 18,
@@ -743,7 +785,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                '确定要删除模型 "${model.name}" 吗？\n此操作不可恢复。',
+                context.l10n.deleteModelConfirm(model.name),
                 style: TextStyle(color: AppTheme.inkText.withOpacity(0.9), height: 1.4),
               ),
               const SizedBox(height: 16),
@@ -753,7 +795,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 runSpacing: 12,
                 children: [
                   MysticButton(
-                    text: '取消',
+                    text: context.l10n.cancel,
                     isOutline: true,
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                     fontSize: 14,
@@ -768,7 +810,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                       textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                     ),
-                    child: const Text('删除'),
+                    child: Text(context.l10n.delete),
                   ),
                 ],
               ),
@@ -783,7 +825,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ToastOverlay.show(
           context,
-          message: success ? '删除成功' : '删除失败',
+          message: success
+              ? context.l10n.deleteSuccess
+              : context.l10n.deleteFailed,
           backgroundColor: success ? AppTheme.jadeGreen : Colors.red,
         );
       }

@@ -5,6 +5,7 @@ import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/services/auth_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -40,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _submit() async {
     if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先阅读并同意用户协议')),
+        SnackBar(content: Text(context.l10n.loginAgreeRequired)),
       );
       return;
     }
@@ -84,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       
                       // Title: 数字元神
                       Text(
-                        '数字元神',
+                        context.l10n.loginTitle,
                         style: GoogleFonts.notoSerifSc(
                           fontSize: 42,
                           fontWeight: FontWeight.bold,
@@ -165,10 +166,18 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Row(
         children: [
           Expanded(
-            child: _buildTabItem(title: '手机登录', isActive: _isPhoneLogin, onTap: () => setState(() => _isPhoneLogin = true)),
+            child: _buildTabItem(
+              title: context.l10n.loginPhoneTab,
+              isActive: _isPhoneLogin,
+              onTap: () => setState(() => _isPhoneLogin = true),
+            ),
           ),
           Expanded(
-            child: _buildTabItem(title: '邮箱登录', isActive: !_isPhoneLogin, onTap: () => setState(() => _isPhoneLogin = false)),
+            child: _buildTabItem(
+              title: context.l10n.loginEmailTab,
+              isActive: !_isPhoneLogin,
+              onTap: () => setState(() => _isPhoneLogin = false),
+            ),
           ),
         ],
       ),
@@ -235,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.phone,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: '请输入手机号',
+                    hintText: context.l10n.loginPhoneHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -266,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.number,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: '请输入验证码',
+                    hintText: context.l10n.loginCodeHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     icon: Padding(
                       padding: const EdgeInsets.only(left: 16),
@@ -301,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
                   child: Text(
-                    '获取验证码',
+                    context.l10n.loginGetCode,
                     style: GoogleFonts.notoSansSc(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -329,7 +338,7 @@ class _LoginScreenState extends State<LoginScreen> {
             keyboardType: TextInputType.emailAddress,
             style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
             decoration: InputDecoration(
-              hintText: '请输入邮箱',
+              hintText: context.l10n.loginEmailHint,
               hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
               icon: Padding(
                 padding: const EdgeInsets.only(left: 16),
@@ -361,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: '请输入密码',
+                    hintText: context.l10n.loginPasswordHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     icon: Padding(
                       padding: const EdgeInsets.only(left: 16),
@@ -380,7 +389,7 @@ class _LoginScreenState extends State<LoginScreen> {
                    // Forgot Password Logic
                 },
                 child: Text(
-                  '无记密码?',
+                  context.l10n.loginForgotPassword,
                   style: GoogleFonts.notoSansSc(
                     color: AppTheme.inkText.withOpacity(0.6),
                     fontSize: 13,
@@ -420,15 +429,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontSize: 12,
                 ),
                 children: [
-                  const TextSpan(text: '我已经设计阅意 '),
+                  TextSpan(text: context.l10n.loginAgreementPrefix),
                   TextSpan(
-                    text: '《用户协议》',
-                    style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.bold),
+                    text: context.l10n.loginUserAgreement,
+                    style: TextStyle(
+                      color: AppTheme.electricBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const TextSpan(text: ' '),
                   TextSpan(
-                    text: '《隐私政策》',
-                    style: TextStyle(color: AppTheme.electricBlue, fontWeight: FontWeight.bold),
+                    text: context.l10n.loginPrivacyPolicy,
+                    style: TextStyle(
+                      color: AppTheme.electricBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -475,7 +490,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               )
             : Text(
-                '登录',
+                context.l10n.loginButton,
                 style: GoogleFonts.notoSansSc(
                   color: Colors.white,
                   fontSize: 18,
@@ -496,14 +511,14 @@ class _LoginScreenState extends State<LoginScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '还没有账号? ',
+            context.l10n.loginNoAccount,
             style: GoogleFonts.notoSansSc(
               color: AppTheme.inkText.withOpacity(0.7),
               fontSize: 14,
             ),
           ),
           Text(
-            '立即注册',
+            context.l10n.loginRegisterNow,
             style: GoogleFonts.notoSansSc(
               color: AppTheme.electricBlue,
               fontWeight: FontWeight.w600,
