@@ -1,14 +1,16 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/services/theme_service.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
+import 'package:primordial_spirit/models/avatar_theme_config.dart';
 
 /// 设置页面
 class SettingsScreen extends StatefulWidget {
@@ -37,13 +39,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.warmYellow),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.warmYellow),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: MysticBackground(
-        child: Consumer<ModelManagerService>(
-          builder: (context, modelManager, child) {
+      body: ThemedBackground(
+        child: Consumer2<ModelManagerService, ThemeService>(
+          builder: (context, modelManager, themeService, child) {
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
               children: [
@@ -58,6 +60,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _buildModeOption(modelManager, DisplayMode.mode3D, '3D 元灵', Icons.view_in_ar),
                       _buildModeOption(modelManager, DisplayMode.mode2D, '2D 平面', Icons.image),
                       _buildModeOption(modelManager, DisplayMode.live2D, 'Live2D', Icons.face),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 主题设置
+                _buildSectionTitle('主题设置'),
+                const SizedBox(height: 12),
+                GlassContainer(
+                  borderRadius: BorderRadius.circular(20),
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      _buildThemeOption(themeService, AvatarThemeMode.light, '浅色', Icons.light_mode),
+                      _buildThemeOption(themeService, AvatarThemeMode.dark, '深色', Icons.dark_mode),
                     ],
                   ),
                 ),
@@ -178,6 +195,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: GoogleFonts.notoSerifSc(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600, // Bolder
+                  color: isSelected ? Colors.white : AppTheme.inkText.withOpacity(0.92),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(
+    ThemeService themeService,
+    AvatarThemeMode mode,
+    String label,
+    IconData icon,
+  ) {
+    final isSelected = themeService.themeMode == mode;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () async => themeService.setThemeMode(mode),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.jadeGreen.withOpacity(0.95) : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+               color: isSelected ? AppTheme.jadeGreen : AppTheme.amberGold.withOpacity(0.25),
+               width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? Colors.white : AppTheme.inkText.withOpacity(0.9),
+                size: 24,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.notoSerifSc(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                   color: isSelected ? Colors.white : AppTheme.inkText.withOpacity(0.92),
                 ),
               ),
@@ -728,3 +790,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 
 class BackgroundContainer extends StatelessWidget {
@@ -9,7 +9,7 @@ class BackgroundContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(gradient: AppTheme.voidGradient),
+      decoration: BoxDecoration(gradient: AppTheme.voidGradient),
       child: Stack(
         children: [
           // Optional: Add subtle particle or noise overlay here later
@@ -36,3 +36,4 @@ class BackgroundContainer extends StatelessWidget {
     );
   }
 }
+

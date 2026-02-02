@@ -1,4 +1,4 @@
-// 合盘对话页面，基于合盘报告进行后续咨询。
+﻿// 合盘对话页面，基于合盘报告进行后续咨询。
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +7,7 @@ import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/relationship_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 
 class RelationshipChatScreen extends StatefulWidget {
   final RelationshipReport report;
@@ -66,7 +66,7 @@ class _RelationshipChatScreenState extends State<RelationshipChatScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: MysticBackground(
+      body: ThemedBackground(
         child: Column(
           children: [
             Expanded(child: _buildMessageList()),
@@ -133,7 +133,7 @@ class _RelationshipChatScreenState extends State<RelationshipChatScreen> {
             Expanded(
               child: TextField(
                 controller: _messageController,
-                style: const TextStyle(color: AppTheme.inkText),
+                style: TextStyle(color: AppTheme.inkText),
                 decoration: InputDecoration(
                   hintText: '继续咨询合盘细节...',
                   hintStyle: TextStyle(
@@ -151,7 +151,7 @@ class _RelationshipChatScreenState extends State<RelationshipChatScreen> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.send, color: AppTheme.warmYellow),
+                  : Icon(Icons.send, color: AppTheme.warmYellow),
               onPressed: _isLoading ? null : _sendMessage,
             ),
           ],
@@ -271,3 +271,4 @@ class _ChatMessage {
     required this.timestamp,
   });
 }
+

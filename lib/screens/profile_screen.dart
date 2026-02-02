@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/user_models.dart';
 import 'package:primordial_spirit/services/auth_service.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 
 /// 个人信息页面
@@ -82,11 +82,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.warmYellow),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.warmYellow),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: MysticBackground(
+      body: ThemedBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
           children: [
@@ -234,7 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 if (onTap != null) ...[
                   const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_ios,
+                  Icon(Icons.arrow_forward_ios,
                     color: AppTheme.fluorescentCyan,
                     size: 14,
                   ),
@@ -548,7 +548,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppTheme.fluorescentCyan.withValues(alpha: 0.5),
             ),
             border: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppTheme.fluorescentCyan),
+              borderSide: BorderSide(color: AppTheme.fluorescentCyan),
             ),
           ),
         ),
@@ -713,3 +713,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+

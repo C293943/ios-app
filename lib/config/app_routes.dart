@@ -13,6 +13,7 @@ import 'package:primordial_spirit/screens/relationship_form_screen.dart';
 import 'package:primordial_spirit/screens/relationship_report_screen.dart';
 import 'package:primordial_spirit/screens/relationship_select_screen.dart';
 import 'package:primordial_spirit/screens/settings_screen.dart';
+import 'package:primordial_spirit/screens/spirit_note_screen.dart';
 import 'package:primordial_spirit/widgets/auth_guard.dart';
 
 /// 路由配置
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String relationshipForm = '/relationship/form';
   static const String relationshipReport = '/relationship/report';
   static const String relationshipChat = '/relationship/chat';
+  static const String note = '/note';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -41,6 +43,7 @@ class AppRoutes {
       login: (context) => const LoginScreen(),
       register: (context) => const RegisterScreen(),
       relationshipSelect: (context) => const RelationshipSelectScreen(),
+      note: (context) => const SpiritNoteScreen(),
     };
   }
 
@@ -102,6 +105,8 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => RelationshipChatScreen(report: report),
         );
+      case AppRoutes.note:
+        return MaterialPageRoute(builder: (_) => const SpiritNoteScreen());
       default:
         return null;
     }

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
@@ -52,7 +52,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       ),
       body: Stack(
         children: [
-          MysticBackground(
+          ThemedBackground(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 80.0),
               child: Column(

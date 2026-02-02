@@ -657,7 +657,7 @@ class EvolutionAnimationState extends State<EvolutionAnimation>
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       foreground: Paint()
-                        ..shader = const LinearGradient(
+                        ..shader = LinearGradient(
                           colors: [AppTheme.amberGold, AppTheme.fluorescentCyan],
                         ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
                     ),

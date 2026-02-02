@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 
 class RuyiInput extends StatelessWidget {
@@ -51,10 +51,10 @@ class RuyiInput extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: TextField(
             controller: controller,
-            style: const TextStyle(
-              color: AppTheme.inkText, 
-              fontSize: 16, 
-              letterSpacing: 1.2
+            style: TextStyle(
+              color: AppTheme.inkText,
+              fontSize: 16,
+              letterSpacing: 1.2,
             ),
             cursorColor: AppTheme.spiritJade,
             decoration: InputDecoration(
@@ -95,10 +95,11 @@ class RuyiInput extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Cap details
-          Container(height: 6, decoration: const BoxDecoration(color: AppTheme.moonHalo, shape: BoxShape.circle)),
-          Container(height: 6, decoration: const BoxDecoration(color: AppTheme.moonHalo, shape: BoxShape.circle)),
+          Container(height: 6, decoration: BoxDecoration(color: AppTheme.moonHalo, shape: BoxShape.circle)),
+          Container(height: 6, decoration: BoxDecoration(color: AppTheme.moonHalo, shape: BoxShape.circle)),
         ],
       ),
     );
   }
 }
+

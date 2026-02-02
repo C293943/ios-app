@@ -349,7 +349,7 @@ class _QiConvergenceAnimationState extends State<QiConvergenceAnimation>
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     foreground: Paint()
-                      ..shader = const LinearGradient(
+                      ..shader = LinearGradient(
                         colors: [AppTheme.fluorescentCyan, AppTheme.amberGold],
                       ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
                   ),

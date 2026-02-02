@@ -1,4 +1,4 @@
-// 合盘报告页面，展示核心结论并进入合盘对话。
+﻿// 合盘报告页面，展示核心结论并进入合盘对话。
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
@@ -6,7 +6,7 @@ import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/relationship_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 
 class RelationshipReportScreen extends StatefulWidget {
@@ -85,7 +85,7 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: MysticBackground(
+      body: ThemedBackground(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
           children: [
@@ -94,7 +94,7 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    const CircularProgressIndicator(color: AppTheme.jadeGreen),
+                    CircularProgressIndicator(color: AppTheme.jadeGreen),
                     const SizedBox(height: 12),
                     Text(
                       _statusText,
@@ -263,3 +263,4 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
     );
   }
 }
+

@@ -41,7 +41,7 @@ class _MysticBackgroundState extends State<MysticBackground> with SingleTickerPr
       children: [
         // 1) Void Background Gradient (Deep Teal + Depth)
         Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: AppTheme.voidGradient,
           ),
         ),

@@ -1,10 +1,16 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
-import 'package:primordial_spirit/models/avatar_theme_config.dart';
+import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/models/fortune_models.dart';
+import 'package:primordial_spirit/services/model_manager_service.dart';
+import 'package:primordial_spirit/services/theme_service.dart';
 
-/// 首页 - 动态主题切换 UI（占位资源版）
+import 'package:primordial_spirit/widgets/home_drawer.dart';
+
+/// 首页 - 仙侠主题沉浸式界面
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -12,179 +18,83 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+enum _HomeNavTarget { home, chat, relationship, fortune, bazi }
+
 class _HomeScreenState extends State<HomeScreen> {
-  final ValueNotifier<AvatarThemeMode> _themeMode =
-      ValueNotifier(AvatarThemeMode.light);
-
-  @override
-  void dispose() {
-    _themeMode.dispose();
-    super.dispose();
-  }
-
-  void _toggleTheme() {
-    final next = _themeMode.value == AvatarThemeMode.light
-        ? AvatarThemeMode.dark
-        : AvatarThemeMode.light;
-    _themeMode.value = next;
-  }
-
   @override
   Widget build(BuildContext context) {
+    context.watch<ThemeService>();
     return Scaffold(
+      drawer: const HomeDrawer(),
       extendBody: true,
-      body: ValueListenableBuilder<AvatarThemeMode>(
-        valueListenable: _themeMode,
-        builder: (context, mode, _) {
-          final theme = AvatarThemeConfig.fromMode(mode);
-
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 500),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [theme.bgGradientStart, theme.bgGradientEnd],
-              ),
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                _DecorLayer(theme: theme),
-                SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      _Header(theme: theme),
-                      const SizedBox(height: 20),
-                      _StatsGlassCard(theme: theme),
-                      const SizedBox(height: 20),
-                      Expanded(
-                        child: Center(
-                          child: _HeroAvatar(
-                            theme: theme,
-                            onToggleTheme: _toggleTheme,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 130,
-                  child: Center(
-                    child: _CtaButton(
-                      theme: theme,
-                      onTap: () =>
-                          Navigator.of(context).pushNamed(AppRoutes.chat),
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        decoration: BoxDecoration(
+          gradient: AppTheme.voidGradient,
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _DecorLayer(),
+            SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  _Header(),
+                  const SizedBox(height: 20),
+                  _StatsGlassCard(),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: Center(
+                      child: _HeroAvatar(),
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: _BottomNavBar(theme: theme),
-                ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 130,
+              child: Center(
+                child: _CtaButton(
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.chat),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _BottomNavBar(),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _DecorLayer extends StatelessWidget {
-  const _DecorLayer({required this.theme});
-
-  final AvatarThemeConfig theme;
+  const _DecorLayer();
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 500),
-      child: theme.isLight
-          ? ColorFiltered(
-              key: const ValueKey('light'),
-              colorFilter: ColorFilter.mode(
-                theme.accentColor.withOpacity(0.25),
-                BlendMode.overlay,
-              ),
-            child: _WaterMistPainter(theme: theme),
-            )
-          : _StarDustPainter(
-              key: const ValueKey('dark'),
-              theme: theme,
-            ),
-    );
+    return _StarDustPainter();
   }
-}
-
-class _WaterMistPainter extends StatelessWidget {
-  const _WaterMistPainter({required this.theme});
-
-  final AvatarThemeConfig theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _WaveOverlayPainter(accentColor: theme.accentColor),
-      child: const SizedBox.expand(),
-    );
-  }
-}
-
-class _WaveOverlayPainter extends CustomPainter {
-  _WaveOverlayPainter({required this.accentColor});
-
-  final Color accentColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = accentColor.withOpacity(0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-
-    for (var i = 0; i < 3; i++) {
-      final path = Path();
-      final startY = size.height * (0.25 + i * 0.18);
-      path.moveTo(0, startY);
-      path.quadraticBezierTo(
-        size.width * 0.3,
-        startY - 24,
-        size.width * 0.6,
-        startY + 18,
-      );
-      path.quadraticBezierTo(
-        size.width * 0.85,
-        startY + 36,
-        size.width,
-        startY + 10,
-      );
-      canvas.drawPath(path, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _StarDustPainter extends StatelessWidget {
-  const _StarDustPainter({super.key, required this.theme});
-
-  final AvatarThemeConfig theme;
+  const _StarDustPainter();
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: _StarfieldPainter(
-        starColor: theme.textColorPrimary.withOpacity(0.6),
-        glowColor: theme.accentColor.withOpacity(0.2),
+        starColor: AppTheme.inkText.withValues(alpha: 0.6),
+        glowColor: AppTheme.jadeGreen.withValues(alpha: 0.2),
       ),
       child: const SizedBox.expand(),
     );
@@ -229,13 +139,14 @@ class _StarfieldPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _StarfieldPainter oldDelegate) {
+    return oldDelegate.starColor != starColor ||
+        oldDelegate.glowColor != glowColor;
+  }
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.theme});
-
-  final AvatarThemeConfig theme;
+  const _Header();
 
   @override
   Widget build(BuildContext context) {
@@ -244,34 +155,37 @@ class _Header extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _ProfileAvatar(theme: theme),
-          Column(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.glassColor,
-                  border: Border.all(color: theme.glassBorder, width: 0.6),
+          _ProfileAvatar(),
+          GestureDetector(
+            onTap: () => Navigator.of(context).pushNamed(AppRoutes.note),
+            child: Column(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.spiritGlass,
+                    border: Border.all(color: AppTheme.scrollBorder, width: 0.6),
+                  ),
+                  child: Icon(
+                    Icons.edit_calendar_outlined,
+                    color: AppTheme.inkText,
+                    size: 18,
+                  ),
                 ),
-                child: Icon(
-                  Icons.edit_note,
-                  color: theme.textColorPrimary,
-                  size: 18,
+                const SizedBox(height: 6),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 500),
+                  style: TextStyle(
+                    color: AppTheme.inkText.withValues(alpha: 0.7),
+                    fontSize: 10,
+                  ),
+                  child: const Text('元神笔记'),
                 ),
-              ),
-              const SizedBox(height: 6),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 500),
-                style: TextStyle(
-                  color: theme.textColorSecondary,
-                  fontSize: 10,
-                ),
-                child: const Text('元神笔记'),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -280,22 +194,10 @@ class _Header extends StatelessWidget {
 }
 
 class _StatsGlassCard extends StatelessWidget {
-  const _StatsGlassCard({required this.theme});
-
-  final AvatarThemeConfig theme;
+  const _StatsGlassCard();
 
   @override
   Widget build(BuildContext context) {
-    final shadow = theme.isLight
-        ? [
-            BoxShadow(
-              color: theme.accentColor.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ]
-        : <BoxShadow>[];
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: AnimatedContainer(
@@ -303,7 +205,7 @@ class _StatsGlassCard extends StatelessWidget {
         height: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          boxShadow: shadow,
+          boxShadow: AppTheme.qiGlowShadows(intensity: 0.6),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -312,55 +214,43 @@ class _StatsGlassCard extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 500),
               decoration: BoxDecoration(
-                color: theme.glassColor,
+                color: AppTheme.spiritGlass,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: theme.glassBorder, width: 0.5),
+                border: Border.all(color: AppTheme.scrollBorder, width: 0.5),
               ),
               child: Stack(
                 children: [
-                  if (!theme.isLight)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          gradient: LinearGradient(
-                            colors: [
-                              theme.accentColor.withOpacity(0.2),
-                              theme.glassColor.withOpacity(0.0),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: AppTheme.fogGradient(opacity: 0.15),
                       ),
                     ),
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _StatItem(
                         title: '今日元气值',
-                        theme: theme,
-                        child: _GradientValueWithArrow(theme: theme, value: '88'),
+                        child: _GradientValueWithArrow(value: '88'),
                       ),
-                      _divider(theme),
+                      _divider(),
                       _StatItem(
                         title: '吉数',
-                        theme: theme,
-                        child: _GradientNumber(theme: theme, value: '8'),
+                        child: _GradientNumber(value: '8'),
                       ),
-                      _divider(theme),
+                      _divider(),
                       _StatItem(
                         title: '吉色',
-                        theme: theme,
-                        child: _LuckyColorDot(theme: theme),
+                        child: _LuckyColorDot(),
                       ),
-                      _divider(theme),
+                      _divider(),
                       _StatItem(
                         title: '吉位',
-                        theme: theme,
                         child: Icon(
                           Icons.explore,
-                          color: theme.textColorPrimary,
+                          color: AppTheme.inkText,
                           size: 26,
                         ),
                       ),
@@ -375,11 +265,11 @@ class _StatsGlassCard extends StatelessWidget {
     );
   }
 
-  Widget _divider(AvatarThemeConfig theme) {
+  Widget _divider() {
     return Container(
       width: 1,
       height: 48,
-      color: theme.glassBorder,
+      color: AppTheme.scrollBorder,
     );
   }
 }
@@ -388,12 +278,10 @@ class _StatItem extends StatelessWidget {
   const _StatItem({
     required this.title,
     required this.child,
-    required this.theme,
   });
 
   final String title;
   final Widget child;
-  final AvatarThemeConfig theme;
 
   @override
   Widget build(BuildContext context) {
@@ -406,7 +294,7 @@ class _StatItem extends StatelessWidget {
           AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 500),
             style: TextStyle(
-              color: theme.textColorSecondary,
+              color: AppTheme.inkText.withValues(alpha: 0.7),
               fontSize: 11,
             ),
             child: Text(title, textAlign: TextAlign.center),
@@ -418,9 +306,8 @@ class _StatItem extends StatelessWidget {
 }
 
 class _GradientValueWithArrow extends StatelessWidget {
-  const _GradientValueWithArrow({required this.theme, required this.value});
+  const _GradientValueWithArrow({required this.value});
 
-  final AvatarThemeConfig theme;
   final String value;
 
   @override
@@ -430,9 +317,10 @@ class _GradientValueWithArrow extends StatelessWidget {
       children: [
         _GradientText(
           value,
-          gradient: theme.statNumberGradient,
-          color: theme.textColorPrimary,
-          style: const TextStyle(
+          gradient: LinearGradient(
+            colors: [AppTheme.amberGold, AppTheme.jadeGreen],
+          ),
+          style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w700,
           ),
@@ -442,7 +330,7 @@ class _GradientValueWithArrow extends StatelessWidget {
           right: 12,
           child: Icon(
             Icons.arrow_drop_up,
-            color: theme.textColorPrimary,
+            color: AppTheme.inkText,
             size: 16,
           ),
         ),
@@ -452,18 +340,18 @@ class _GradientValueWithArrow extends StatelessWidget {
 }
 
 class _GradientNumber extends StatelessWidget {
-  const _GradientNumber({required this.theme, required this.value});
+  const _GradientNumber({required this.value});
 
-  final AvatarThemeConfig theme;
   final String value;
 
   @override
   Widget build(BuildContext context) {
     return _GradientText(
       value,
-      gradient: theme.statNumberGradient,
-      color: theme.textColorPrimary,
-      style: const TextStyle(
+      gradient: LinearGradient(
+        colors: [AppTheme.amberGold, AppTheme.jadeGreen],
+      ),
+      style: TextStyle(
         fontSize: 26,
         fontWeight: FontWeight.w700,
       ),
@@ -475,13 +363,11 @@ class _GradientText extends StatelessWidget {
   const _GradientText(
     this.text, {
     required this.gradient,
-    required this.color,
     required this.style,
   });
 
   final String text;
   final Gradient gradient;
-  final Color color;
   final TextStyle style;
 
   @override
@@ -490,16 +376,14 @@ class _GradientText extends StatelessWidget {
       shaderCallback: (bounds) => gradient.createShader(bounds),
       child: Text(
         text,
-        style: style.copyWith(color: color),
+        style: style.copyWith(color: AppTheme.inkText),
       ),
     );
   }
 }
 
 class _LuckyColorDot extends StatelessWidget {
-  const _LuckyColorDot({required this.theme});
-
-  final AvatarThemeConfig theme;
+  const _LuckyColorDot();
 
   @override
   Widget build(BuildContext context) {
@@ -508,10 +392,10 @@ class _LuckyColorDot extends StatelessWidget {
       height: 22,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: theme.accentColor.withOpacity(0.75),
+        color: AppTheme.jadeGreen.withValues(alpha: 0.75),
         boxShadow: [
           BoxShadow(
-            color: theme.accentColor.withOpacity(0.35),
+            color: AppTheme.jadeGreen.withValues(alpha: 0.35),
             blurRadius: 12,
           ),
         ],
@@ -521,48 +405,38 @@ class _LuckyColorDot extends StatelessWidget {
 }
 
 class _HeroAvatar extends StatelessWidget {
-  const _HeroAvatar({
-    required this.theme,
-    required this.onToggleTheme,
-  });
+  const _HeroAvatar();
 
   static const String _defaultHeroAsset = 'assets/images/back-1.png';
 
-  final AvatarThemeConfig theme;
-  final VoidCallback onToggleTheme;
-
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onToggleTheme,
-      onHorizontalDragEnd: (_) => onToggleTheme(),
-      child: SizedBox(
-        width: 320,
-        height: 400,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Positioned(
-              top: 0,
-              child: _HaloRing(theme: theme),
+    final currentRoute =
+        ModalRoute.of(context)?.settings.name ?? AppRoutes.home;
+    return SizedBox(
+      width: 320,
+      height: 400,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: 0,
+            child: _HaloRing(),
+          ),
+          Positioned.fill(
+            child: Image.asset(
+              _defaultHeroAsset,
+              fit: BoxFit.contain,
             ),
-            Positioned.fill(
-              child: Image.asset(
-                _defaultHeroAsset,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _HaloRing extends StatelessWidget {
-  const _HaloRing({required this.theme});
-
-  final AvatarThemeConfig theme;
+  const _HaloRing();
 
   @override
   Widget build(BuildContext context) {
@@ -572,12 +446,12 @@ class _HaloRing extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: theme.accentColor.withOpacity(0.6),
+          color: AppTheme.jadeGreen.withValues(alpha: 0.6),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.accentColor.withOpacity(0.4),
+            color: AppTheme.jadeGreen.withValues(alpha: 0.4),
             blurRadius: 30,
             spreadRadius: 6,
           ),
@@ -588,16 +462,12 @@ class _HaloRing extends StatelessWidget {
 }
 
 class _CtaButton extends StatelessWidget {
-  const _CtaButton({required this.theme, required this.onTap});
+  const _CtaButton({required this.onTap});
 
-  final AvatarThemeConfig theme;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final textColor = theme.isLight ? theme.textColorPrimary : theme.textColorPrimary;
-    final shadowColor = theme.accentColor.withOpacity(theme.isLight ? 0.35 : 0.2);
-
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -606,16 +476,21 @@ class _CtaButton extends StatelessWidget {
         height: 60,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          gradient: LinearGradient(colors: theme.buttonGradient),
-          border: Border.all(color: theme.accentColor.withOpacity(0.5), width: 1.2),
+          gradient: LinearGradient(
+            colors: [AppTheme.spiritJade, AppTheme.fluorescentCyan],
+          ),
+          border: Border.all(
+            color: AppTheme.jadeGreen.withValues(alpha: 0.5),
+            width: 1.2,
+          ),
           boxShadow: [
             BoxShadow(
-              color: shadowColor,
+              color: AppTheme.jadeGreen.withValues(alpha: 0.2),
               blurRadius: 24,
               spreadRadius: -6,
             ),
             BoxShadow(
-              color: theme.bgGradientEnd.withOpacity(0.35),
+              color: AppTheme.voidDeeper.withValues(alpha: 0.35),
               blurRadius: 18,
               offset: const Offset(0, 10),
             ),
@@ -627,14 +502,14 @@ class _CtaButton extends StatelessWidget {
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 500),
               style: TextStyle(
-                color: textColor,
+                color: AppTheme.inkText,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
               child: const Text('开启元神对话'),
             ),
             const SizedBox(width: 8),
-            _BlinkingStar(color: theme.textColorPrimary),
+            _BlinkingStar(),
           ],
         ),
       ),
@@ -643,9 +518,7 @@ class _CtaButton extends StatelessWidget {
 }
 
 class _BlinkingStar extends StatefulWidget {
-  const _BlinkingStar({required this.color});
-
-  final Color color;
+  const _BlinkingStar();
 
   @override
   State<_BlinkingStar> createState() => _BlinkingStarState();
@@ -680,7 +553,7 @@ class _BlinkingStarState extends State<_BlinkingStar>
       opacity: _opacity,
       child: Icon(
         Icons.auto_awesome,
-        color: widget.color,
+        color: AppTheme.inkText,
         size: 20,
       ),
     );
@@ -688,12 +561,12 @@ class _BlinkingStarState extends State<_BlinkingStar>
 }
 
 class _BottomNavBar extends StatelessWidget {
-  const _BottomNavBar({required this.theme});
-
-  final AvatarThemeConfig theme;
+  const _BottomNavBar();
 
   @override
   Widget build(BuildContext context) {
+    final currentRoute =
+        ModalRoute.of(context)?.settings.name ?? AppRoutes.home;
     return SizedBox(
       height: 96,
       child: Stack(
@@ -708,8 +581,8 @@ class _BottomNavBar extends StatelessWidget {
               height: 72,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
-                color: theme.glassColor,
-                border: Border.all(color: theme.glassBorder, width: 0.6),
+                color: AppTheme.spiritGlass,
+                border: Border.all(color: AppTheme.scrollBorder, width: 0.6),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(24),
@@ -719,15 +592,37 @@ class _BottomNavBar extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
-                        Expanded(child: _NavLabelOnly(theme: theme, label: '元神')),
-                        _NavItem(theme: theme, icon: Icons.help_outline, label: '问卜'),
+                        Expanded(
+                          child: _NavLabelOnly(
+                            label: '运势',
+                            isActive: currentRoute == AppRoutes.home,
+                            onTap: () => _handleNavTap(context, _HomeNavTarget.home),
+                          ),
+                        ),
                         _NavItem(
-                          theme: theme,
+                          icon: Icons.help_outline,
+                          label: '八字',
+                          isActive: currentRoute == AppRoutes.chat,
+                          onTap: () => _handleNavTap(context, _HomeNavTarget.chat),
+                        ),
+                        _NavItem(
                           icon: Icons.favorite_border,
                           label: '合盘',
+                          isActive: currentRoute == AppRoutes.relationshipSelect,
+                          onTap: () => _handleNavTap(context, _HomeNavTarget.relationship),
                         ),
-                        _NavItem(theme: theme, icon: Icons.auto_graph, label: '运势'),
-                        _NavItem(theme: theme, icon: Icons.grid_view, label: '八字'),
+                        _NavItem(
+                          icon: Icons.auto_graph,
+                          label: '运势',
+                          isActive: currentRoute == AppRoutes.avatarGeneration,
+                          onTap: () => _handleNavTap(context, _HomeNavTarget.fortune),
+                        ),
+                        _NavItem(
+                          icon: Icons.grid_view,
+                          label: '八字',
+                          isActive: currentRoute == AppRoutes.baziInput,
+                          onTap: () => _handleNavTap(context, _HomeNavTarget.bazi),
+                        ),
                       ],
                     ),
                   ),
@@ -738,70 +633,158 @@ class _BottomNavBar extends StatelessWidget {
           Positioned(
             left: 24,
             bottom: 28,
-            child: _FloatingCrystal(theme: theme),
+            child: _FloatingCrystal(),
           ),
         ],
       ),
     );
   }
+
+  void _handleNavTap(BuildContext context, _HomeNavTarget target) {
+    switch (target) {
+      case _HomeNavTarget.home:
+        _navigateTo(context, AppRoutes.home);
+        break;
+      case _HomeNavTarget.chat:
+        _navigateTo(context, AppRoutes.chat);
+        break;
+      case _HomeNavTarget.relationship:
+        _navigateTo(context, AppRoutes.relationshipSelect);
+        break;
+      case _HomeNavTarget.fortune:
+        _handleFortuneTap(context);
+        break;
+      case _HomeNavTarget.bazi:
+        _navigateTo(context, AppRoutes.baziInput);
+        break;
+    }
+  }
+
+  void _navigateTo(BuildContext context, String routeName) {
+    final current = ModalRoute.of(context)?.settings.name;
+    if (current == routeName) return;
+    Navigator.of(context).pushNamed(routeName);
+  }
+
+  void _handleFortuneTap(BuildContext context) {
+    final modelManager = context.read<ModelManagerService>();
+    final baziData = _buildBaziData(modelManager);
+    if (baziData == null) {
+      _navigateTo(context, AppRoutes.baziInput);
+      return;
+    }
+    Navigator.of(context).pushNamed(
+      AppRoutes.avatarGeneration,
+      arguments: {'baziData': baziData},
+    );
+  }
+
+  Map<String, dynamic>? _buildBaziData(ModelManagerService modelManager) {
+    final fortune = modelManager.fortuneData;
+    if (fortune != null) {
+      final birth = fortune.birthInfo;
+      return {
+        'gender': birth.gender,
+        'date': DateTime(birth.year, birth.month, birth.day),
+        'time': TimeOfDay(hour: birth.hour, minute: birth.minute),
+        'city': birth.city,
+      };
+    }
+
+    final stored = modelManager.userBaziData;
+    if (stored == null) return null;
+    try {
+      final birth = BirthInfo.fromStoredData(stored);
+      return {
+        'gender': birth.gender,
+        'date': DateTime(birth.year, birth.month, birth.day),
+        'time': TimeOfDay(hour: birth.hour, minute: birth.minute),
+        'city': birth.city,
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
 }
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
-    required this.theme,
     required this.icon,
     required this.label,
+    this.onTap,
+    this.isActive = false,
   });
 
-  final AvatarThemeConfig theme;
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
+    final color = isActive
+        ? AppTheme.warmYellow
+        : AppTheme.inkText.withValues(alpha: 0.8);
     return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: theme.textColorPrimary.withOpacity(0.8),
-            size: 22,
-          ),
-          const SizedBox(height: 4),
-          AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 500),
-            style: TextStyle(
-              fontSize: 11,
-              color: theme.textColorSecondary,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 22,
             ),
-            child: Text(label),
-          ),
-        ],
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 500),
+              style: TextStyle(
+                fontSize: 11,
+                color: color.withValues(alpha: 0.85),
+              ),
+              child: Text(label),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _NavLabelOnly extends StatelessWidget {
-  const _NavLabelOnly({required this.theme, required this.label});
+  const _NavLabelOnly({
+    required this.label,
+    this.onTap,
+    this.isActive = false,
+  });
 
-  final AvatarThemeConfig theme;
   final String label;
+  final VoidCallback? onTap;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
+    final color = isActive
+        ? AppTheme.warmYellow
+        : AppTheme.inkText.withValues(alpha: 0.7);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 20),
-        AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 500),
-          style: TextStyle(
-            fontSize: 11,
-            color: theme.textColorSecondary,
+        GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 500),
+            style: TextStyle(
+              fontSize: 11,
+              color: color,
+            ),
+            child: Text(label),
           ),
-          child: Text(label),
         ),
       ],
     );
@@ -809,38 +792,30 @@ class _NavLabelOnly extends StatelessWidget {
 }
 
 class _FloatingCrystal extends StatelessWidget {
-  const _FloatingCrystal({required this.theme});
+  const _FloatingCrystal();
 
-  final AvatarThemeConfig theme;
+  static const String _crystalAsset = 'assets/images/spirit-stone-egg.png';
 
   @override
   Widget build(BuildContext context) {
-    final glowColor = theme.isLight
-        ? theme.accentColor.withValues(alpha: 0.35)
-        : theme.accentColor.withValues(alpha: 0.5);
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 500),
-      child: Container(
-        key: ValueKey(theme.crystalAsset),
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: glowColor,
-              blurRadius: 26,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Image.asset(
-            theme.crystalAsset,
-            fit: BoxFit.cover,
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.jadeGreen.withValues(alpha: 0.5),
+            blurRadius: 26,
+            spreadRadius: 2,
           ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Image.asset(
+          _crystalAsset,
+          fit: BoxFit.cover,
         ),
       ),
     );
@@ -848,9 +823,7 @@ class _FloatingCrystal extends StatelessWidget {
 }
 
 class _ProfileAvatar extends StatefulWidget {
-  const _ProfileAvatar({required this.theme});
-
-  final AvatarThemeConfig theme;
+  const _ProfileAvatar();
 
   @override
   State<_ProfileAvatar> createState() => _ProfileAvatarState();
@@ -895,7 +868,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pushNamed(AppRoutes.profile);
+        Scaffold.of(context).openDrawer();
       },
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
@@ -910,22 +883,22 @@ class _ProfileAvatarState extends State<_ProfileAvatar>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: widget.theme.accentColor.withValues(alpha: 0.7),
+                  color: AppTheme.jadeGreen.withValues(alpha: 0.7),
                   width: 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: widget.theme.accentColor.withValues(alpha: 0.35),
+                    color: AppTheme.jadeGreen.withValues(alpha: 0.35),
                     blurRadius: 18,
                     spreadRadius: 2,
                   ),
                 ],
               ),
               child: CircleAvatar(
-                backgroundColor: widget.theme.glassColor,
+                backgroundColor: AppTheme.spiritGlass,
                 child: Icon(
                   Icons.auto_awesome,
-                  color: widget.theme.textColorPrimary,
+                  color: AppTheme.inkText,
                 ),
               ),
             ),
@@ -933,7 +906,7 @@ class _ProfileAvatarState extends State<_ProfileAvatar>
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 500),
               style: TextStyle(
-                color: widget.theme.textColorPrimary,
+                color: AppTheme.inkText,
                 fontSize: 20,
                 fontWeight: FontWeight.w500,
               ),
@@ -945,3 +918,4 @@ class _ProfileAvatarState extends State<_ProfileAvatar>
     );
   }
 }
+

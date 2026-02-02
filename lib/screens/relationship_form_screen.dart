@@ -5,7 +5,7 @@ import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/relationship_models.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
 
@@ -50,7 +50,7 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: MysticBackground(
+      body: ThemedBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
           child: Column(

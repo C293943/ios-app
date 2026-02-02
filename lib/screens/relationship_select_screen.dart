@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 
 class RelationshipSelectScreen extends StatelessWidget {
   const RelationshipSelectScreen({super.key});
@@ -27,7 +27,7 @@ class RelationshipSelectScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: MysticBackground(
+      body: ThemedBackground(
         child: ListView.builder(
           padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
           itemCount: options.length,
@@ -53,7 +53,7 @@ class RelationshipSelectScreen extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.arrow_forward_ios,
                     size: 14,
                     color: AppTheme.fluorescentCyan,

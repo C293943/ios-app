@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:markdown_widget/markdown_widget.dart';
@@ -8,7 +8,7 @@ import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
-import 'package:primordial_spirit/widgets/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/glass_container.dart';
 
 /// 聊天页面 - 带角色背景的沉浸式对话界面
@@ -77,7 +77,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
-      body: MysticBackground(
+      body: ThemedBackground(
         child: Column(
           children: [
             // 自定义AppBar
@@ -126,7 +126,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppTheme.warmYellow),
+                icon: Icon(Icons.arrow_back, color: AppTheme.warmYellow),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
@@ -140,7 +140,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 children: [
                   Row(
                     children: [
-                        const Text(
+                        Text(
                           '元灵',
                           style: TextStyle(
                             color: AppTheme.warmYellow,
@@ -159,7 +159,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                               width: 1,
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             '在线',
                             style: TextStyle(
                               color: AppTheme.jadeGreen,
@@ -188,7 +188,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.more_vert, color: AppTheme.warmYellow),
+                icon: Icon(Icons.more_vert, color: AppTheme.warmYellow),
                 onPressed: () {
                   _showMoreOptions(context);
                 },
@@ -248,11 +248,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Center(
+      child: Center(
         child: Icon(
           Icons.auto_awesome,
           size: 100,
-          color: Colors.white,
+          color: AppTheme.inkText,
         ),
       ),
     );
@@ -373,7 +373,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                     child: TextField(
                       controller: _messageController,
-                      style: const TextStyle(color: AppTheme.inkText),
+                      style: TextStyle(color: AppTheme.inkText),
                       decoration: InputDecoration(
                         hintText: '与元灵对话...',
                         hintStyle: TextStyle(
@@ -444,10 +444,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor:
-                      const AlwaysStoppedAnimation<Color>(AppTheme.warmYellow),
+                      AlwaysStoppedAnimation<Color>(AppTheme.warmYellow),
                 ),
               )
-            : const Icon(Icons.send, color: AppTheme.warmYellow),
+            : Icon(Icons.send, color: AppTheme.warmYellow),
         onPressed: _isLoading ? null : _sendMessage,
       ),
     );
@@ -726,7 +726,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   MarkdownConfig _buildMarkdownConfig(bool isUser) {
     final textColor = AppTheme.inkText;
-    final codeBackground = Colors.black.withOpacity(isUser ? 0.22 : 0.18);
+    final codeBackground = AppTheme.pureBlack.withOpacity(isUser ? 0.22 : 0.18);
     final quoteBorderColor = isUser
         ? AppTheme.jadeGreen.withOpacity(0.65)
         : AppTheme.amberGold.withOpacity(0.55);
@@ -876,8 +876,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             children: [
               ListTile(
                 leading:
-                    const Icon(Icons.cleaning_services, color: AppTheme.warmYellow),
-                title: const Text('清空对话'),
+                    Icon(Icons.cleaning_services, color: AppTheme.warmYellow),
+                title: Text('清空对话'),
                 onTap: () {
                   setState(() {
                     _messages.clear();
@@ -891,16 +891,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.history, color: AppTheme.warmYellow),
-                title: const Text('对话历史'),
+                leading: Icon(Icons.history, color: AppTheme.warmYellow),
+                title: Text('对话历史'),
                 onTap: () {
                   Navigator.pop(context);
                   // TODO: 显示对话历史
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.settings, color: AppTheme.warmYellow),
-                title: const Text('设置'),
+                leading: Icon(Icons.settings, color: AppTheme.warmYellow),
+                title: Text('设置'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/settings');
@@ -952,3 +952,5 @@ class ChatMessage {
     required this.timestamp,
   });
 }
+
+

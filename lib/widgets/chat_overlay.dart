@@ -365,7 +365,7 @@ class _ChatOverlayState extends State<ChatOverlay> {
                 color: Colors.white.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.keyboard_arrow_down,
                 color: AppTheme.warmYellow,
                 size: 28,
@@ -452,7 +452,8 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   MarkdownConfig _buildMarkdownConfig(bool isUser) {
     final textColor = AppTheme.inkText;
-    final codeBackground = Colors.black.withOpacity(isUser ? 0.22 : 0.18);
+    final codeBackground =
+        AppTheme.pureBlack.withOpacity(isUser ? 0.22 : 0.18);
     final quoteBorderColor = isUser
         ? AppTheme.jadeGreen.withOpacity(0.65)
         : AppTheme.amberGold.withOpacity(0.55);

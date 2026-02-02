@@ -9,7 +9,7 @@ import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/task_manager_service.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
 
 /// 3D形象生成页面（加载过渡页）
@@ -543,7 +543,7 @@ class _AvatarGenerationScreenState extends State<AvatarGenerationScreen>
     return Scaffold(
       body: Stack(
         children: [
-          MysticBackground(
+          ThemedBackground(
             child: SafeArea(
               child: Center(
                 child: SingleChildScrollView(
