@@ -14,6 +14,7 @@ import 'package:primordial_spirit/screens/relationship_report_screen.dart';
 import 'package:primordial_spirit/screens/relationship_select_screen.dart';
 import 'package:primordial_spirit/screens/settings_screen.dart';
 import 'package:primordial_spirit/screens/spirit_note_screen.dart';
+import 'package:primordial_spirit/screens/about_screen.dart';
 import 'package:primordial_spirit/widgets/auth_guard.dart';
 
 /// 路由配置
@@ -31,6 +32,7 @@ class AppRoutes {
   static const String relationshipReport = '/relationship/report';
   static const String relationshipChat = '/relationship/chat';
   static const String note = '/note';
+  static const String about = '/about';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -39,11 +41,12 @@ class AppRoutes {
       // avatarGeneration 需要参数，通过 onGenerateRoute 处理
       chat: (context) => const ChatScreen(),
       settings: (context) => const SettingsScreen(),
-      profile: (context) => const AuthGuard(child: ProfileScreen()),
+      profile: (context) => const ProfileScreen(), // Removed AuthGuard for demo/dev purposes
       login: (context) => const LoginScreen(),
       register: (context) => const RegisterScreen(),
       relationshipSelect: (context) => const RelationshipSelectScreen(),
       note: (context) => const SpiritNoteScreen(),
+      about: (context) => const AboutScreen(),
     };
   }
 
@@ -64,7 +67,7 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const SettingsScreen());
       case AppRoutes.profile:
         return MaterialPageRoute(
-          builder: (_) => const AuthGuard(child: ProfileScreen()),
+          builder: (_) => const ProfileScreen(), // Removed AuthGuard
         );
       case AppRoutes.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
@@ -107,6 +110,8 @@ class AppRoutes {
         );
       case AppRoutes.note:
         return MaterialPageRoute(builder: (_) => const SpiritNoteScreen());
+      case AppRoutes.about:
+        return MaterialPageRoute(builder: (_) => const AboutScreen());
       default:
         return null;
     }
