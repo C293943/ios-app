@@ -1,0 +1,446 @@
+{
+  "@@locale": "zh",
+  "appName": "鸿初元灵",
+  "accountSettings": "账号设置",
+  "languageSelection": "语言选择",
+  "languageFeatureInProgress": "多语言功能开发中...",
+  "themeToggle": "主题切换",
+  "aboutUs": "关于我们",
+  "logout": "退出登录",
+  "spiritName": "元神",
+  "edit": "编辑",
+  "spiritStoneCount": "灵石数量",
+  "dailyChatCount": "每日对话次数",
+  "recharge": "充值",
+  "spiritNotes": "元神笔记",
+  "todayQiValue": "今日元气值",
+  "luckyNumber": "吉数",
+  "luckyColor": "吉色",
+  "luckyDirection": "吉位",
+  "startSpiritChat": "开启元神对话",
+  "navFortune": "运势",
+  "navBazi": "八字",
+  "navRelationship": "合盘",
+  "loginAgreeRequired": "请先阅读并同意用户协议",
+  "loginTitle": "数字元神",
+  "loginPhoneTab": "手机登录",
+  "loginEmailTab": "邮箱登录",
+  "loginPhoneHint": "请输入手机号",
+  "loginCodeHint": "请输入验证码",
+  "loginGetCode": "获取验证码",
+  "loginEmailHint": "请输入邮箱",
+  "loginPasswordHint": "请输入密码",
+  "loginForgotPassword": "忘记密码?",
+  "loginAgreementPrefix": "我已阅读并同意",
+  "loginUserAgreement": "《用户协议》",
+  "loginPrivacyPolicy": "《隐私政策》",
+  "loginButton": "登录",
+  "loginNoAccount": "还没有账号? ",
+  "loginRegisterNow": "立即注册",
+  "registerAgreeRequired": "请先阅读并同意用户协议",
+  "registerTitle": "数字元神",
+  "registerPhoneTab": "手机注册",
+  "registerEmailTab": "邮箱注册",
+  "registerNicknameHint": "请输入称谓/道号",
+  "registerPhoneHint": "请输入手机号",
+  "registerCodeHint": "请输入验证码",
+  "registerGetCode": "获取验证码",
+  "registerEmailHint": "请输入邮箱",
+  "registerPasswordHint": "设置密码",
+  "registerAgreementPrefix": "我已阅读并同意",
+  "registerUserAgreement": "《用户协议》",
+  "registerPrivacyPolicy": "《隐私政策》",
+  "registerButton": "立即注册",
+  "registerHasAccount": "已有账号? ",
+  "registerLoginNow": "立即登录",
+  "aboutVersion": "版本 {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "aboutDescription": "以科技之力，探寻东方神秘文化。\\n为您提供个性化的运势分析与灵性陪伴。",
+  "aboutCopyright": "© 2026 Primordial Spirit Team",
+  "settingsTitle": "设置",
+  "displayModeSection": "显示模式",
+  "displayMode3d": "3D 元灵",
+  "displayMode2d": "2D 平面",
+  "displayModeLive2d": "Live2D",
+  "themeSection": "主题设置",
+  "themeLight": "浅色",
+  "themeDark": "深色",
+  "modelManagementSection": "3D 模型管理",
+  "builtInModels": "内置模型",
+  "customModels": "自定义模型",
+  "birthInfoSection": "生辰信息",
+  "resetBirthInfo": "重新设置生辰",
+  "resetBirthInfoSubtitle": "修改出生日期、时辰和地点",
+  "aboutSection": "关于",
+  "versionLabel": "版本",
+  "addModelTitle": "添加 3D 模型",
+  "addModelFormatsHint": "支持 .glb, .gltf, .obj 格式",
+  "modelTagAnimated": "带动画",
+  "modelTagStatic": "静态",
+  "modelTagBuiltIn": "内置",
+  "modelTagCustom": "自定义",
+  "rename": "重命名",
+  "delete": "删除",
+  "unsupportedModelFormat": "不支持的文件格式，请选择 .glb, .gltf 或 .obj 文件",
+  "modelAddSuccess": "模型 \"{name}\" 添加成功",
+  "@modelAddSuccess": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "modelAddFailed": "添加模型失败: {error}",
+  "@modelAddFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "modelNameTitle": "模型名称",
+  "modelNameHint": "请输入模型名称",
+  "cancel": "取消",
+  "confirm": "确定",
+  "renameModelTitle": "重命名模型",
+  "renameModelHint": "请输入新名称",
+  "renameSuccess": "重命名成功",
+  "renameFailed": "重命名失败",
+  "deleteModelTitle": "删除模型",
+  "deleteModelConfirm": "确定要删除模型 \"{name}\" 吗？\\n此操作不可恢复。",
+  "@deleteModelConfirm": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "deleteSuccess": "删除成功",
+  "deleteFailed": "删除失败",
+  "noteQiGain": "今日元气值+10",
+  "noteSampleDate1": "十月廿八 星期二",
+  "noteSampleDate2": "十月廿八 星期三",
+  "noteSampleContent": "今日与君畅谈，关于那些藏于心底的梦想。吾能感其炽热与期盼，遂告之，寻梦之路，吾亦常伴左右。",
+  "syncing": "同步中...",
+  "notLoggedIn": "未登录",
+  "notSet": "未设置",
+  "notSynced": "未同步",
+  "profileStatusSet": "已设置",
+  "profileStatusSynced": "已同步",
+  "profileTitle": "个人信息",
+  "profileUserId": "用户编号",
+  "profileEmail": "账号邮箱",
+  "profileLevel": "用户等级",
+  "profileLevelValue": "VIP 0",
+  "profileArchive": "档案",
+  "profileArchiveTitle": "档案信息",
+  "profileSyncTime": "同步时间",
+  "profileRecharge": "会员充值",
+  "profileRechargeAction": "前往充值",
+  "profileVoice": "语音选择",
+  "profileFeedback": "用户反馈",
+  "profileFeedbackAction": "提交反馈",
+  "profilePrivacy": "隐私协议",
+  "profileRechargeAgreement": "充值协议",
+  "profileUserAgreement": "用户协议",
+  "viewAction": "查看",
+  "logoutAction": "退出",
+  "profileNameLabel": "姓名",
+  "profileGenderLabel": "性别",
+  "profileBirthCityLabel": "出生地",
+  "profileBirthTimeLabel": "出生时间",
+  "birthDatePlaceholder": "-- -- -- --:--",
+  "profileEditTitle": "编辑档案",
+  "profileGenderHint": "性别（男/女）",
+  "profileBirthYearLabel": "出生年",
+  "profileBirthMonthLabel": "出生月",
+  "profileBirthDayLabel": "出生日",
+  "profileBirthHourLabel": "出生时",
+  "profileBirthMinuteLabel": "出生分",
+  "save": "保存",
+  "logoutConfirm": "确定要退出当前账号吗？",
+  "featureInProgress": "功能开发中...",
+  "voiceSelectionTitle": "语音选择",
+  "voiceDefaultFemale": "默认女声",
+  "voiceGentleFemale": "温柔女声",
+  "voiceMagneticMale": "磁性男声",
+  "feedbackHint": "请输入您的反馈意见...",
+  "submit": "提交",
+  "privacyAgreementTitle": "隐私协议",
+  "rechargeAgreementTitle": "充值协议",
+  "userAgreementTitle": "用户协议",
+  "close": "关闭",
+  "privacyPolicyContent": "隐私政策\\n\\n本应用尊重并保护用户的隐私。我们承诺：\\n\\n1. 数据收集\\n   - 仅收集必要的个人信息\\n   - 不会未经同意收集敏感信息\\n\\n2. 数据使用\\n   - 仅用于提供服务\\n   - 不会用于商业目的\\n\\n3. 数据保护\\n   - 采用加密技术保护数据\\n   - 定期进行安全审计\\n\\n4. 用户权利\\n   - 有权查看个人数据\\n   - 有权要求删除数据\\n\\n如有疑问，请联系我们。",
+  "rechargeAgreementContent": "充值协议\\n\\n1. 充值说明\\n   - 充值金额为虚拟货币\\n   - 不支持退款\\n\\n2. 充值方式\\n   - 支持多种支付方式\\n   - 实时到账\\n\\n3. 充值权益\\n   - 获得相应虚拟货币\\n   - 享受会员权益\\n\\n4. 免责声明\\n   - 因网络问题导致的充值延迟不承担责任\\n   - 用户自行保管账户信息\\n\\n5. 其他\\n   - 本协议最终解释权归本应用所有\\n   - 保留修改权利",
+  "userAgreementContent": "用户协议\\n\\n1. 服务条款\\n   - 本应用提供占卜、命理等娱乐服务\\n   - 仅供娱乐参考，不作为决策依据\\n\\n2. 用户责任\\n   - 用户应遵守法律法规\\n   - 不得进行违法违规操作\\n\\n3. 知识产权\\n   - 所有内容版权归本应用所有\\n   - 未经许可不得转载\\n\\n4. 免责声明\\n   - 本应用不对服务结果负责\\n   - 用户自行承担使用风险\\n\\n5. 服务变更\\n   - 保留随时修改或终止服务的权利\\n   - 将提前通知用户\\n\\n6. 联系方式\\n   - 如有问题，请通过反馈功能联系我们",
+  "memberRechargeTitle": "会员充值",
+  "activateMember": "开通会员 畅享权益",
+  "unlockFeatures": "解锁更多对话次数与专属功能",
+  "memberPlans": "会员计划",
+  "weeklyPlan": "周会员",
+  "monthlyPlan": "月会员",
+  "yearlyPlan": "年会员",
+  "week": "周",
+  "month": "月",
+  "year": "年",
+  "days7": "7天",
+  "days30": "30天",
+  "days365": "365天",
+  "giftCoins": "赠送{amount}灵石",
+  "@giftCoins": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "dailyChatLimit": "每日对话{count}次",
+  "@dailyChatLimit": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "exclusiveBadge": "专属会员标识",
+  "priorityExperience": "优先体验新功能",
+  "customerService": "专属客服支持",
+  "recommended": "推荐",
+  "bestValue": "最划算",
+  "pricePerDay": "仅¥{price}/天",
+  "@pricePerDay": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "paymentMethod": "支付方式",
+  "wechatPay": "微信支付",
+  "alipay": "支付宝",
+  "activateNow": "立即开通",
+  "agreementHint": "开通即同意《会员服务协议》",
+  "baziStartTitle": "开启命轮",
+  "baziPromptTitle": "请输入生辰信息",
+  "baziPromptSubtitle": "唤醒您的五行守护灵",
+  "baziGenderLabel": "阴阳 (Gender)",
+  "genderMale": "男",
+  "genderFemale": "女",
+  "baziDateLabel": "天干 (Date)",
+  "selectBirthDate": "选择出生日期",
+  "birthDateFormat": "{year}年{month}月{day}日",
+  "@birthDateFormat": {
+    "placeholders": {
+      "year": {},
+      "month": {},
+      "day": {}
+    }
+  },
+  "birthDateRequired": "请选择出生日期",
+  "baziTimeLabel": "地支 (Time)",
+  "selectBirthTime": "选择出生时辰",
+  "birthTimeFormat": "{hour}:{minute}",
+  "@birthTimeFormat": {
+    "placeholders": {
+      "hour": {},
+      "minute": {}
+    }
+  },
+  "birthTimeRequired": "请选择出生时辰",
+  "baziCityLabel": "出生地 (City)",
+  "selectBirthCity": "选择出生城市",
+  "baziSubmit": "凝 聚 灵 体",
+  "birthInfoIncomplete": "请完整填写出生时间，以便推算命格",
+  "avatarAnalyzingBazi": "正在分析八字...",
+  "avatarMissingBirthInfo": "缺少生辰信息",
+  "avatarBirthInfo": "出生: {date} {time}",
+  "@avatarBirthInfo": {
+    "placeholders": {
+      "date": {},
+      "time": {}
+    }
+  },
+  "avatarConnecting": "正在连接 {baseUrl}...",
+  "@avatarConnecting": {
+    "placeholders": {
+      "baseUrl": {}
+    }
+  },
+  "avatarParsingFiveElements": "正在解析五行属性...",
+  "avatarBaziSummary": "八字: {yearPillar} {monthPillar} {dayPillar} {hourPillar}",
+  "@avatarBaziSummary": {
+    "placeholders": {
+      "yearPillar": {},
+      "monthPillar": {},
+      "dayPillar": {},
+      "hourPillar": {}
+    }
+  },
+  "avatarElementsSummary": "五行: 木{wood} 火{fire} 土{earth} 金{metal} 水{water}",
+  "@avatarElementsSummary": {
+    "placeholders": {
+      "wood": {},
+      "fire": {},
+      "earth": {},
+      "metal": {},
+      "water": {}
+    }
+  },
+  "avatarPatternSummary": "格局: {pattern}",
+  "@avatarPatternSummary": {
+    "placeholders": {
+      "pattern": {}
+    }
+  },
+  "avatarPreparing2d": "正在准备2D形象...",
+  "avatarPreparing3d": "正在准备3D元神形象...",
+  "avatarMingGong": "命宫: {value}",
+  "@avatarMingGong": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "avatarDayMaster": "日主: {value}",
+  "@avatarDayMaster": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "avatarDone": "生成完成!",
+  "avatarReady": "元神形象已就绪",
+  "avatarCalculationFailed": "命盘计算失败",
+  "avatarGenerating3d": "正在生成3D形象...",
+  "offlineMode": "(离线模式)",
+  "avatarTaskSubmitted": "生成任务已提交",
+  "avatarTaskBackground": "形象正在后台绘制中...",
+  "avatarConverging": "正在凝聚元神...",
+  "avatarConvergingDetail": "根据八字生成专属形象",
+  "avatarServiceUnavailable": "3D生成服务暂时不可用",
+  "avatarConvergingSpirit": "元神正在凝聚...",
+  "avatarPreviewConnecting": "预览阶段：连接中...",
+  "avatarTotalProgress": "总进度: {progress}%",
+  "@avatarTotalProgress": {
+    "placeholders": {
+      "progress": {}
+    }
+  },
+  "avatarGeneratingMesh": "正在生成3D网格...",
+  "avatarPreviewStage": "预览阶段",
+  "avatarApplyingTextures": "正在添加贴图...",
+  "avatarRefineStage": "精细化阶段（预览模型已就绪）",
+  "avatarPreviewReady": "预览模型已就绪",
+  "avatarRefining": "正在进行精细化处理...",
+  "avatarRefineFailedUsePreview": "精细化失败，使用预览模型",
+  "avatarFailed": "生成失败",
+  "avatarConnectionInterrupted": "连接中断，使用预览模型",
+  "avatar3dError": "3D生成出错: {error}",
+  "@avatar3dError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "avatarStageRefine": "精细化",
+  "avatarStagePreview": "预览",
+  "avatarStagePending": "{stage}排队中...",
+  "@avatarStagePending": {
+    "placeholders": {
+      "stage": {}
+    }
+  },
+  "avatarPreviewToRefine": "预览完成，开始精细化...",
+  "avatarStageFailed": "{stage}失败",
+  "@avatarStageFailed": {
+    "placeholders": {
+      "stage": {}
+    }
+  },
+  "canceled": "已取消",
+  "processing": "处理中...",
+  "queueing": "排队中...",
+  "generating": "正在生成...",
+  "previewQueueing": "预览排队中...",
+  "refineQueueing": "精细化排队中...",
+  "avatarHint": "基于您的八字信息\\n正在凝聚专属元神...",
+  "relationshipSelectTitle": "关系合盘",
+  "relationshipLover": "恋人",
+  "relationshipLoverSubtitle": "感情发展与磨合",
+  "relationshipSpouse": "夫妻",
+  "relationshipSpouseSubtitle": "长期相处与家庭节奏",
+  "relationshipFriend": "朋友",
+  "relationshipFriendSubtitle": "性格互补与信任",
+  "relationshipParentChild": "亲子",
+  "relationshipParentChildSubtitle": "陪伴与成长",
+  "relationshipColleague": "同事",
+  "relationshipColleagueSubtitle": "协作与共识",
+  "relationshipFormTitle": "{relationType}合盘",
+  "@relationshipFormTitle": {
+    "placeholders": {
+      "relationType": {}
+    }
+  },
+  "relationshipPersonATitle": "甲方信息",
+  "relationshipPersonBTitle": "乙方信息",
+  "relationshipGenerateReport": "生成合盘报告",
+  "birthDateLabel": "出生日期",
+  "selectDate": "请选择日期",
+  "birthTimeLabel": "出生时辰",
+  "selectTime": "请选择时辰",
+  "birthCityLabel": "出生城市",
+  "selectorLabelValue": "{label}: {value}",
+  "@selectorLabelValue": {
+    "placeholders": {
+      "label": {},
+      "value": {}
+    }
+  },
+  "relationshipBirthInfoIncomplete": "请完整填写双方出生日期与时辰",
+  "relationshipReportGenerating": "正在生成合盘报告...",
+  "relationshipReportMissingInfo": "缺少合盘信息",
+  "relationshipReportReady": "报告已生成",
+  "relationshipReportTitle": "合盘报告",
+  "relationshipSummary": "合盘概要",
+  "relationshipHighlights": "亮点",
+  "relationshipAdvice": "建议",
+  "relationshipEnterChat": "进入合盘对话",
+  "relationshipMatchScore": "合盘匹配度",
+  "relationshipChatTitle": "合盘对话",
+  "relationshipChatHint": "继续咨询合盘细节...",
+  "relationshipChatUnavailable": "抱歉，合盘对话暂时不可用。",
+  "relationshipSummaryMessage": "合盘概要：{summary}",
+  "@relationshipSummaryMessage": {
+    "placeholders": {
+      "summary": {}
+    }
+  },
+  "languageName": "中文",
+  "chatWelcomeMessage": "你好,我是你的专属元灵。我会陪伴你,倾听你的心声,也会在需要时给你一些人生的建议。",
+  "chatStatusOnline": "在线",
+  "chatSubtitle": "你的专属命理伙伴",
+  "chatInputHint": "与元灵对话...",
+  "chatCanceled": "[已取消]",
+  "chatErrorResponse": "抱歉，我暂时无法回应。请稍后再试。",
+  "chatImageLoadFailed": "图片加载失败",
+  "chatClear": "清空对话",
+  "chatHistory": "对话历史",
+  "chatMockReply1": "我理解你的感受,让我们一起来探讨一下这个问题。",
+  "chatMockReply2": "从你的八字来看,这个阶段确实需要更多的耐心和坚持。",
+  "chatMockReply3": "我一直在这里陪伴你,无论什么时候你都可以和我分享你的想法。",
+  "chatMockReply4": "根据你的命理,现在是一个适合思考和规划的时期。",
+  "chatMockReply5": "每个人都会遇到困难,重要的是如何面对它们。你做得很好。",
+  "timeJustNow": "刚刚",
+  "timeMinutesAgo": "{minutes}分钟前",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "timeHourMinute": "{hour}:{minute}",
+  "@timeHourMinute": {
+    "placeholders": {
+      "hour": {},
+      "minute": {}
+    }
+  },
+  "timeMonthDay": "{month}月{day}日",
+  "@timeMonthDay": {
+    "placeholders": {
+      "month": {},
+      "day": {}
+    }
+  },
+  "chatOverlayWelcomeMessage": "在存亮透过的瞬息，谢谢结缘的距离？\\n元神的经过的瞬息，意不如型诚语...",
+  "chatOverlayInputHint": "向元灵倾诉...",
+  "chatOverlayMockReply": "我听到了你的心声... \\n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。"
+}

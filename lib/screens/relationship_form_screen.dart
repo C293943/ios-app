@@ -5,9 +5,10 @@ import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/relationship_models.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 class RelationshipFormScreen extends StatefulWidget {
   final String relationType;
@@ -40,7 +41,7 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          '${widget.relationType}合盘',
+          context.l10n.relationshipFormTitle(widget.relationType),
           style: GoogleFonts.notoSerifSc(
             color: AppTheme.warmYellow,
             fontWeight: FontWeight.w600,
@@ -50,13 +51,13 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: MysticBackground(
+      body: ThemedBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
           child: Column(
             children: [
               _buildPersonSection(
-                title: '甲方信息',
+                title: context.l10n.relationshipPersonATitle,
                 gender: _genderA,
                 date: _dateA,
                 time: _timeA,
@@ -68,7 +69,7 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
               ),
               const SizedBox(height: 16),
               _buildPersonSection(
-                title: '乙方信息',
+                title: context.l10n.relationshipPersonBTitle,
                 gender: _genderB,
                 date: _dateB,
                 time: _timeB,
@@ -82,7 +83,7 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
               SizedBox(
                 width: double.infinity,
                 child: MysticButton(
-                  text: '生成合盘报告',
+                  text: context.l10n.relationshipGenerateReport,
                   onPressed: _submit,
                 ),
               ),
@@ -121,28 +122,34 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
           _buildGenderRow(gender, onGenderChanged),
           const SizedBox(height: 12),
           _buildSelector(
-            label: '出生日期',
+            label: context.l10n.birthDateLabel,
             value: date == null
-                ? '请选择日期'
-                : '${date.year}年${date.month}月${date.day}日',
+                ? context.l10n.selectDate
+                : context.l10n.birthDateFormat(date.year, date.month, date.day),
             icon: Icons.calendar_today,
             onTap: onDateTap,
+            isPlaceholder: date == null,
           ),
           const SizedBox(height: 12),
           _buildSelector(
-            label: '出生时辰',
+            label: context.l10n.birthTimeLabel,
             value: time == null
-                ? '请选择时辰'
-                : '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+                ? context.l10n.selectTime
+                : context.l10n.birthTimeFormat(
+                    time.hour.toString(),
+                    time.minute.toString().padLeft(2, '0'),
+                  ),
             icon: Icons.access_time,
             onTap: onTimeTap,
+            isPlaceholder: time == null,
           ),
           const SizedBox(height: 12),
           _buildSelector(
-            label: '出生城市',
+            label: context.l10n.birthCityLabel,
             value: city,
             icon: Icons.location_on,
             onTap: onCityTap,
+            isPlaceholder: false,
           ),
         ],
       ),
@@ -152,18 +159,29 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
   Widget _buildGenderRow(String gender, ValueChanged<String> onChanged) {
     return Row(
       children: [
-        _buildGenderOption('男', gender == '男', onChanged),
+        _buildGenderOption(
+          value: '男',
+          label: context.l10n.genderMale,
+          selected: gender == '男',
+          onChanged: onChanged,
+        ),
         const SizedBox(width: 12),
-        _buildGenderOption('女', gender == '女', onChanged),
+        _buildGenderOption(
+          value: '女',
+          label: context.l10n.genderFemale,
+          selected: gender == '女',
+          onChanged: onChanged,
+        ),
       ],
     );
   }
 
-  Widget _buildGenderOption(
-    String value,
-    bool selected,
-    ValueChanged<String> onChanged,
-  ) {
+  Widget _buildGenderOption({
+    required String value,
+    required String label,
+    required bool selected,
+    required ValueChanged<String> onChanged,
+  }) {
     return Expanded(
       child: InkWell(
         onTap: () => onChanged(value),
@@ -183,7 +201,7 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
           ),
           alignment: Alignment.center,
           child: Text(
-            value,
+            label,
             style: GoogleFonts.notoSerifSc(
               color: selected ? AppTheme.warmYellow : AppTheme.inkText,
               fontWeight: selected ? FontWeight.bold : FontWeight.normal,
@@ -199,6 +217,7 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
     required String value,
     required IconData icon,
     required VoidCallback onTap,
+    required bool isPlaceholder,
   }) {
     return InkWell(
       onTap: onTap,
@@ -216,9 +235,9 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '$label: $value',
+                context.l10n.selectorLabelValue(label, value),
                 style: GoogleFonts.notoSerifSc(
-                  color: value.contains('请选择')
+                  color: isPlaceholder
                       ? AppTheme.inkText.withOpacity(0.55)
                       : AppTheme.inkText,
                   fontSize: 13,
@@ -338,7 +357,7 @@ class _RelationshipFormScreenState extends State<RelationshipFormScreen> {
     if (_dateA == null || _timeA == null || _dateB == null || _timeB == null) {
       ToastOverlay.show(
         context,
-        message: '请完整填写双方出生日期与时辰',
+        message: context.l10n.relationshipBirthInfoIncomplete,
         backgroundColor: AppTheme.primaryDeepIndigo,
       );
       return;

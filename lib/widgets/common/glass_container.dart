@@ -40,8 +40,8 @@ class GlassContainer extends StatelessWidget {
     final baseColor =
         variant == GlassVariant.jade ? AppTheme.scrollPaper : AppTheme.spiritGlass;
     final outerBorderColor = AppTheme.amberGold.withOpacity(0.32);
-    final innerBorderColor = Colors.black.withOpacity(0.45);
-    final highlightColor = Colors.white.withOpacity(0.10);
+    final innerBorderColor = AppTheme.glassInnerBorder;
+    final highlightColor = AppTheme.glassHighlight;
     final effectiveGlowColor = glowColor ??
         (variant == GlassVariant.jade ? AppTheme.jadeGreen : AppTheme.fluorescentCyan);
 

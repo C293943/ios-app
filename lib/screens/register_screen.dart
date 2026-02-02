@@ -2,27 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
-import 'package:primordial_spirit/services/auth_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   // Tab State
-  bool _isPhoneLogin = true;
+  bool _isPhoneRegister = true;
 
   // Controllers
   final _phoneController = TextEditingController();
   final _verifyCodeController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nicknameController = TextEditingController(); // For "称谓"
 
   // Logic State
   bool _agreedToTerms = false;
@@ -35,24 +35,26 @@ class _LoginScreenState extends State<LoginScreen> {
     _verifyCodeController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _nicknameController.dispose();
     super.dispose();
   }
 
   void _submit() async {
     if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.loginAgreeRequired)),
+        SnackBar(content: Text(context.l10n.registerAgreeRequired)),
       );
       return;
     }
 
     setState(() => _isSubmitting = true);
     
-    // Mock Login Logic for Layout Demo
-    // In real app, connect to AuthService based on _isPhoneLogin
+    // Mock Register Logic
     try {
         await Future.delayed(const Duration(seconds: 1)); // Simulating network
         if (!mounted) return;
+        // After register, maybe go to home or back to login? 
+        // Usually go to Home or Profile setup
         Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } catch (e) {
         // Error handling
@@ -63,16 +65,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine screen size for responsiveness
     final size = MediaQuery.of(context).size;
     
     return Scaffold(
       extendBodyBehindAppBar: true,
-      // No AppBar, using custom title in body
       body: ThemedBackground(
         child: Stack(
           children: [
-            // Safe Area for content
             SafeArea(
               child: SizedBox(
                 height: size.height,
@@ -81,15 +80,24 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      SizedBox(height: size.height * 0.12),
+                      // Back Button
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back_ios, color: AppTheme.inkText),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
                       
-                      // Title: 数字元神
+                      SizedBox(height: size.height * 0.05),
+                      
+                      // Title
                       Text(
-                        context.l10n.loginTitle,
+                        context.l10n.registerTitle,
                         style: GoogleFonts.notoSerifSc(
                           fontSize: 42,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.inkText, // Using theme color
+                          color: AppTheme.inkText,
                           letterSpacing: 2,
                           shadows: [
                             BoxShadow(
@@ -101,44 +109,40 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       
-                      SizedBox(height: size.height * 0.08),
+                      SizedBox(height: size.height * 0.05),
 
                       // Main Card
                       GlassContainer(
                         borderRadius: BorderRadius.circular(24),
-                        // Adjust opacity/color to match the lighter card in screenshot
-                        // We use the theme's surface but ensure it's readable
-                        glowColor: AppTheme.fluorescentCyan.withOpacity(0.2),
+                        glowColor: AppTheme.jadeGreen.withOpacity(0.2), // Slightly different glow for register maybe? Or keep consistent.
                         padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // 1. Tabs (Phone / Email)
-                            _buildLoginTabs(),
+                             // 1. Tabs
+                            _buildRegisterTabs(),
                             const SizedBox(height: 32),
 
                             // 2. Forms
-                            if (_isPhoneLogin) _buildPhoneForm() else _buildEmailForm(),
+                            // Added Nickname field common to both or specific? Usually common.
+                            // Let's put nickname inside the specific forms or common at top if needed.
+                            // Design wise, let's keep it simple.
+                            if (_isPhoneRegister) _buildPhoneForm() else _buildEmailForm(),
 
                             const SizedBox(height: 16),
 
-                            // 3. Agreement Checkbox
+                            // 3. Agreement
                             _buildAgreementCheckbox(),
 
                             const SizedBox(height: 24),
 
-                            // 4. Login Button
-                            _buildLoginButton(),
+                            // 4. Register Button
+                            _buildRegisterButton(),
 
                             const SizedBox(height: 16),
 
-                            // 5. Register Link
-                            _buildRegisterLink(),
-                            
-                            const SizedBox(height: 32),
-                            
-                            // 6. Social Icons
-                            _buildSocialIcons(),
+                            // 5. Login Link
+                            _buildLoginLink(),
                           ],
                         ),
                       ),
@@ -155,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginTabs() {
+  Widget _buildRegisterTabs() {
     return Container(
       height: 50,
       decoration: BoxDecoration(
@@ -167,16 +171,16 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           Expanded(
             child: _buildTabItem(
-              title: context.l10n.loginPhoneTab,
-              isActive: _isPhoneLogin,
-              onTap: () => setState(() => _isPhoneLogin = true),
+              title: context.l10n.registerPhoneTab,
+              isActive: _isPhoneRegister,
+              onTap: () => setState(() => _isPhoneRegister = true),
             ),
           ),
           Expanded(
             child: _buildTabItem(
-              title: context.l10n.loginEmailTab,
-              isActive: !_isPhoneLogin,
-              onTap: () => setState(() => _isPhoneLogin = false),
+              title: context.l10n.registerEmailTab,
+              isActive: !_isPhoneRegister,
+              onTap: () => setState(() => _isPhoneRegister = false),
             ),
           ),
         ],
@@ -213,20 +217,48 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget _buildInputContainer({required Widget child, double paddingRight = 0}) {
+     return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: AppTheme.spiritGlass.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.5)),
+      ),
+      padding: EdgeInsets.only(right: paddingRight),
+      child: child,
+    );
+  }
+
   Widget _buildPhoneForm() {
     return Column(
       children: [
-        // Phone Input with Country Code
-        Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppTheme.spiritGlass.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.5)),
+        // Nickname
+        _buildInputContainer(
+          child: TextField(
+            controller: _nicknameController,
+            style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
+            decoration: InputDecoration(
+              hintText: context.l10n.registerNicknameHint,
+              hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
+              icon: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Icon(Icons.person_outline, color: AppTheme.inkText.withOpacity(0.4), size: 20),
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              filled: false,
+            ),
           ),
+        ),
+        const SizedBox(height: 16),
+        
+        // Phone
+        _buildInputContainer(
           child: Row(
             children: [
-              // Country Code
               Padding(
                 padding: const EdgeInsets.only(left: 16, right: 8),
                 child: Row(
@@ -244,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.phone,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: context.l10n.loginPhoneHint,
+                    hintText: context.l10n.registerPhoneHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -258,15 +290,10 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         const SizedBox(height: 16),
+        
         // Verification Code
-        Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppTheme.spiritGlass.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.5)),
-          ),
-          padding: const EdgeInsets.only(right: 6),
+        _buildInputContainer(
+          paddingRight: 6,
           child: Row(
             children: [
               Expanded(
@@ -275,7 +302,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.number,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: context.l10n.loginCodeHint,
+                    hintText: context.l10n.registerCodeHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     icon: Padding(
                       padding: const EdgeInsets.only(left: 16),
@@ -301,16 +328,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: TextButton(
-                  onPressed: () {
-                    // Send code logic
-                  },
+                  onPressed: () {},
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
                   child: Text(
-                    context.l10n.loginGetCode,
+                    context.l10n.registerGetCode,
                     style: GoogleFonts.notoSansSc(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -325,20 +350,36 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildEmailForm() {
     return Column(
       children: [
-        // Email Input
-        Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppTheme.spiritGlass.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.5)),
+         // Nickname
+        _buildInputContainer(
+          child: TextField(
+            controller: _nicknameController,
+            style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
+            decoration: InputDecoration(
+              hintText: context.l10n.registerNicknameHint,
+              hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
+              icon: Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Icon(Icons.person_outline, color: AppTheme.inkText.withOpacity(0.4), size: 20),
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              filled: false,
+            ),
           ),
+        ),
+        const SizedBox(height: 16),
+
+        // Email
+        _buildInputContainer(
           child: TextField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
             decoration: InputDecoration(
-              hintText: context.l10n.loginEmailHint,
+              hintText: context.l10n.registerEmailHint,
               hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
               icon: Padding(
                 padding: const EdgeInsets.only(left: 16),
@@ -353,15 +394,10 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        // Password Input
-        Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: AppTheme.spiritGlass.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.5)),
-          ),
-          padding: const EdgeInsets.only(right: 16),
+        
+        // Password
+        _buildInputContainer(
+          paddingRight: 16,
           child: Row(
             children: [
               Expanded(
@@ -370,7 +406,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
                   decoration: InputDecoration(
-                    hintText: context.l10n.loginPasswordHint,
+                    hintText: context.l10n.registerPasswordHint,
                     hintStyle: GoogleFonts.notoSansSc(color: AppTheme.inkText.withOpacity(0.4)),
                     icon: Padding(
                       padding: const EdgeInsets.only(left: 16),
@@ -385,15 +421,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                   // Forgot Password Logic
-                },
-                child: Text(
-                  context.l10n.loginForgotPassword,
-                  style: GoogleFonts.notoSansSc(
-                    color: AppTheme.inkText.withOpacity(0.6),
-                    fontSize: 13,
-                  ),
+                onTap: () => setState(() => _obscurePassword = !_obscurePassword),
+                child: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: AppTheme.inkText.withOpacity(0.4),
+                  size: 20,
                 ),
               )
             ],
@@ -421,7 +453,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(top: 4), // Align with checkbox visual center
+            padding: const EdgeInsets.only(top: 4),
             child: RichText(
               text: TextSpan(
                 style: GoogleFonts.notoSansSc(
@@ -429,9 +461,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontSize: 12,
                 ),
                 children: [
-                  TextSpan(text: context.l10n.loginAgreementPrefix),
+                  TextSpan(text: context.l10n.registerAgreementPrefix),
                   TextSpan(
-                    text: context.l10n.loginUserAgreement,
+                    text: context.l10n.registerUserAgreement,
                     style: TextStyle(
                       color: AppTheme.electricBlue,
                       fontWeight: FontWeight.bold,
@@ -439,7 +471,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const TextSpan(text: ' '),
                   TextSpan(
-                    text: context.l10n.loginPrivacyPolicy,
+                    text: context.l10n.registerPrivacyPolicy,
                     style: TextStyle(
                       color: AppTheme.electricBlue,
                       fontWeight: FontWeight.bold,
@@ -454,7 +486,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginButton() {
+  Widget _buildRegisterButton() {
     return Container(
       width: double.infinity,
       height: 52,
@@ -490,7 +522,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               )
             : Text(
-                context.l10n.loginButton,
+                context.l10n.registerButton,
                 style: GoogleFonts.notoSansSc(
                   color: Colors.white,
                   fontSize: 18,
@@ -502,23 +534,21 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildRegisterLink() {
+  Widget _buildLoginLink() {
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pushNamed(AppRoutes.register);
-      },
+      onTap: () => Navigator.of(context).pop(), // Go back to Login
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            context.l10n.loginNoAccount,
+            context.l10n.registerHasAccount,
             style: GoogleFonts.notoSansSc(
               color: AppTheme.inkText.withOpacity(0.7),
               fontSize: 14,
             ),
           ),
           Text(
-            context.l10n.loginRegisterNow,
+            context.l10n.registerLoginNow,
             style: GoogleFonts.notoSansSc(
               color: AppTheme.electricBlue,
               fontWeight: FontWeight.w600,
@@ -526,36 +556,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSocialIcons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _socialIcon(Icons.chat_bubble_outline), // WeChat placeholder
-        const SizedBox(width: 32),
-        _socialIcon(Icons.catching_pokemon_outlined), // QQ placeholder (Tencent penguin-ish)
-        const SizedBox(width: 32),
-        _socialIcon(Icons.apple), // Apple
-      ],
-    );
-  }
-
-  Widget _socialIcon(IconData icon) {
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withOpacity(0.5), // Glassy white
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
-      child: Icon(
-        icon,
-        color: AppTheme.inkText.withOpacity(0.8),
-        size: 24,
       ),
     );
   }

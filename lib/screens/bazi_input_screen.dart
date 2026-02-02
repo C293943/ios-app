@@ -3,12 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
 import 'package:primordial_spirit/services/cultivation_service.dart';
 import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
+import 'package:primordial_spirit/l10n/l10n.dart';
 
 /// 八字输入页面
 class BaziInputScreen extends StatefulWidget {
@@ -38,7 +39,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          '开启命轮',
+          context.l10n.baziStartTitle,
           style: TextStyle(
             color: AppTheme.warmYellow,
             fontWeight: FontWeight.w300,
@@ -52,13 +53,13 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
       ),
       body: Stack(
         children: [
-          MysticBackground(
+          ThemedBackground(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 80.0),
               child: Column(
                 children: [
                   Text(
-                    '请输入生辰信息',
+                    context.l10n.baziPromptTitle,
                     style: GoogleFonts.notoSerifSc(
                       fontSize: 24,
                       fontWeight: FontWeight.w400,
@@ -68,7 +69,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '唤醒您的五行守护灵',
+                    context.l10n.baziPromptSubtitle,
                     style: GoogleFonts.notoSerifSc(
                       fontSize: 14,
                       color: AppTheme.inkText.withOpacity(0.72),
@@ -85,25 +86,38 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionLabel('阴阳 (Gender)'),
+                          _buildSectionLabel(context.l10n.baziGenderLabel),
                           Row(
                             children: [
                               Expanded(
-                                child: _buildGenderOption('男', Icons.male),
+                                child: _buildGenderOption(
+                                  value: '男',
+                                  label: context.l10n.genderMale,
+                                  icon: Icons.male,
+                                ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: _buildGenderOption('女', Icons.female),
+                                child: _buildGenderOption(
+                                  value: '女',
+                                  label: context.l10n.genderFemale,
+                                  icon: Icons.female,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 24),
 
-                          _buildSectionLabel('天干 (Date)'),
+                          _buildSectionLabel(context.l10n.baziDateLabel),
                           _buildMysticInput(
                             value: _selectedDate == null
-                                ? '选择出生日期'
-                                : '${_selectedDate!.year}年${_selectedDate!.month}月${_selectedDate!.day}日',
+                                ? context.l10n.selectBirthDate
+                                : context.l10n.birthDateFormat(
+                                    _selectedDate!.year,
+                                    _selectedDate!.month,
+                                    _selectedDate!.day,
+                                  ),
+                            isPlaceholder: _selectedDate == null,
                             icon: Icons.calendar_today,
                             onTap: _selectDate,
                           ),
@@ -111,7 +125,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                             Padding(
                               padding: const EdgeInsets.only(top: 4, left: 12),
                               child: Text(
-                                '请选择出生日期',
+                                context.l10n.birthDateRequired,
                                 style: GoogleFonts.notoSerifSc(
                                   color: Colors.red.shade400,
                                   fontSize: 12,
@@ -120,11 +134,15 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                             ),
                           const SizedBox(height: 24),
 
-                          _buildSectionLabel('地支 (Time)'),
+                          _buildSectionLabel(context.l10n.baziTimeLabel),
                           _buildMysticInput(
                             value: _selectedTime == null
-                                ? '选择出生时辰'
-                                : '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
+                                ? context.l10n.selectBirthTime
+                                : context.l10n.birthTimeFormat(
+                                    _selectedTime!.hour.toString(),
+                                    _selectedTime!.minute.toString().padLeft(2, '0'),
+                                  ),
+                            isPlaceholder: _selectedTime == null,
                             icon: Icons.access_time,
                             onTap: _selectTime,
                           ),
@@ -132,7 +150,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                             Padding(
                               padding: const EdgeInsets.only(top: 4, left: 12),
                               child: Text(
-                                '请选择出生时辰',
+                                context.l10n.birthTimeRequired,
                                 style: GoogleFonts.notoSerifSc(
                                   color: Colors.red.shade400,
                                   fontSize: 12,
@@ -141,11 +159,12 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                             ),
                           const SizedBox(height: 24),
 
-                          _buildSectionLabel('出生地 (City)'),
+                          _buildSectionLabel(context.l10n.baziCityLabel),
                           _buildMysticInput(
                             value: _city,
                             icon: Icons.location_on,
                             onTap: _selectCity,
+                            isPlaceholder: false,
                           ),
                         ],
                       ),
@@ -157,7 +176,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: MysticButton(
-                      text: '凝 聚 灵 体',
+                      text: context.l10n.baziSubmit,
                       onPressed: _onSubmit,
                     ),
                   ),
@@ -220,7 +239,11 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     );
   }
 
-  Widget _buildGenderOption(String value, IconData icon) {
+  Widget _buildGenderOption({
+    required String value,
+    required String label,
+    required IconData icon,
+  }) {
     final isSelected = _gender == value;
     return InkWell(
       onTap: () => setState(() => _gender = value),
@@ -248,7 +271,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              value,
+              label,
               style: GoogleFonts.notoSerifSc(
                 color: isSelected
                     ? AppTheme.warmYellow
@@ -266,6 +289,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     required String value,
     required IconData icon,
     required VoidCallback onTap,
+    required bool isPlaceholder,
   }) {
     return InkWell(
       onTap: onTap,
@@ -282,11 +306,11 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
             Text(
               value,
               style: GoogleFonts.notoSerifSc(
-                color: value.contains('选择')
+                color: isPlaceholder
                     ? AppTheme.inkText.withOpacity(0.55)
                     : AppTheme.inkText,
                 fontSize: 16,
-                fontWeight: value.contains('选择') ? FontWeight.normal : FontWeight.w500,
+                fontWeight: isPlaceholder ? FontWeight.normal : FontWeight.w500,
               ),
             ),
             const Spacer(),
@@ -343,7 +367,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  '选择出生城市',
+                  context.l10n.selectBirthCity,
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -415,7 +439,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     if (_selectedDate == null || _selectedTime == null) {
       ToastOverlay.show(
         context,
-        message: '请完整填写出生时间，以便推算命格',
+        message: context.l10n.birthInfoIncomplete,
         backgroundColor: AppTheme.primaryDeepIndigo,
       );
       return;

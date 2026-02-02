@@ -5,6 +5,7 @@ import 'package:primordial_spirit/screens/bazi_input_screen.dart';
 import 'package:primordial_spirit/screens/chat_screen.dart';
 import 'package:primordial_spirit/screens/home_screen.dart';
 import 'package:primordial_spirit/screens/login_screen.dart';
+import 'package:primordial_spirit/screens/register_screen.dart';
 import 'package:primordial_spirit/screens/profile_screen.dart';
 import 'package:primordial_spirit/models/relationship_models.dart';
 import 'package:primordial_spirit/screens/relationship_chat_screen.dart';
@@ -12,6 +13,9 @@ import 'package:primordial_spirit/screens/relationship_form_screen.dart';
 import 'package:primordial_spirit/screens/relationship_report_screen.dart';
 import 'package:primordial_spirit/screens/relationship_select_screen.dart';
 import 'package:primordial_spirit/screens/settings_screen.dart';
+import 'package:primordial_spirit/screens/spirit_note_screen.dart';
+import 'package:primordial_spirit/screens/about_screen.dart';
+import 'package:primordial_spirit/screens/language_settings_screen.dart';
 import 'package:primordial_spirit/widgets/auth_guard.dart';
 
 /// 路由配置
@@ -23,10 +27,14 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String profile = '/profile';
   static const String login = '/login';
+  static const String register = '/register';
   static const String relationshipSelect = '/relationship';
   static const String relationshipForm = '/relationship/form';
   static const String relationshipReport = '/relationship/report';
   static const String relationshipChat = '/relationship/chat';
+  static const String note = '/note';
+  static const String about = '/about';
+  static const String language = '/language';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -35,9 +43,13 @@ class AppRoutes {
       // avatarGeneration 需要参数，通过 onGenerateRoute 处理
       chat: (context) => const ChatScreen(),
       settings: (context) => const SettingsScreen(),
-      profile: (context) => const AuthGuard(child: ProfileScreen()),
+      profile: (context) => const ProfileScreen(), // Removed AuthGuard for demo/dev purposes
       login: (context) => const LoginScreen(),
+      register: (context) => const RegisterScreen(),
       relationshipSelect: (context) => const RelationshipSelectScreen(),
+      note: (context) => const SpiritNoteScreen(),
+      about: (context) => const AboutScreen(),
+      language: (context) => const LanguageSettingsScreen(),
     };
   }
 
@@ -58,10 +70,12 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const SettingsScreen());
       case AppRoutes.profile:
         return MaterialPageRoute(
-          builder: (_) => const AuthGuard(child: ProfileScreen()),
+          builder: (_) => const ProfileScreen(), // Removed AuthGuard
         );
       case AppRoutes.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
+      case AppRoutes.register:
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case AppRoutes.relationshipForm:
         final args = settings.arguments as Map<String, dynamic>?;
         final relationType = args?['relationType'] as String?;
@@ -97,6 +111,12 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => RelationshipChatScreen(report: report),
         );
+      case AppRoutes.note:
+        return MaterialPageRoute(builder: (_) => const SpiritNoteScreen());
+      case AppRoutes.about:
+        return MaterialPageRoute(builder: (_) => const AboutScreen());
+      case AppRoutes.language:
+        return MaterialPageRoute(builder: (_) => const LanguageSettingsScreen());
       default:
         return null;
     }

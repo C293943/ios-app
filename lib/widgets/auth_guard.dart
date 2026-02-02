@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/services/auth_service.dart';
-import 'package:primordial_spirit/widgets/common/mystic_background.dart';
+import 'package:primordial_spirit/widgets/common/themed_background.dart';
 
 class AuthGuard extends StatefulWidget {
   final Widget child;
@@ -45,7 +45,7 @@ class _AuthGuardState extends State<AuthGuard> {
       return widget.child;
     }
     return Scaffold(
-      body: MysticBackground(
+      body: ThemedBackground(
         child: Center(
           child: CircularProgressIndicator(
             color: AppTheme.fluorescentCyan,

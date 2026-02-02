@@ -11,14 +11,14 @@ class ToastOverlay extends StatefulWidget {
   final Duration duration;
   final VoidCallback? onComplete;
 
-  const ToastOverlay({
+  ToastOverlay({
     super.key,
     required this.message,
     this.icon,
-    this.backgroundColor = AppTheme.fluorescentCyan,
+    Color? backgroundColor,
     this.duration = const Duration(seconds: 2),
     this.onComplete,
-  });
+  }) : backgroundColor = backgroundColor ?? AppTheme.fluorescentCyan;
 
   /// 显示提示框
   static void show(

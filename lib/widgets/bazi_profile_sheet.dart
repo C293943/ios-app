@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
@@ -64,7 +64,7 @@ class BaziProfileSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.close, color: AppTheme.warmYellow),
+                  icon: Icon(Icons.close, color: AppTheme.warmYellow),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -815,3 +815,4 @@ class BaziProfileSheet extends StatelessWidget {
     }
   }
 }
+
