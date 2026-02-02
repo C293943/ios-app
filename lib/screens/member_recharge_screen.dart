@@ -98,11 +98,24 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
   }
 
   Widget _buildHeaderCard(BuildContext context) {
-    return GlassContainer(
-      variant: GlassVariant.spirit,
+    return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-      borderRadius: BorderRadius.circular(20),
+      decoration: BoxDecoration(
+        color: AppTheme.voidDeeper.withOpacity(0.6), // Deep dark background
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.fluorescentCyan.withOpacity(0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           Icon(
@@ -114,7 +127,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
           Text(
             context.l10n.activateMember,
             style: TextStyle(
-              color: AppTheme.warmYellow, // Gold for premium feel
+              color: AppTheme.warmYellow,
               fontSize: 22,
               fontWeight: FontWeight.bold,
               letterSpacing: 1,
@@ -124,7 +137,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
           Text(
             context.l10n.unlockFeatures,
             style: TextStyle(
-              color: AppTheme.inkText.withOpacity(0.8), // Softer text
+              color: AppTheme.inkText.withOpacity(0.7),
               fontSize: 14,
             ),
           ),
@@ -153,8 +166,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             priceUnit: '/${context.l10n.week}',
             tag: null,
             gradientColors: [
-              AppTheme.inkGreen.withOpacity(0.6), // Darker base
-              AppTheme.voidDeeper.withOpacity(0.4),
+              AppTheme.voidDeeper.withOpacity(0.8),
+              AppTheme.inkGreen.withOpacity(0.6),
             ],
           ),
         ),
@@ -177,8 +190,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             tag: context.l10n.recommended,
             isGold: true,
             gradientColors: [
-              const Color(0xFF3E2723).withOpacity(0.9), // Dark Bronze/Gold base
-              AppTheme.bronzeGold.withOpacity(0.7), 
+              const Color(0xFF2D1F18).withOpacity(0.9), // Deep bronze/black
+              const Color(0xFF4A3420).withOpacity(0.8), // Dark bronze
             ],
             textColor: AppTheme.amberGold,
           ),
@@ -203,8 +216,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             dailyPrice: context.l10n.pricePerDay('0.82'),
             tag: context.l10n.bestValue,
             gradientColors: [
+              AppTheme.voidDeeper.withOpacity(0.8),
               AppTheme.inkGreen.withOpacity(0.6),
-              AppTheme.voidDeeper.withOpacity(0.4),
             ],
           ),
         ),
@@ -230,11 +243,11 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     final isSelected = _selectedPlanIndex == index;
     final baseTextColor = isGold ? textColor : AppTheme.inkText;
     
-    // For selected non-gold items, use cyan tint
+    // Use darker, richer gradients for selected states
     final effectiveGradient = isSelected && !isGold 
         ? [
-            AppTheme.fluorescentCyan.withOpacity(0.15),
-            AppTheme.inkGreen.withOpacity(0.8),
+            const Color(0xFF0F262A), // Dark cyan/black
+            const Color(0xFF163A3F), // Slightly lighter
           ]
         : gradientColors;
 
@@ -258,18 +271,24 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
               border: Border.all(
                 color: isSelected 
                     ? (isGold ? AppTheme.amberGold : AppTheme.fluorescentCyan) 
-                    : Colors.white.withOpacity(0.05), // Subtle border for unselected
+                    : Colors.white.withOpacity(0.1),
                 width: isSelected ? 1.5 : 1,
               ),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: (isGold ? AppTheme.amberGold : AppTheme.fluorescentCyan).withOpacity(0.2),
-                        blurRadius: 16,
-                        spreadRadius: 2,
+                        color: (isGold ? AppTheme.amberGold : AppTheme.fluorescentCyan).withOpacity(0.15),
+                        blurRadius: 12,
+                        spreadRadius: 1,
                       )
                     ]
-                  : [],
+                  : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ],
             ),
             child: Column(
               children: [
@@ -285,17 +304,17 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isGold ? AppTheme.amberGold.withOpacity(0.15) : Colors.white.withOpacity(0.05),
+                    color: isGold ? AppTheme.amberGold.withOpacity(0.1) : Colors.black.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isGold ? AppTheme.amberGold.withOpacity(0.3) : Colors.transparent,
+                      color: isGold ? AppTheme.amberGold.withOpacity(0.2) : Colors.transparent,
                       width: 0.5,
                     ),
                   ),
                   child: Text(
                     duration,
                     style: TextStyle(
-                      color: baseTextColor.withOpacity(0.9),
+                      color: baseTextColor.withOpacity(0.8),
                       fontSize: 12,
                     ),
                   ),
@@ -311,7 +330,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                         child: Text(
                           benefit,
                           style: TextStyle(
-                            color: baseTextColor.withOpacity(0.7),
+                            color: baseTextColor.withOpacity(0.6),
                             fontSize: 10,
                           ),
                           textAlign: TextAlign.center,
@@ -322,14 +341,14 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                     ],
                   ),
                 )),
-                const SizedBox(height: 8), // Add some spacing before price
+                const SizedBox(height: 8), 
                 Text(
                   '¥$originalPrice',
                   style: TextStyle(
-                    color: baseTextColor.withOpacity(0.4),
+                    color: baseTextColor.withOpacity(0.3),
                     fontSize: 12,
                     decoration: TextDecoration.lineThrough,
-                    decorationColor: baseTextColor.withOpacity(0.4),
+                    decorationColor: baseTextColor.withOpacity(0.3),
                   ),
                 ),
                 RichText(
@@ -354,7 +373,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                       TextSpan(
                         text: priceUnit,
                         style: TextStyle(
-                          color: baseTextColor.withOpacity(0.8),
+                          color: baseTextColor.withOpacity(0.6),
                           fontSize: 12,
                         ),
                       ),
@@ -365,7 +384,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                   Text(
                     dailyPrice,
                     style: TextStyle(
-                      color: baseTextColor.withOpacity(0.7),
+                      color: baseTextColor.withOpacity(0.5),
                       fontSize: 10,
                     ),
                   ),
@@ -383,8 +402,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: isGold 
-                      ? [AppTheme.amberGold, const Color(0xFFFFDF00)]
-                      : [AppTheme.fluorescentCyan, const Color(0xFF66BB6A)],
+                      ? [AppTheme.amberGold, const Color(0xFFC6A700)]
+                      : [AppTheme.fluorescentCyan, const Color(0xFF00897B)],
                   ),
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(16),
@@ -392,16 +411,16 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withOpacity(0.3),
                       blurRadius: 4,
-                      offset: const Offset(2, 2),
+                      offset: const Offset(1, 1),
                     )
                   ],
                 ),
                 child: Text(
                   tag,
                   style: const TextStyle(
-                    color: Color(0xFF1A1A2E), // Dark text on bright tags
+                    color: Color(0xFF101010), 
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -414,25 +433,31 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
   }
 
   Widget _buildPaymentMethod(BuildContext context) {
-    return GlassContainer(
-      variant: GlassVariant.spirit,
+    return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      borderRadius: BorderRadius.circular(20),
+      decoration: BoxDecoration(
+        color: AppTheme.voidDeeper.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.05),
+          width: 1,
+        ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildPaymentOption(
             context,
             index: 0,
-            icon: Icons.chat_bubble, // Placeholder for WeChat
+            icon: Icons.chat_bubble, 
             iconColor: const Color(0xFF09B83E),
             label: context.l10n.wechatPay,
           ),
           _buildPaymentOption(
             context,
             index: 1,
-            icon: Icons.payment, // Placeholder for Alipay
+            icon: Icons.payment,
             iconColor: const Color(0xFF1678FF),
             label: context.l10n.alipay,
           ),
