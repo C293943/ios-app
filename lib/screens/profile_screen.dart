@@ -6,15 +6,11 @@ import 'package:primordial_spirit/models/user_models.dart';
 import 'package:primordial_spirit/services/auth_service.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
+import 'dart:ui';
 
-enum VoiceOption {
-  defaultFemale,
-  gentleFemale,
-  magneticMale,
-}
-
-/// 个人信息页面
+/// 个人信息页面 (重构版 - 全局风格适配)
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -23,11 +19,36 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  VoiceOption _selectedVoice = VoiceOption.defaultFemale;
   final AuthService _authService = AuthService();
-  AppUser? _user;
+  final _formKey = GlobalKey<FormState>();
+  
   UserProfile? _profile;
   bool _loading = true;
+
+  // 表单控制器
+  final TextEditingController _nameController = TextEditingController();
+  String _gender = '男';
+  
+  // 八字信息
+  DateTime? _birthDate;
+  TimeOfDay? _birthTime;
+  bool _isLunar = false; // 是否农历
+  bool _isTimeUnknown = false; // 是否时间不详
+  String _birthCity = '';
+  
+  // 现状信息 (UI状态，暂无模型对应)
+  String _currentCity = '';
+  String? _occupation;
+  String? _education;
+  String _maritalStatus = '未婚';
+
+  // 选项数据
+  final List<String> _occupations = ['企业员工', '公务员/事业单位', '自由职业', '学生', '个体经营', '其他'];
+  final List<String> _educations = ['高中及以下', '大专', '本科', '硕士', '博士'];
+  final List<String> _cities = [
+    '北京', '上海', '广州', '深圳', '杭州', '南京', '成都', '重庆',
+    '武汉', '西安', '天津', '苏州', '郑州', '长沙', '青岛', '大连',
+  ];
 
   @override
   void initState() {
@@ -35,55 +56,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadProfile();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadProfile() async {
     final profile = await _authService.fetchProfile(preferCache: true);
-    final user = await _authService.loadCachedUser();
     if (!mounted) return;
-    setState(() {
-      _profile = profile;
-      _user = user;
-      _loading = false;
-    });
+    
+    if (profile != null) {
+      setState(() {
+        _profile = profile;
+        _nameController.text = profile.displayName ?? '';
+        _gender = profile.gender ?? '男';
+        _birthCity = profile.birthCity ?? '';
+        if (profile.birthYear != null) {
+          _birthDate = DateTime(
+            profile.birthYear!,
+            profile.birthMonth ?? 1,
+            profile.birthDay ?? 1,
+          );
+        }
+        if (profile.birthHour != null) {
+          _birthTime = TimeOfDay(
+            hour: profile.birthHour!,
+            minute: profile.birthMinute ?? 0,
+          );
+        }
+        _loading = false;
+      });
+    }
 
     final remote = await _authService.fetchProfile(preferCache: false);
     if (!mounted || remote == null) return;
-    setState(() => _profile = remote);
-  }
-
-  String get _userIdLabel {
-    if (_loading) return context.l10n.syncing;
-    final id = _user?.id ?? '';
-    if (id.isEmpty) return context.l10n.notLoggedIn;
-    return id.length > 10 ? id.substring(0, 10).toUpperCase() : id.toUpperCase();
-  }
-
-  String get _emailLabel {
-    if (_loading) return context.l10n.syncing;
-    return _user?.email ?? context.l10n.notLoggedIn;
-  }
-
-  String get _profileStatusLabel {
-    if (_loading) return context.l10n.syncing;
-    if (_profile == null) return context.l10n.notSet;
-    return _profile?.displayName?.isNotEmpty == true
-        ? context.l10n.profileStatusSet
-        : context.l10n.profileStatusSynced;
-  }
-
-  String get _profileSyncLabel {
-    if (_loading) return context.l10n.syncing;
-    return _profile?.updatedAt ?? context.l10n.notSynced;
-  }
-
-  String _voiceLabel(BuildContext context, VoiceOption option) {
-    switch (option) {
-      case VoiceOption.defaultFemale:
-        return context.l10n.voiceDefaultFemale;
-      case VoiceOption.gentleFemale:
-        return context.l10n.voiceGentleFemale;
-      case VoiceOption.magneticMale:
-        return context.l10n.voiceMagneticMale;
-    }
+    setState(() {
+      _profile = remote;
+      // 可以在这里更新状态，但为了避免用户输入冲突，仅当本地未修改时更新
+    });
   }
 
   @override
@@ -92,566 +103,604 @@ class _ProfileScreenState extends State<ProfileScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          context.l10n.profileTitle,
+          '完善个人信息',
           style: GoogleFonts.notoSerifSc(
             color: AppTheme.warmYellow,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            letterSpacing: 1.2,
           ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.warmYellow),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.warmYellow, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: ThemedBackground(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
-          children: [
-            // 用户编号
-            _buildProfileItem(
-              icon: Icons.person_outline,
-              label: context.l10n.profileUserId,
-              value: _userIdLabel,
-            ),
-            const SizedBox(height: 12),
+      body: Stack(
+        children: [
+          const Positioned.fill(child: ThemedBackground(child: SizedBox.expand())),
+          
+          // 主要内容
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      '信息越详细，元神越准确',
+                      style: GoogleFonts.notoSerifSc(
+                        color: AppTheme.softGrayText,
+                        fontSize: 12,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-            // 账号邮箱
-            _buildProfileItem(
-              icon: Icons.alternate_email,
-              label: context.l10n.profileEmail,
-              value: _emailLabel,
-            ),
-            const SizedBox(height: 12),
+                    // 卡片 1: 基本信息
+                    _buildCard(
+                      title: '基本信息',
+                      children: [
+                        _buildTextField(
+                          label: '姓名*',
+                          hint: '请输入您的真实姓名',
+                          controller: _nameController,
+                          required: true,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildLabel('性别*'),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _buildGenderOption('男', Icons.male),
+                            const SizedBox(width: 16),
+                            _buildGenderOption('女', Icons.female),
+                            const SizedBox(width: 16),
+                            _buildGenderOption('其他', Icons.person_outline),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-            // 用户等级
-            _buildProfileItem(
-              icon: Icons.star_outline,
-              label: context.l10n.profileLevel,
-              value: context.l10n.profileLevelValue,
-            ),
-            const SizedBox(height: 12),
+                    // 卡片 2: 八字信息
+                    _buildCard(
+                      title: '八字信息',
+                      children: [
+                        _buildDateInput(),
+                        const SizedBox(height: 20),
+                        _buildTimeInput(),
+                        const SizedBox(height: 20),
+                        _buildCityInput(
+                          label: '出生地*',
+                          value: _birthCity,
+                          placeholder: '省份-城市-区县',
+                          onTap: () => _selectCity(isBirth: true),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-            // 档案
-            _buildProfileItem(
-              icon: Icons.description_outlined,
-              label: context.l10n.profileArchive,
-              value: _profileStatusLabel,
-              onTap: () => _showArchiveDialog(context),
+                    // 卡片 3: 现状信息
+                    _buildCard(
+                      title: '现状信息',
+                      subtitle: ' (选填)',
+                      children: [
+                        _buildCityInput(
+                          label: '现居地',
+                          value: _currentCity,
+                          placeholder: '省份-城市-区县',
+                          isOptional: true,
+                          onTap: () => _selectCity(isBirth: false),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildDropdown(
+                          label: '职业',
+                          value: _occupation,
+                          items: _occupations,
+                          hint: '请选择您的职业',
+                          isOptional: true,
+                          onChanged: (v) => setState(() => _occupation = v),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildDropdown(
+                          label: '学历',
+                          value: _education,
+                          items: _educations,
+                          hint: '高中及以下',
+                          isOptional: true,
+                          onChanged: (v) => setState(() => _education = v),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildLabel('婚姻状况'),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _buildRadioOption('未婚', _maritalStatus, (v) => setState(() => _maritalStatus = v)),
+                            const SizedBox(width: 16),
+                            _buildRadioOption('已婚', _maritalStatus, (v) => setState(() => _maritalStatus = v)),
+                            const SizedBox(width: 16),
+                            _buildRadioOption('离异', _maritalStatus, (v) => setState(() => _maritalStatus = v)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-
-            // 同步时间
-            _buildProfileItem(
-              icon: Icons.sync,
-              label: context.l10n.profileSyncTime,
-              value: _profileSyncLabel,
+          ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.voidBackground.withOpacity(0.95), // 接近不透明的深色背景
+          border: Border(top: BorderSide(color: AppTheme.scrollBorder, width: 0.5)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            child: MysticButton(
+              text: '开启元神探索',
+              onPressed: _submitProfile,
             ),
-            const SizedBox(height: 12),
-
-            // 会员充值
-            _buildProfileItem(
-              icon: Icons.card_giftcard,
-              label: context.l10n.profileRecharge,
-              value: context.l10n.profileRechargeAction,
-              onTap: () => _showRechargeDialog(context),
-            ),
-            const SizedBox(height: 12),
-
-            // 语音选择
-            _buildProfileItem(
-              icon: Icons.volume_up_outlined,
-              label: context.l10n.profileVoice,
-              value: _voiceLabel(context, _selectedVoice),
-              onTap: () => _showVoiceDialog(context),
-            ),
-            const SizedBox(height: 12),
-
-            // 用户反馈
-            _buildProfileItem(
-              icon: Icons.feedback_outlined,
-              label: context.l10n.profileFeedback,
-              value: context.l10n.profileFeedbackAction,
-              onTap: () => _showFeedbackDialog(context),
-            ),
-            const SizedBox(height: 12),
-
-            // 隐私协议
-            _buildProfileItem(
-              icon: Icons.privacy_tip_outlined,
-              label: context.l10n.profilePrivacy,
-              value: context.l10n.viewAction,
-              onTap: () => _showPrivacyDialog(context),
-            ),
-            const SizedBox(height: 12),
-
-            // 充值协议
-            _buildProfileItem(
-              icon: Icons.receipt_outlined,
-              label: context.l10n.profileRechargeAgreement,
-              value: context.l10n.viewAction,
-              onTap: () => _showRechargeAgreementDialog(context),
-            ),
-            const SizedBox(height: 12),
-
-            // 用户协议
-            _buildProfileItem(
-              icon: Icons.description,
-              label: context.l10n.profileUserAgreement,
-              value: context.l10n.viewAction,
-              onTap: () => _showUserAgreementDialog(context),
-            ),
-            const SizedBox(height: 12),
-
-            // 退出登录
-            _buildProfileItem(
-              icon: Icons.logout,
-              label: context.l10n.logout,
-              value: context.l10n.logoutAction,
-              onTap: () => _showLogoutDialog(context),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildProfileItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    VoidCallback? onTap,
+  Widget _buildCard({
+    required String title,
+    required List<Widget> children,
+    String? subtitle,
   }) {
-    return GlassContainer(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.spiritGlass.withOpacity(0.15), // 略微增加不透明度
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppTheme.scrollBorder.withOpacity(0.5), // 清晰的细边框
+          width: 0.8,
+        ),
+        // 移除导致模糊的阴影，仅保留极淡的黑色阴影增加层次
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // 移除原本的青色装饰条，改用简单的图标
+              Icon(
+                Icons.circle, 
+                size: 8, 
+                color: AppTheme.warmYellow,
+              ),
+              const SizedBox(width: 10),
+              RichText(
+                text: TextSpan(
+                  text: title,
+                  style: GoogleFonts.notoSerifSc(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.warmYellow,
+                    letterSpacing: 1,
+                  ),
+                  children: [
+                    if (subtitle != null)
+                      TextSpan(
+                        text: subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.softGrayText,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.notoSerifSc(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppTheme.inkText.withOpacity(0.9),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    bool required = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(label),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: AppTheme.spiritGlass.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
+          ),
+          child: TextFormField(
+            controller: controller,
+            validator: required ? (v) => v?.isEmpty == true ? '此项必填' : null : null,
+            style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: AppTheme.softGrayText, fontSize: 14),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: AppTheme.fluorescentCyan, width: 1.0),
+              ),
+              filled: false,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderOption(String label, IconData icon) {
+    final isSelected = _gender == label;
+    final activeColor = AppTheme.jadeGreen;
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _gender = label),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? activeColor.withOpacity(0.15) : AppTheme.spiritGlass.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? activeColor : AppTheme.scrollBorder,
+              width: isSelected ? 1.0 : 0.8,
+            ),
+            // 移除阴影，保持干净
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon, 
+                size: 16, 
+                color: isSelected ? activeColor : AppTheme.softGrayText,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? activeColor : AppTheme.softGrayText,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildLabel('出生日期*'),
+            Row(
               children: [
-                Icon(icon, color: AppTheme.warmYellow, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: GoogleFonts.notoSerifSc(
-                      color: AppTheme.warmYellow,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                Text('阳历', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
+                Switch(
+                  value: _isLunar,
+                  onChanged: (v) => setState(() => _isLunar = v),
+                  activeColor: AppTheme.fluorescentCyan,
+                  inactiveTrackColor: AppTheme.spiritGlass.withOpacity(0.3),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                Text('农历', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
+              ],
+            ),
+          ],
+        ),
+        GestureDetector(
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _birthDate ?? DateTime(2000, 1, 1),
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now(),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: ColorScheme.dark(
+                      primary: AppTheme.jadeGreen,
+                      onPrimary: AppTheme.voidBackground,
+                      surface: AppTheme.voidBackground,
+                      onSurface: AppTheme.warmYellow,
                     ),
                   ),
-                ),
+                  child: child!,
+                );
+              },
+            );
+            if (picked != null) setState(() => _birthDate = picked);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppTheme.spiritGlass.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                const SizedBox(width: 10),
                 Text(
-                  value,
+                  _birthDate == null 
+                      ? 'YYYY年 MM月 DD日' 
+                      : '${_birthDate!.year}年 ${_birthDate!.month}月 ${_birthDate!.day}日',
                   style: GoogleFonts.notoSerifSc(
-                    color: AppTheme.fluorescentCyan,
-                    fontSize: 13,
+                    color: _birthDate == null ? AppTheme.softGrayText : AppTheme.warmYellow,
+                    fontSize: 14,
                   ),
                 ),
-                if (onTap != null) ...[
-                  const SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_ios,
-                    color: AppTheme.fluorescentCyan,
-                    size: 14,
-                  ),
-                ],
               ],
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
-  void _showArchiveDialog(BuildContext context) {
-    if (_profile == null) {
-      _showProfileEditDialog(context);
-      return;
-    }
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
-        title: Text(
-          context.l10n.profileArchiveTitle,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDialogItem(
-                context.l10n.profileNameLabel,
-                _profile?.displayName ?? context.l10n.notSet,
-              ),
-              _buildDialogItem(
-                context.l10n.profileGenderLabel,
-                _profile?.gender ?? context.l10n.notSet,
-              ),
-              _buildDialogItem(
-                context.l10n.profileBirthCityLabel,
-                _profile?.birthCity ?? context.l10n.notSet,
-              ),
-              _buildDialogItem(
-                context.l10n.profileBirthTimeLabel,
-                _birthDateLabel(),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              context.l10n.close,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showProfileEditDialog(context);
-            },
-            child: Text(
-              context.l10n.edit,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _birthDateLabel() {
-    if (_profile == null) return context.l10n.birthDatePlaceholder;
-    final year = _profile?.birthYear;
-    final month = _profile?.birthMonth;
-    final day = _profile?.birthDay;
-    final hour = _profile?.birthHour;
-    final minute = _profile?.birthMinute;
-    if (year == null || month == null || day == null || hour == null || minute == null) {
-      return context.l10n.notSet;
-    }
-    final mm = minute.toString().padLeft(2, '0');
-    return '$year-$month-$day $hour:$mm';
-  }
-
-  void _showProfileEditDialog(BuildContext context) {
-    final nameController =
-        TextEditingController(text: _profile?.displayName ?? '');
-    final genderController =
-        TextEditingController(text: _profile?.gender ?? '');
-    final cityController =
-        TextEditingController(text: _profile?.birthCity ?? '');
-    final yearController = TextEditingController(
-        text: _profile?.birthYear?.toString() ?? '');
-    final monthController = TextEditingController(
-        text: _profile?.birthMonth?.toString() ?? '');
-    final dayController = TextEditingController(
-        text: _profile?.birthDay?.toString() ?? '');
-    final hourController = TextEditingController(
-        text: _profile?.birthHour?.toString() ?? '');
-    final minuteController = TextEditingController(
-        text: _profile?.birthMinute?.toString() ?? '');
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.92),
-        title: Text(
-          context.l10n.profileEditTitle,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildTextField(nameController, context.l10n.profileNameLabel),
-              _buildTextField(genderController, context.l10n.profileGenderHint),
-              _buildTextField(cityController, context.l10n.profileBirthCityLabel),
-              _buildTextField(yearController, context.l10n.profileBirthYearLabel),
-              _buildTextField(monthController, context.l10n.profileBirthMonthLabel),
-              _buildTextField(dayController, context.l10n.profileBirthDayLabel),
-              _buildTextField(hourController, context.l10n.profileBirthHourLabel),
-              _buildTextField(minuteController, context.l10n.profileBirthMinuteLabel),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              context.l10n.cancel,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              final updated = UserProfile(
-                displayName: nameController.text.trim().isEmpty
-                    ? null
-                    : nameController.text.trim(),
-                gender: genderController.text.trim().isEmpty
-                    ? null
-                    : genderController.text.trim(),
-                birthCity: cityController.text.trim().isEmpty
-                    ? null
-                    : cityController.text.trim(),
-                birthYear: _parseInt(yearController.text),
-                birthMonth: _parseInt(monthController.text),
-                birthDay: _parseInt(dayController.text),
-                birthHour: _parseInt(hourController.text),
-                birthMinute: _parseInt(minuteController.text),
-              );
-
-              final result = await _authService.updateProfile(updated);
-              if (!mounted) return;
-              if (result != null) {
-                setState(() => _profile = result);
-                Navigator.pop(context);
-              }
-            },
-            child: Text(
-              context.l10n.save,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextField(
-        controller: controller,
-        style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
-        decoration: InputDecoration(
-          labelText: label,
-        ),
-      ),
-    );
-  }
-
-  int? _parseInt(String raw) {
-    final trimmed = raw.trim();
-    if (trimmed.isEmpty) return null;
-    return int.tryParse(trimmed);
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
-        title: Text(
-          context.l10n.logout,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-        ),
-        content: Text(
-          context.l10n.logoutConfirm,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              context.l10n.cancel,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              await _authService.logout();
-              if (!mounted) return;
-              Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-            },
-            child: Text(
-              context.l10n.logoutAction,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showRechargeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
-        title: Text(
-          context.l10n.profileRecharge,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-        ),
-        content: Text(
-          context.l10n.featureInProgress,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              context.l10n.confirm,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showVoiceDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
-        title: Text(
-          context.l10n.voiceSelectionTitle,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+  Widget _buildTimeInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildVoiceOption(VoiceOption.defaultFemale),
-            _buildVoiceOption(VoiceOption.gentleFemale),
-            _buildVoiceOption(VoiceOption.magneticMale),
+            _buildLabel('出生时间*'),
+            GestureDetector(
+              onTap: () => setState(() => _isTimeUnknown = !_isTimeUnknown),
+              child: Row(
+                children: [
+                  Icon(
+                    _isTimeUnknown ? Icons.check_box : Icons.check_box_outline_blank,
+                    size: 18,
+                    color: _isTimeUnknown ? AppTheme.fluorescentCyan : AppTheme.softGrayText,
+                  ),
+                  const SizedBox(width: 4),
+                  Text('不确定可选择"不详"', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
+                ],
+              ),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              context.l10n.confirm,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: _isTimeUnknown ? null : () async {
+            final picked = await showTimePicker(
+              context: context,
+              initialTime: _birthTime ?? const TimeOfDay(hour: 12, minute: 0),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: ColorScheme.dark(
+                      primary: AppTheme.jadeGreen,
+                      onPrimary: AppTheme.voidBackground,
+                      surface: AppTheme.voidBackground,
+                      onSurface: AppTheme.warmYellow,
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (picked != null) setState(() => _birthTime = picked);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppTheme.spiritGlass.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.access_time, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                const SizedBox(width: 10),
+                Text(
+                  _isTimeUnknown
+                      ? '时间不详'
+                      : (_birthTime == null 
+                          ? 'HH时 MM分' 
+                          : '${_birthTime!.hour.toString().padLeft(2, '0')}时 ${_birthTime!.minute.toString().padLeft(2, '0')}分'),
+                  style: GoogleFonts.notoSerifSc(
+                    color: (_birthTime == null && !_isTimeUnknown) ? AppTheme.softGrayText : AppTheme.warmYellow,
+                    fontSize: 14,
+                  ),
+                ),
+                const Spacer(),
+                Icon(Icons.keyboard_arrow_down, color: AppTheme.softGrayText),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildVoiceOption(VoiceOption voice) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+  Widget _buildCityInput({
+    required String label,
+    required String value,
+    required String placeholder,
+    required VoidCallback onTap,
+    bool isOptional = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildLabel(label),
+            if (isOptional)
+              Text(' (选填)', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppTheme.spiritGlass.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.location_on_outlined, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                const SizedBox(width: 10),
+                Text(
+                  value.isEmpty ? placeholder : value,
+                  style: GoogleFonts.notoSerifSc(
+                    color: value.isEmpty ? AppTheme.softGrayText : AppTheme.warmYellow,
+                    fontSize: 14,
+                  ),
+                ),
+                const Spacer(),
+                Icon(Icons.search, size: 20, color: AppTheme.softGrayText),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required String hint,
+    required ValueChanged<String?> onChanged,
+    bool isOptional = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildLabel(label),
+            if (isOptional)
+              Text(' (选填)', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.spiritGlass.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              hint: Text(hint, style: TextStyle(color: AppTheme.softGrayText, fontSize: 14)),
+              isExpanded: true,
+              dropdownColor: AppTheme.voidBackground,
+              icon: Icon(Icons.arrow_drop_down, color: AppTheme.softGrayText),
+              items: items.map((String item) {
+                return DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(item, style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow)),
+                );
+              }).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRadioOption(String label, String groupValue, ValueChanged<String> onChanged) {
+    final isSelected = groupValue == label;
+    final activeColor = AppTheme.fluorescentCyan;
+    
+    return GestureDetector(
+      onTap: () => onChanged(label),
       child: Row(
         children: [
-          Radio<VoiceOption>(
-            value: voice,
-            groupValue: _selectedVoice,
-            onChanged: (value) {
-              setState(() => _selectedVoice = value ?? VoiceOption.defaultFemale);
-              Navigator.pop(context);
-            },
-            activeColor: AppTheme.fluorescentCyan,
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? activeColor : AppTheme.softGrayText,
+                width: 2,
+              ),
+              // 移除发光阴影
+            ),
+            child: isSelected
+                ? Center(
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: activeColor,
+                      ),
+                    ),
+                  )
+                : null,
           ),
+          const SizedBox(width: 8),
           Text(
-            _voiceLabel(context, voice),
-            style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showFeedbackDialog(BuildContext context) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
-        title: Text(
-          context.l10n.profileFeedback,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-        ),
-        content: TextField(
-          controller: controller,
-          maxLines: 4,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-          decoration: InputDecoration(
-            hintText: context.l10n.feedbackHint,
-            hintStyle: GoogleFonts.notoSerifSc(
-              color: AppTheme.fluorescentCyan.withValues(alpha: 0.5),
-            ),
-            border: OutlineInputBorder(
-              borderSide: BorderSide(color: AppTheme.fluorescentCyan),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              context.l10n.cancel,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              context.l10n.submit,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showPrivacyDialog(BuildContext context) {
-    _showAgreementDialog(
-      context,
-      context.l10n.privacyAgreementTitle,
-      _getPrivacyContent(),
-    );
-  }
-
-  void _showRechargeAgreementDialog(BuildContext context) {
-    _showAgreementDialog(
-      context,
-      context.l10n.rechargeAgreementTitle,
-      _getRechargeAgreementContent(),
-    );
-  }
-
-  void _showUserAgreementDialog(BuildContext context) {
-    _showAgreementDialog(
-      context,
-      context.l10n.userAgreementTitle,
-      _getUserAgreementContent(),
-    );
-  }
-
-  void _showAgreementDialog(BuildContext context, String title, String content) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.voidBackground.withValues(alpha: 0.9),
-        title: Text(
-          title,
-          style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-        ),
-        content: SingleChildScrollView(
-          child: Text(
-            content,
+            label,
             style: GoogleFonts.notoSerifSc(
-              color: AppTheme.fluorescentCyan,
-              fontSize: 12,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              context.l10n.close,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
+              color: isSelected ? AppTheme.warmYellow : AppTheme.softGrayText,
+              fontSize: 14,
             ),
           ),
         ],
@@ -659,39 +708,121 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  String _getPrivacyContent() {
-    return context.l10n.privacyPolicyContent;
-  }
-
-  String _getRechargeAgreementContent() {
-    return context.l10n.rechargeAgreementContent;
-  }
-
-  String _getUserAgreementContent() {
-    return context.l10n.userAgreementContent;
-  }
-
-  Widget _buildDialogItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: GoogleFonts.notoSerifSc(
-              color: AppTheme.warmYellow,
-              fontWeight: FontWeight.w500,
-            ),
+  Future<void> _selectCity({required bool isBirth}) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return GlassContainer(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          height: MediaQuery.of(context).size.height * 0.6,
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  '选择城市',
+                  style: GoogleFonts.notoSerifSc(
+                    fontSize: 18, 
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.warmYellow,
+                  ),
+                ),
+              ),
+              Divider(height: 1, color: AppTheme.amberGold.withOpacity(0.2)),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: _cities.length,
+                  separatorBuilder: (_, __) => Divider(height: 1, color: AppTheme.inkText.withOpacity(0.05)),
+                  itemBuilder: (context, index) {
+                    final city = _cities[index];
+                    return ListTile(
+                      title: Text(
+                        city,
+                        style: GoogleFonts.notoSerifSc(color: AppTheme.inkText),
+                      ),
+                      onTap: () => Navigator.pop(context, city),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.notoSerifSc(color: AppTheme.fluorescentCyan),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
+    
+    if (selected != null) {
+      setState(() {
+        if (isBirth) {
+          _birthCity = selected;
+        } else {
+          _currentCity = selected;
+        }
+      });
+    }
+  }
+
+  Future<void> _submitProfile() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // 简单验证
+    if (_birthDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请选择出生日期')),
+      );
+      return;
+    }
+    if (_birthTime == null && !_isTimeUnknown) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请选择出生时间')),
+      );
+      return;
+    }
+    if (_birthCity.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请选择出生地')),
+      );
+      return;
+    }
+
+    final updated = UserProfile(
+      displayName: _nameController.text,
+      gender: _gender,
+      birthCity: _birthCity,
+      birthYear: _birthDate!.year,
+      birthMonth: _birthDate!.month,
+      birthDay: _birthDate!.day,
+      birthHour: _isTimeUnknown ? null : _birthTime?.hour,
+      birthMinute: _isTimeUnknown ? null : _birthTime?.minute,
+      // 注意：现状信息（职业、学历等）暂未保存到后端，因为模型不支持
+    );
+
+    try {
+      final result = await _authService.updateProfile(updated);
+      if (mounted) {
+        if (result != null) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('个人信息保存成功，元神探索开启！')),
+          );
+          // 这里可以跳转到首页或者元神展示页
+          // Navigator.pushNamed(context, AppRoutes.home);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('保存失败，请重试')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('发生错误: $e')),
+        );
+      }
+    }
   }
 }
-
