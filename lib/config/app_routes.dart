@@ -5,6 +5,7 @@ import 'package:primordial_spirit/screens/bazi_input_screen.dart';
 import 'package:primordial_spirit/screens/chat_screen.dart';
 import 'package:primordial_spirit/screens/home_screen.dart';
 import 'package:primordial_spirit/screens/login_screen.dart';
+import 'package:primordial_spirit/screens/register_screen.dart';
 import 'package:primordial_spirit/screens/profile_screen.dart';
 import 'package:primordial_spirit/models/relationship_models.dart';
 import 'package:primordial_spirit/screens/relationship_chat_screen.dart';
@@ -23,6 +24,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String profile = '/profile';
   static const String login = '/login';
+  static const String register = '/register';
   static const String relationshipSelect = '/relationship';
   static const String relationshipForm = '/relationship/form';
   static const String relationshipReport = '/relationship/report';
@@ -37,6 +39,7 @@ class AppRoutes {
       settings: (context) => const SettingsScreen(),
       profile: (context) => const AuthGuard(child: ProfileScreen()),
       login: (context) => const LoginScreen(),
+      register: (context) => const RegisterScreen(),
       relationshipSelect: (context) => const RelationshipSelectScreen(),
     };
   }
@@ -62,6 +65,8 @@ class AppRoutes {
         );
       case AppRoutes.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
+      case AppRoutes.register:
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case AppRoutes.relationshipForm:
         final args = settings.arguments as Map<String, dynamic>?;
         final relationType = args?['relationType'] as String?;

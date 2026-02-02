@@ -10,6 +10,8 @@ class AppTheme {
   static const Color voidBackground = Color(0xFF0B181B); // Deep Teal Base
   static const Color inkGreen = Color(0xFF122A2E); // Depth Teal
   static const Color voidDeeper = Color(0xFF091214); // Near-black teal
+  static const Color deepSpaceBlue = Color(0xFF0B1026); // Deep space blue
+  static const Color pureBlack = Color(0xFF000000); // Pure black
 
   // Accents (Qi Flow)
   static const Color fluorescentCyan = Color(0xFF22D3EE); // Spirit Cyan
@@ -43,6 +45,7 @@ class AppTheme {
   static const Color primaryBlack = voidBackground;
   static const Color deepVoidBlue = voidBackground;
   static const Color accentJade = fluorescentCyan;
+  static const Color softGrayText = Color(0xFFAAAAAA);
   // jadeGreen 已在上方定义为 Mystical Jade
 
   // Gradients (统一背景与材质层)
