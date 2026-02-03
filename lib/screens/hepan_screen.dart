@@ -6,6 +6,7 @@ import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/models/relationship_models.dart';
+import 'package:primordial_spirit/widgets/app_bottom_nav_bar.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
@@ -77,10 +78,8 @@ class _HePanScreenState extends State<HePanScreen> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppTheme.inkText),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: false,
+        leading: const SizedBox.shrink(),
         actions: [
           IconButton(
             icon: Icon(Icons.history, color: AppTheme.inkText),
@@ -97,34 +96,76 @@ class _HePanScreenState extends State<HePanScreen> {
         ],
       ),
       body: ThemedBackground(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 100, 16, 40),
-          child: Column(
-            children: [
-              // 本命盘 (我)
-              _buildMyChartCard(myName, myBirthDate, myBirthCity, '上海市'), // '上海市' is mocked current city
-              
-              const SizedBox(height: 16),
-              
-              // 应缘盘 (对方)
-              _buildOtherChartCard(context),
-              
-              const SizedBox(height: 32),
-              
-              // 开始合盘按钮
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: MysticButton(
-                  text: '开始合盘',
-                  onPressed: _startHePan,
-                ),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 100, 16, 140),
+              child: Column(
+                children: [
+                  // 本命盘 (我)
+                  _buildMyChartCard(myName, myBirthDate, myBirthCity, '上海市'), // '上海市' is mocked current city
+                  
+                  const SizedBox(height: 16),
+                  
+                  // 应缘盘 (对方)
+                  _buildOtherChartCard(context),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // 开始合盘按钮
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: MysticButton(
+                      text: '开始合盘',
+                      onPressed: _startHePan,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: AppBottomNavBar(
+                currentTarget: AppNavTarget.relationship,
+                onNavigation: (target) => _handleTabNavigation(context, target),
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _handleTabNavigation(BuildContext context, AppNavTarget target) {
+    if (target == AppNavTarget.relationship) return;
+
+    switch (target) {
+      case AppNavTarget.home:
+        _switchTab(context, AppRoutes.home);
+        break;
+      case AppNavTarget.chat:
+        _switchTab(context, AppRoutes.chat);
+        break;
+      case AppNavTarget.fortune:
+        _switchTab(context, AppRoutes.fortune);
+        break;
+      case AppNavTarget.bazi:
+        _switchTab(context, AppRoutes.bazi);
+        break;
+      case AppNavTarget.plaza:
+        break;
+      case AppNavTarget.relationship:
+        break;
+    }
+  }
+
+  void _switchTab(BuildContext context, String routeName) {
+    final current = ModalRoute.of(context)?.settings.name;
+    if (current == routeName) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(routeName, (route) => false);
   }
 
   Widget _buildMyChartCard(String name, String birthInfo, String birthPlace, String currentPlace) {

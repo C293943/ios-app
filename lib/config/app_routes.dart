@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/screens/avatar_generation_screen.dart';
 import 'package:primordial_spirit/screens/bazi_input_screen.dart';
+import 'package:primordial_spirit/screens/bazi_input_screen.dart';
+import 'package:primordial_spirit/screens/bazi_report_screen.dart';
 import 'package:primordial_spirit/screens/bazi_screen.dart';
 import 'package:primordial_spirit/screens/chat_screen.dart';
 import 'package:primordial_spirit/screens/hepan_screen.dart';
@@ -18,6 +20,7 @@ import 'package:primordial_spirit/screens/relationship_history_screen.dart';
 import 'package:primordial_spirit/screens/settings_screen.dart';
 import 'package:primordial_spirit/screens/spirit_note_screen.dart';
 import 'package:primordial_spirit/screens/fortune_screen.dart';
+import 'package:primordial_spirit/screens/fortune_detail_screen.dart';
 import 'package:primordial_spirit/screens/about_screen.dart';
 import 'package:primordial_spirit/screens/language_settings_screen.dart';
 import 'package:primordial_spirit/widgets/auth_guard.dart';
@@ -39,15 +42,19 @@ class AppRoutes {
   static const String relationshipHistory = '/relationship/history';
   static const String note = '/note';
   static const String fortune = '/fortune';
+  static const String fortuneDetail = '/fortune/detail';
   static const String about = '/about';
   static const String language = '/language';
   static const String bazi = '/bazi';
+
+  static const String baziReport = '/bazi/report';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       home: (context) => const HomeScreen(),
       baziInput: (context) => const BaziInputScreen(),
       bazi: (context) => const BaziScreen(),
+      baziReport: (context) => const BaziReportScreen(),
       // avatarGeneration 需要参数，通过 onGenerateRoute 处理
       chat: (context) => const ChatScreen(),
       settings: (context) => const SettingsScreen(),
@@ -122,8 +129,12 @@ class AppRoutes {
         );
       case AppRoutes.note:
         return MaterialPageRoute(builder: (_) => const SpiritNoteScreen());
+      case AppRoutes.baziReport:
+        return MaterialPageRoute(builder: (_) => const BaziReportScreen());
       case AppRoutes.fortune:
         return MaterialPageRoute(builder: (_) => const FortuneScreen());
+      case AppRoutes.fortuneDetail:
+        return MaterialPageRoute(builder: (_) => const FortuneDetailScreen());
       case AppRoutes.about:
         return MaterialPageRoute(builder: (_) => const AboutScreen());
       case AppRoutes.bazi:

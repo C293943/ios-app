@@ -94,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _navigateTo(context, AppRoutes.fortune);
         break;
       case AppNavTarget.bazi:
-        _navigateTo(context, AppRoutes.baziInput);
+        _navigateTo(context, AppRoutes.bazi);
         break;
       case AppNavTarget.plaza:
         break;
@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _navigateTo(BuildContext context, String routeName) {
     final current = ModalRoute.of(context)?.settings.name;
     if (current == routeName) return;
-    Navigator.of(context).pushNamed(routeName);
+    Navigator.of(context).pushNamedAndRemoveUntil(routeName, (route) => false);
   }
 }
 

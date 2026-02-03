@@ -55,12 +55,12 @@ class AppBottomNavBar extends StatelessWidget {
                           // In original code, it was _NavLabelOnly.
                           // I will use _NavItem for all for now to ensure layout consistency.
                         ),
-                        _NavItem(
-                          icon: Icons.help_outline,
-                          label: "问卜", // Need to find l10n key or use this
-                          isActive: currentTarget == AppNavTarget.chat,
-                          onTap: () => onNavigation(AppNavTarget.chat),
-                        ),
+                        // _NavItem(
+                        //   icon: Icons.help_outline,
+                        //   label: "问卜", // Need to find l10n key or use this
+                        //   isActive: currentTarget == AppNavTarget.chat,
+                        //   onTap: () => onNavigation(AppNavTarget.chat),
+                        // ),
                         _NavItem(
                           icon: Icons.favorite_border,
                           label: context.l10n.navRelationship, // "合盘"
@@ -102,11 +102,11 @@ class AppBottomNavBar extends StatelessWidget {
           // The image doesn't clearly show a floating crystal, just tabs.
           // I will include the crystal decoration if it's part of the global theme, 
           // but maybe just positioned relative to the bar.
-          Positioned(
-             left: 24,
-             bottom: 28,
-             child: _FloatingCrystal(),
-          ),
+          // Positioned(
+          //    left: 24,
+          //    bottom: 28,
+          //    child: _FloatingCrystal(),
+          // ),
         ],
       ),
     );

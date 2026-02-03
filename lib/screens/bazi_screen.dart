@@ -2,10 +2,11 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/app_bottom_nav_bar.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
-import 'package:primordial_spirit/config/app_routes.dart';
+import 'package:primordial_spirit/widgets/hidden_stems_sheet.dart';
 
 class BaziScreen extends StatelessWidget {
   const BaziScreen({super.key});
@@ -36,6 +37,15 @@ class BaziScreen extends StatelessWidget {
                           const _FourPillarsCard(),
                           const SizedBox(height: 16),
                           const _FiveElementsChartCard(),
+                          const SizedBox(height: 16),
+                          const _XiYongShenCard(),
+                          const SizedBox(height: 16),
+                          const _DaYunCard(),
+                          const SizedBox(height: 16),
+                          const _SpiritChatCard(),
+                          const SizedBox(height: 16),
+                          const _LockedReportCard(),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
@@ -52,20 +62,18 @@ class BaziScreen extends StatelessWidget {
                 onNavigation: (target) {
                    if (target == AppNavTarget.bazi) return;
                    
-                   // Navigation logic matching HomeScreen
                    switch (target) {
                      case AppNavTarget.home:
-                       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (route) => false);
+                       _switchTab(context, AppRoutes.home);
                        break;
                      case AppNavTarget.chat:
-                       Navigator.pushReplacementNamed(context, AppRoutes.chat);
+                       _switchTab(context, AppRoutes.chat);
                        break;
                      case AppNavTarget.relationship:
-                       Navigator.pushReplacementNamed(context, AppRoutes.relationshipSelect);
+                       _switchTab(context, AppRoutes.relationshipSelect);
                        break;
                      case AppNavTarget.fortune:
-                       // Usually goes to avatar generation or similar in this app context
-                       Navigator.pushReplacementNamed(context, AppRoutes.avatarGeneration); 
+                       _switchTab(context, AppRoutes.fortune); 
                        break;
                      default:
                        break;
@@ -85,10 +93,7 @@ class BaziScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.inkText),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+          const SizedBox(width: 48),
           Text(
             '八字',
             style: AppTheme.mysticTheme.textTheme.titleLarge?.copyWith(
@@ -106,6 +111,12 @@ class BaziScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+void _switchTab(BuildContext context, String routeName) {
+  final current = ModalRoute.of(context)?.settings.name;
+  if (current == routeName) return;
+  Navigator.of(context).pushNamedAndRemoveUntil(routeName, (route) => false);
 }
 
 class _UserInfoCard extends StatelessWidget {
@@ -293,17 +304,27 @@ class _FourPillarsCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '展开藏干',
-                style: TextStyle(
-                  color: AppTheme.inkText.withOpacity(0.8),
-                  fontSize: 12,
+            child: GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const HiddenStemsSheet(),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '展开藏干',
+                  style: TextStyle(
+                    color: AppTheme.inkText.withOpacity(0.8),
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ),
@@ -334,9 +355,9 @@ class _FourPillarsCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
+          Container(
           width: 68,
-          height: 140,
+          height: 160, // Increased from 140 to prevent overflow
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             gradient: LinearGradient(
@@ -508,17 +529,9 @@ class _FiveElementsRadarChart extends StatelessWidget {
 }
 
 class _RadarChartPainter extends CustomPainter {
-  // Elements order: Wood, Fire, Earth, Metal, Water
-  // Values based on image:
-  // Wood: 35%
-  // Fire: 20%
-  // Earth: 25%
-  // Metal: 15%
-  // Water: 5%
   final List<double> values = [0.35, 0.20, 0.25, 0.15, 0.05];
   final List<String> labels = ['木 35%', '火 20%', '土 25%', '金 15%', '水 5%'];
   
-  // Normalize for display (scale biggest to ~0.9 radius)
   List<double> get normalizedValues {
     double max = values.reduce(math.max);
     return values.map((e) => (e / max) * 0.8 + 0.1).toList(); 
@@ -527,7 +540,7 @@ class _RadarChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 * 0.75; // Leave space for labels
+    final radius = size.width / 2 * 0.75; 
 
     final paintGrid = Paint()
       ..color = Colors.white.withOpacity(0.2)
@@ -537,49 +550,23 @@ class _RadarChartPainter extends CustomPainter {
     final paintFill = Paint()
       ..style = PaintingStyle.fill;
     
-    // Draw Pentagon Grid (5 levels)
     for (int i = 1; i <= 5; i++) {
       _drawPentagon(canvas, center, radius * (i / 5), paintGrid);
     }
     
-    // Draw Spokes
     _drawSpokes(canvas, center, radius, paintGrid);
 
-    // Draw Data Polygon
     final path = Path();
     final normValues = normalizedValues;
     final angleStep = (2 * math.pi) / 5;
-    // Start from top (Wood) - rotate -90 degrees (or -pi/2) to start at top
-    // Standard trigonometric start is 3 o'clock. Top is -pi/2.
-    // Order: Wood (Top), Fire (Right Top), Earth (Right Bottom), Metal (Left Bottom), Water (Left Top)?
-    // Standard Wu Xing Cycle: Wood -> Fire -> Earth -> Metal -> Water.
-    // Let's verify image position: 
-    // Top: Wood
-    // Right: Fire
-    // Bottom Right: Earth
-    // Bottom Left: Metal
-    // Left: Water (Wait, 5 points)
-    // Pentagon points:
-    // 1. Top (Wood)
-    // 2. Right (Fire) - approx 18 degrees
-    // 3. Bottom Right (Earth)
-    // 4. Bottom Left (Metal)
-    // 5. Left (Water) -- Image shows:
-    // Top: Wood
-    // Right: Fire
-    // Bottom Right: Earth
-    // Bottom Left: Metal (label '金 15%')
-    // Left: Water ('水 5%')
     
     double startAngle = -math.pi / 2;
 
-    List<Offset> points = [];
     for (int i = 0; i < 5; i++) {
-      final r = radius * normValues[i]; // Use normalized values for shape
+      final r = radius * normValues[i];
       final angle = startAngle + i * angleStep;
       final x = center.dx + r * math.cos(angle);
       final y = center.dy + r * math.sin(angle);
-      points.add(Offset(x, y));
       if (i == 0) {
         path.moveTo(x, y);
       } else {
@@ -588,27 +575,24 @@ class _RadarChartPainter extends CustomPainter {
     }
     path.close();
 
-    // Fill Gradient
     paintFill.shader = const LinearGradient(
-      colors: [Color(0xFF22D3EE), Color(0xFFE8C872)], // Cyan to Gold
+      colors: [Color(0xFF22D3EE), Color(0xFFE8C872)], 
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     ).createShader(Rect.fromCircle(center: center, radius: radius));
     
     canvas.drawPath(path, paintFill);
     
-    // Draw Border
     final paintBorder = Paint()
       ..color = const Color(0xFFE8C872)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
     canvas.drawPath(path, paintBorder);
 
-    // Draw Labels
     const textStyle = TextStyle(color: Colors.white70, fontSize: 12);
     for (int i = 0; i < 5; i++) {
       final angle = startAngle + i * angleStep;
-      final labelRadius = radius + 20; // Push out
+      final labelRadius = radius + 20; 
       final x = center.dx + labelRadius * math.cos(angle);
       final y = center.dy + labelRadius * math.sin(angle);
       
@@ -651,4 +635,338 @@ class _RadarChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// --- New Components ---
+
+class _XiYongShenCard extends StatelessWidget {
+  const _XiYongShenCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassContainer(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '喜用神 / 忌神',
+            style: TextStyle(
+              color: AppTheme.inkText.withOpacity(0.9),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '喜用神',
+                        style: TextStyle(
+                          color: AppTheme.inkText.withOpacity(0.7),
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('木', style: TextStyle(color: const Color(0xFF98CAA6), fontSize: 24, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 8),
+                          Text('火', style: TextStyle(color: const Color(0xFFE8B0B0), fontSize: 24, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(width: 1, height: 60, color: Colors.white.withOpacity(0.1), margin: const EdgeInsets.symmetric(horizontal: 8)), // Reduced from 16
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(10), // Reduced from 12
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '忌神',
+                        style: TextStyle(
+                          color: AppTheme.inkText.withOpacity(0.7),
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('金', style: TextStyle(color: const Color(0xFFE8EBF0), fontSize: 24, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 8),
+                          Text('水', style: TextStyle(color: const Color(0xFFA4C8E8), fontSize: 24, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                Text(
+                  '八字格局: 正官格',
+                  style: TextStyle(
+                    color: AppTheme.inkText,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '日元旺衰: 偏弱 (45分)',
+                  style: TextStyle(
+                    color: AppTheme.inkText,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DaYunCard extends StatelessWidget {
+  const _DaYunCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassContainer(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '大运流年',
+            style: TextStyle(
+              color: AppTheme.inkText.withOpacity(0.9),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildDaYunItem('23-32岁', false),
+              _buildDaYunItem('33-42岁', true),
+              _buildDaYunItem('43-52岁', false),
+              _buildDaYunItem('53-62岁', false),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Text(
+                '当前大运: 癸亥 (水水)',
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.water_drop, size: 14, color: Color(0xFFA4C8E8)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDaYunItem(String label, bool isActive) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // Reduced padding from 12 to 8 to prevent overflow
+      decoration: BoxDecoration(
+        color: isActive ? AppTheme.jadeGreen.withOpacity(0.3) : Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: isActive ? Border.all(color: AppTheme.jadeGreen.withOpacity(0.6)) : null,
+        boxShadow: isActive ? [BoxShadow(color: AppTheme.jadeGreen.withOpacity(0.2), blurRadius: 8)] : null,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isActive ? AppTheme.inkText : AppTheme.inkText.withOpacity(0.6),
+          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          fontSize: 13,
+        ),
+      ),
+    );
+  }
+}
+
+class _SpiritChatCard extends StatelessWidget {
+  const _SpiritChatCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassContainer(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.chat_bubble_outline, color: AppTheme.jadeGreen, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '问问元神',
+                  style: TextStyle(
+                    color: AppTheme.inkText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '我的八字适合什么职业?',
+                  style: TextStyle(
+                    color: AppTheme.inkText.withOpacity(0.6),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, AppRoutes.chat),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppTheme.jadeGreen.withOpacity(0.8), AppTheme.fluorescentCyan.withOpacity(0.8)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '开始对话',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LockedReportCard extends StatelessWidget {
+  const _LockedReportCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.baziReport),
+      child: GlassContainer(
+        width: double.infinity,
+        height: 180,
+        padding: const EdgeInsets.all(20),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '详细命理报告',
+                  style: TextStyle(
+                    color: AppTheme.inkText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: Opacity(
+                    opacity: 0.3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: List.generate(4, (index) => 
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          width: double.infinity,
+                          height: 12,
+                          color: Colors.grey,
+                        )
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppTheme.amberGold.withOpacity(0.9), Color(0xFFF0E68C)],
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.amberGold.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.lock, color: Color(0xFF8B6D43), size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      '解锁完整报告',
+                      style: TextStyle(
+                        color: Color(0xFF5D4037),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
