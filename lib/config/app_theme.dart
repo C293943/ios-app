@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/models/avatar_theme_config.dart';
 
@@ -95,7 +95,7 @@ class AppTheme {
       : _lightPureBlack.withOpacity(0.08);
   static Color get glassHighlight => _isDark
       ? Colors.white.withOpacity(0.10)
-      : Colors.white.withOpacity(0.65);
+      : Colors.transparent;
 
 
   static Color get inkText => _isDark ? _darkInkText : _lightInkText;

@@ -9,6 +9,7 @@ import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/theme_service.dart';
 
 import 'package:primordial_spirit/widgets/home_drawer.dart';
+import 'package:primordial_spirit/widgets/app_bottom_nav_bar.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
 
 /// 首页 - 仙侠主题沉浸式界面
@@ -18,8 +19,6 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
-enum _HomeNavTarget { home, chat, relationship, fortune, bazi }
 
 class _HomeScreenState extends State<HomeScreen> {
   @override
@@ -69,12 +68,43 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: _BottomNavBar(),
+              child: AppBottomNavBar(
+                currentTarget: AppNavTarget.home,
+                onNavigation: (target) => _handleNavTap(context, target),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _handleNavTap(BuildContext context, AppNavTarget target) {
+    switch (target) {
+      case AppNavTarget.home:
+        _navigateTo(context, AppRoutes.home);
+        break;
+      case AppNavTarget.chat:
+        _navigateTo(context, AppRoutes.chat);
+        break;
+      case AppNavTarget.relationship:
+        _navigateTo(context, AppRoutes.relationshipSelect);
+        break;
+      case AppNavTarget.fortune:
+        _navigateTo(context, AppRoutes.fortune);
+        break;
+      case AppNavTarget.bazi:
+        _navigateTo(context, AppRoutes.baziInput);
+        break;
+      case AppNavTarget.plaza:
+        break;
+    }
+  }
+
+  void _navigateTo(BuildContext context, String routeName) {
+    final current = ModalRoute.of(context)?.settings.name;
+    if (current == routeName) return;
+    Navigator.of(context).pushNamed(routeName);
   }
 }
 
@@ -561,267 +591,6 @@ class _BlinkingStarState extends State<_BlinkingStar>
   }
 }
 
-class _BottomNavBar extends StatelessWidget {
-  const _BottomNavBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final currentRoute =
-        ModalRoute.of(context)?.settings.name ?? AppRoutes.home;
-    return SizedBox(
-      height: 96,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 12,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              height: 72,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                color: AppTheme.spiritGlass,
-                border: Border.all(color: AppTheme.scrollBorder, width: 0.6),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _NavLabelOnly(
-                            label: context.l10n.navFortune,
-                            isActive: currentRoute == AppRoutes.home,
-                            onTap: () => _handleNavTap(context, _HomeNavTarget.home),
-                          ),
-                        ),
-                        _NavItem(
-                          icon: Icons.help_outline,
-                          label: context.l10n.navBazi,
-                          isActive: currentRoute == AppRoutes.chat,
-                          onTap: () => _handleNavTap(context, _HomeNavTarget.chat),
-                        ),
-                        _NavItem(
-                          icon: Icons.favorite_border,
-                          label: context.l10n.navRelationship,
-                          isActive: currentRoute == AppRoutes.relationshipSelect,
-                          onTap: () => _handleNavTap(context, _HomeNavTarget.relationship),
-                        ),
-                        _NavItem(
-                          icon: Icons.auto_graph,
-                          label: context.l10n.navFortune,
-                          isActive: currentRoute == AppRoutes.avatarGeneration,
-                          onTap: () => _handleNavTap(context, _HomeNavTarget.fortune),
-                        ),
-                        _NavItem(
-                          icon: Icons.grid_view,
-                          label: context.l10n.navBazi,
-                          isActive: currentRoute == AppRoutes.baziInput,
-                          onTap: () => _handleNavTap(context, _HomeNavTarget.bazi),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 24,
-            bottom: 28,
-            child: _FloatingCrystal(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleNavTap(BuildContext context, _HomeNavTarget target) {
-    switch (target) {
-      case _HomeNavTarget.home:
-        _navigateTo(context, AppRoutes.home);
-        break;
-      case _HomeNavTarget.chat:
-        _navigateTo(context, AppRoutes.chat);
-        break;
-      case _HomeNavTarget.relationship:
-        _navigateTo(context, AppRoutes.relationshipSelect);
-        break;
-      case _HomeNavTarget.fortune:
-        _handleFortuneTap(context);
-        break;
-      case _HomeNavTarget.bazi:
-        _navigateTo(context, AppRoutes.baziInput);
-        break;
-    }
-  }
-
-  void _navigateTo(BuildContext context, String routeName) {
-    final current = ModalRoute.of(context)?.settings.name;
-    if (current == routeName) return;
-    Navigator.of(context).pushNamed(routeName);
-  }
-
-  void _handleFortuneTap(BuildContext context) {
-    final modelManager = context.read<ModelManagerService>();
-    final baziData = _buildBaziData(modelManager);
-    if (baziData == null) {
-      _navigateTo(context, AppRoutes.baziInput);
-      return;
-    }
-    Navigator.of(context).pushNamed(
-      AppRoutes.avatarGeneration,
-      arguments: {'baziData': baziData},
-    );
-  }
-
-  Map<String, dynamic>? _buildBaziData(ModelManagerService modelManager) {
-    final fortune = modelManager.fortuneData;
-    if (fortune != null) {
-      final birth = fortune.birthInfo;
-      return {
-        'gender': birth.gender,
-        'date': DateTime(birth.year, birth.month, birth.day),
-        'time': TimeOfDay(hour: birth.hour, minute: birth.minute),
-        'city': birth.city,
-      };
-    }
-
-    final stored = modelManager.userBaziData;
-    if (stored == null) return null;
-    try {
-      final birth = BirthInfo.fromStoredData(stored);
-      return {
-        'gender': birth.gender,
-        'date': DateTime(birth.year, birth.month, birth.day),
-        'time': TimeOfDay(hour: birth.hour, minute: birth.minute),
-        'city': birth.city,
-      };
-    } catch (_) {
-      return null;
-    }
-  }
-
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.onTap,
-    this.isActive = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive
-        ? AppTheme.warmYellow
-        : AppTheme.inkText.withValues(alpha: 0.8);
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: color,
-              size: 22,
-            ),
-            const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 500),
-              style: TextStyle(
-                fontSize: 11,
-                color: color.withValues(alpha: 0.85),
-              ),
-              child: Text(label),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavLabelOnly extends StatelessWidget {
-  const _NavLabelOnly({
-    required this.label,
-    this.onTap,
-    this.isActive = false,
-  });
-
-  final String label;
-  final VoidCallback? onTap;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive
-        ? AppTheme.warmYellow
-        : AppTheme.inkText.withValues(alpha: 0.7);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 20),
-        GestureDetector(
-          onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 500),
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-            ),
-            child: Text(label),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FloatingCrystal extends StatelessWidget {
-  const _FloatingCrystal();
-
-  static const String _crystalAsset = 'assets/images/spirit-stone-egg.png';
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.jadeGreen.withValues(alpha: 0.5),
-            blurRadius: 26,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Image.asset(
-          _crystalAsset,
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-}
 
 class _ProfileAvatar extends StatefulWidget {
   const _ProfileAvatar();

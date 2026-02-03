@@ -2,7 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/screens/avatar_generation_screen.dart';
 import 'package:primordial_spirit/screens/bazi_input_screen.dart';
+import 'package:primordial_spirit/screens/bazi_screen.dart';
 import 'package:primordial_spirit/screens/chat_screen.dart';
+import 'package:primordial_spirit/screens/hepan_screen.dart';
 import 'package:primordial_spirit/screens/home_screen.dart';
 import 'package:primordial_spirit/screens/login_screen.dart';
 import 'package:primordial_spirit/screens/register_screen.dart';
@@ -12,8 +14,10 @@ import 'package:primordial_spirit/screens/relationship_chat_screen.dart';
 import 'package:primordial_spirit/screens/relationship_form_screen.dart';
 import 'package:primordial_spirit/screens/relationship_report_screen.dart';
 import 'package:primordial_spirit/screens/relationship_select_screen.dart';
+import 'package:primordial_spirit/screens/relationship_history_screen.dart';
 import 'package:primordial_spirit/screens/settings_screen.dart';
 import 'package:primordial_spirit/screens/spirit_note_screen.dart';
+import 'package:primordial_spirit/screens/fortune_screen.dart';
 import 'package:primordial_spirit/screens/about_screen.dart';
 import 'package:primordial_spirit/screens/language_settings_screen.dart';
 import 'package:primordial_spirit/widgets/auth_guard.dart';
@@ -32,21 +36,26 @@ class AppRoutes {
   static const String relationshipForm = '/relationship/form';
   static const String relationshipReport = '/relationship/report';
   static const String relationshipChat = '/relationship/chat';
+  static const String relationshipHistory = '/relationship/history';
   static const String note = '/note';
+  static const String fortune = '/fortune';
   static const String about = '/about';
   static const String language = '/language';
+  static const String bazi = '/bazi';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       home: (context) => const HomeScreen(),
       baziInput: (context) => const BaziInputScreen(),
+      bazi: (context) => const BaziScreen(),
       // avatarGeneration 需要参数，通过 onGenerateRoute 处理
       chat: (context) => const ChatScreen(),
       settings: (context) => const SettingsScreen(),
       profile: (context) => const ProfileScreen(), // Removed AuthGuard for demo/dev purposes
       login: (context) => const LoginScreen(),
       register: (context) => const RegisterScreen(),
-      relationshipSelect: (context) => const RelationshipSelectScreen(),
+      relationshipSelect: (context) => const HePanScreen(),
+      relationshipHistory: (context) => const RelationshipHistoryScreen(),
       note: (context) => const SpiritNoteScreen(),
       about: (context) => const AboutScreen(),
       language: (context) => const LanguageSettingsScreen(),
@@ -113,8 +122,12 @@ class AppRoutes {
         );
       case AppRoutes.note:
         return MaterialPageRoute(builder: (_) => const SpiritNoteScreen());
+      case AppRoutes.fortune:
+        return MaterialPageRoute(builder: (_) => const FortuneScreen());
       case AppRoutes.about:
         return MaterialPageRoute(builder: (_) => const AboutScreen());
+      case AppRoutes.bazi:
+        return MaterialPageRoute(builder: (_) => const BaziScreen());
       case AppRoutes.language:
         return MaterialPageRoute(builder: (_) => const LanguageSettingsScreen());
       default:

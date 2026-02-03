@@ -36,6 +36,7 @@ class RelationshipReport {
   final String summary;
   final List<String> highlights;
   final List<String> advice;
+  final String? avatar3dUrl;
 
   RelationshipReport({
     required this.reportId,
@@ -44,6 +45,7 @@ class RelationshipReport {
     required this.summary,
     required this.highlights,
     required this.advice,
+    this.avatar3dUrl,
   });
 
   factory RelationshipReport.fromJson(Map<String, dynamic> json) {
@@ -60,6 +62,7 @@ class RelationshipReport {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      avatar3dUrl: json['avatar3d_url'] as String?,
     );
   }
 
@@ -70,6 +73,7 @@ class RelationshipReport {
         'summary': summary,
         'highlights': highlights,
         'advice': advice,
+        'avatar3d_url': avatar3dUrl,
       };
 
   factory RelationshipReport.mock(String relationType) {

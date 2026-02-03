@@ -29,28 +29,13 @@ class SpiritNoteScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // 提示文本
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GlassContainer(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Text(
-                    context.l10n.noteQiGain,
-                    style: TextStyle(
-                      color: AppTheme.inkText.withOpacity(0.8),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
 
               // 笔记列表
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
+                    const SizedBox(height: 16),
                     _buildNoteItem(
                       date: context.l10n.noteSampleDate1,
                       content: context.l10n.noteSampleContent,
