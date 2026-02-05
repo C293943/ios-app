@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/models/user_models.dart';
+import 'package:primordial_spirit/services/auth_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
@@ -47,20 +49,94 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    // 根据注册方式进行验证
+    final nickname = _nicknameController.text.trim();
+    
+    if (_isPhoneRegister) {
+      // 手机注册验证
+      final phone = _phoneController.text.trim();
+      final code = _verifyCodeController.text.trim();
+      if (nickname.isEmpty) {
+        _showError(context.l10n.registerNicknameHint);
+        return;
+      }
+      if (phone.isEmpty) {
+        _showError(context.l10n.registerPhoneHint);
+        return;
+      }
+      if (code.isEmpty) {
+        _showError(context.l10n.registerCodeHint);
+        return;
+      }
+      // TODO: 后端暂不支持手机验证码注册，提示用户使用邮箱注册
+      _showError('手机注册功能开发中，请使用邮箱注册');
+      return;
+    } else {
+      // 邮箱注册验证
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      if (nickname.isEmpty) {
+        _showError(context.l10n.registerNicknameHint);
+        return;
+      }
+      if (email.isEmpty) {
+        _showError(context.l10n.registerEmailHint);
+        return;
+      }
+      if (!_isValidEmail(email)) {
+        _showError('请输入有效的邮箱地址');
+        return;
+      }
+      if (password.isEmpty) {
+        _showError(context.l10n.registerPasswordHint);
+        return;
+      }
+      if (password.length < 6) {
+        _showError('密码至少需要6位');
+        return;
+      }
+    }
+
     setState(() => _isSubmitting = true);
     
-    // Mock Register Logic
     try {
-        await Future.delayed(const Duration(seconds: 1)); // Simulating network
-        if (!mounted) return;
-        // After register, maybe go to home or back to login? 
-        // Usually go to Home or Profile setup
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      // 调用 AuthService 进行邮箱注册
+      final authService = AuthService();
+      final profile = UserProfile(displayName: nickname);
+      
+      await authService.register(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        profile: profile,
+      );
+      
+      if (!mounted) return;
+      // 注册成功后跳转到首页
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } catch (e) {
-        // Error handling
+      if (!mounted) return;
+      // 提取错误信息
+      String errorMsg = e.toString();
+      if (errorMsg.startsWith('Exception: ')) {
+        errorMsg = errorMsg.substring(11);
+      }
+      _showError(errorMsg);
     } finally {
-        if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+      ),
+    );
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
   @override

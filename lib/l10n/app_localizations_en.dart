@@ -560,6 +560,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activateNow => 'Activate Now';
 
   @override
+  String get paymentProcessing => 'Processing payment...';
+
+  @override
+  String get paymentWechatUnavailable => 'WeChat Pay is not available yet';
+
+  @override
+  String get paymentLoadPlansFailed =>
+      'Failed to load plans. Using default plans.';
+
+  @override
+  String get paymentAuthRequired => 'Please sign in before paying';
+
+  @override
+  String get paymentOrderCreated => 'Alipay opened, please complete payment';
+
+  @override
+  String get paymentLaunchFailed =>
+      'Unable to open Alipay. Please check installation';
+
+  @override
+  String get paymentOrderFailed => 'Failed to create order';
+
+  @override
+  String get paymentSuccess => 'Payment successful. Membership activated';
+
+  @override
+  String get paymentExpired => 'Order expired';
+
+  @override
+  String get paymentCancelled => 'Order cancelled';
+
+  @override
+  String get paymentStatusTimeout => 'Order status check timed out';
+
+  @override
   String get agreementHint =>
       'By activating, you agree to the Member Service Agreement';
 
@@ -995,4 +1030,76 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chatOverlayMockReply =>
       'I hear your heart... \\nA breeze rises from the tiniest ripple; perhaps this confusion is the prelude to awakening.';
+
+  @override
+  String get divinationTitle => 'Divination';
+
+  @override
+  String get divinationHistoryTitle => 'History';
+
+  @override
+  String get divinationWelcomeTitle => 'Focus on your question';
+
+  @override
+  String get divinationWelcomeSubtitle => 'Then enter it below';
+
+  @override
+  String get divinationTip1 => 'Approach with sincerity';
+
+  @override
+  String get divinationTip2 => 'Ask only once per day for the same matter';
+
+  @override
+  String get divinationTip3 =>
+      'The more specific the question, the better the interpretation';
+
+  @override
+  String get divinationCasting => 'Casting hexagram...';
+
+  @override
+  String get divinationInputHint => 'Enter your question...';
+
+  @override
+  String get divinationContinueHint => 'Continue asking...';
+
+  @override
+  String get divinationPrimaryHexagram => 'Primary';
+
+  @override
+  String get divinationChangedHexagram => 'Changed';
+
+  @override
+  String get divinationNoHistory => 'No divination records';
+
+  @override
+  String get divinationNoHistorySubtitle => 'Start your first divination';
+
+  @override
+  String get divinationDeleteTitle => 'Delete Record';
+
+  @override
+  String get divinationDeleteConfirm => 'Delete this divination record?';
+
+  @override
+  String get divinationClearTitle => 'Clear All';
+
+  @override
+  String get divinationClearConfirm =>
+      'Clear all divination records? This cannot be undone.';
+
+  @override
+  String get divinationDeleted => 'Record deleted';
+
+  @override
+  String get divinationCleared => 'Records cleared';
+
+  @override
+  String get divinationFailed => 'Divination failed, please try again';
+
+  @override
+  String get divinationInterpretFailed =>
+      'Interpretation failed, please try again';
+
+  @override
+  String get divinationReplyFailed => 'Reply failed, please try again';
 }

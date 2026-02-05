@@ -46,19 +46,80 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    // 根据登录方式进行验证
+    if (_isPhoneLogin) {
+      // 手机登录验证
+      final phone = _phoneController.text.trim();
+      final code = _verifyCodeController.text.trim();
+      if (phone.isEmpty) {
+        _showError(context.l10n.loginPhoneHint);
+        return;
+      }
+      if (code.isEmpty) {
+        _showError(context.l10n.loginCodeHint);
+        return;
+      }
+      // TODO: 后端暂不支持手机验证码登录，提示用户使用邮箱登录
+      _showError('手机登录功能开发中，请使用邮箱登录');
+      return;
+    } else {
+      // 邮箱登录验证
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      if (email.isEmpty) {
+        _showError(context.l10n.loginEmailHint);
+        return;
+      }
+      if (!_isValidEmail(email)) {
+        _showError('请输入有效的邮箱地址');
+        return;
+      }
+      if (password.isEmpty) {
+        _showError(context.l10n.loginPasswordHint);
+        return;
+      }
+      if (password.length < 6) {
+        _showError('密码至少需要6位');
+        return;
+      }
+    }
+
     setState(() => _isSubmitting = true);
     
-    // Mock Login Logic for Layout Demo
-    // In real app, connect to AuthService based on _isPhoneLogin
     try {
-        await Future.delayed(const Duration(seconds: 1)); // Simulating network
-        if (!mounted) return;
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+      // 调用 AuthService 进行邮箱登录
+      final authService = AuthService();
+      await authService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } catch (e) {
-        // Error handling
+      if (!mounted) return;
+      // 提取错误信息
+      String errorMsg = e.toString();
+      if (errorMsg.startsWith('Exception: ')) {
+        errorMsg = errorMsg.substring(11);
+      }
+      _showError(errorMsg);
     } finally {
-        if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+      ),
+    );
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
   @override

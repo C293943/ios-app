@@ -4,7 +4,7 @@ import 'dart:io';
 /// APP全局配置
 class AppConfig {
   // 应用名称
-  static const String appName = '鸿初元灵';
+  static const String appName = '数字元神';
 
   // ============ 服务器配置 ============
   // 生产环境服务器地址（上线后使用）
@@ -47,6 +47,11 @@ class AppConfig {
   static const String authLoginEndpoint = '/api/v1/auth/login';
   static const String authRefreshEndpoint = '/api/v1/auth/refresh';
   static const String userMeEndpoint = '/api/v1/users/me';
+
+  // 会员支付
+  static const String membershipPlansEndpoint = '/api/v1/membership/plans';
+  static const String membershipOrdersEndpoint = '/api/v1/membership/orders';
+  static const String membershipStatusEndpoint = '/api/v1/membership/status';
 
   // 默认语言
   static const String defaultLanguage = '中文';

@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appName => '鸿初元灵';
+  String get appName => '数字元神';
 
   @override
   String get accountSettings => '账号设置';
@@ -555,6 +555,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get activateNow => '立即开通';
 
   @override
+  String get paymentProcessing => '支付处理中...';
+
+  @override
+  String get paymentWechatUnavailable => '微信支付暂未开放';
+
+  @override
+  String get paymentLoadPlansFailed => '套餐加载失败，已使用默认套餐';
+
+  @override
+  String get paymentAuthRequired => '请先登录后再支付';
+
+  @override
+  String get paymentOrderCreated => '已唤起支付宝，请完成支付';
+
+  @override
+  String get paymentLaunchFailed => '无法唤起支付宝，请检查是否安装';
+
+  @override
+  String get paymentOrderFailed => '创建订单失败';
+
+  @override
+  String get paymentSuccess => '支付成功，会员已开通';
+
+  @override
+  String get paymentExpired => '订单已过期';
+
+  @override
+  String get paymentCancelled => '订单已取消';
+
+  @override
+  String get paymentStatusTimeout => '订单状态查询超时';
+
+  @override
   String get agreementHint => '开通即同意《会员服务协议》';
 
   @override
@@ -973,4 +1006,73 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get chatOverlayMockReply =>
       '我听到了你的心声... \\n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。';
+
+  @override
+  String get divinationTitle => '问卜';
+
+  @override
+  String get divinationHistoryTitle => '历史记录';
+
+  @override
+  String get divinationWelcomeTitle => '请诚心默念您的问题';
+
+  @override
+  String get divinationWelcomeSubtitle => '然后在下方输入';
+
+  @override
+  String get divinationTip1 => '问卜需诚心正意';
+
+  @override
+  String get divinationTip2 => '每日同一事宜只问一次';
+
+  @override
+  String get divinationTip3 => '问题越具体，解读越精准';
+
+  @override
+  String get divinationCasting => '摇卦中，请稍候...';
+
+  @override
+  String get divinationInputHint => '请输入您想问卜的问题...';
+
+  @override
+  String get divinationContinueHint => '继续提问...';
+
+  @override
+  String get divinationPrimaryHexagram => '本卦';
+
+  @override
+  String get divinationChangedHexagram => '变卦';
+
+  @override
+  String get divinationNoHistory => '暂无问卜记录';
+
+  @override
+  String get divinationNoHistorySubtitle => '开始您的第一次问卜吧';
+
+  @override
+  String get divinationDeleteTitle => '删除记录';
+
+  @override
+  String get divinationDeleteConfirm => '确定要删除这条问卜记录吗？';
+
+  @override
+  String get divinationClearTitle => '清空记录';
+
+  @override
+  String get divinationClearConfirm => '确定要清空所有问卜记录吗？此操作不可撤销。';
+
+  @override
+  String get divinationDeleted => '记录已删除';
+
+  @override
+  String get divinationCleared => '记录已清空';
+
+  @override
+  String get divinationFailed => '问卜失败，请重试';
+
+  @override
+  String get divinationInterpretFailed => '解读失败，请重试';
+
+  @override
+  String get divinationReplyFailed => '回复失败，请重试';
 }

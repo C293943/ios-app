@@ -1,8 +1,13 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
+import 'package:primordial_spirit/models/membership_models.dart';
+import 'package:primordial_spirit/services/membership_api_service.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/toast_overlay.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MemberRechargeScreen extends StatefulWidget {
   const MemberRechargeScreen({super.key});
@@ -14,6 +19,26 @@ class MemberRechargeScreen extends StatefulWidget {
 class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
   int _selectedPlanIndex = 1; // Default to Monthly (Recommended)
   int _selectedPaymentMethod = 0; // 0: WeChat, 1: Alipay
+  final MembershipApiService _membershipApi = MembershipApiService();
+  final List<MembershipPlan> _plans = [];
+  bool _isLoadingPlans = true;
+  bool _isPaying = false;
+  Timer? _pollTimer;
+  bool _isPolling = false;
+  int _pollAttempts = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPaymentMethod = 1;
+    _loadPlans();
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +46,6 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     
     // Define text colors based on theme
     final textColor = isDark ? Colors.white : AppTheme.inkText;
-    final subTextColor = isDark ? Colors.white.withOpacity(0.7) : AppTheme.inkText.withOpacity(0.6);
 
     // Light mode background gradient - Soft & Clean
     final lightBgGradient = const LinearGradient(
@@ -184,99 +208,62 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
   }
 
   Widget _buildPlansRow(BuildContext context, bool isDark) {
+    if (_isLoadingPlans) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: CircularProgressIndicator(
+            color: isDark ? AppTheme.fluorescentCyan : AppTheme.jadeGreen,
+          ),
+        ),
+      );
+    }
+
+    final plans = _displayPlans(context);
+    final children = <Widget>[];
+    for (var i = 0; i < plans.length; i++) {
+      final plan = plans[i];
+      final isGold = plan.recommended;
+      children.add(
+        Expanded(
+          child: _buildPlanCard(
+            context,
+            index: i,
+            title: plan.name,
+            duration: _planDurationLabel(plan, context),
+            benefits: plan.benefits,
+            originalPrice: _formatPrice(plan.originalPrice),
+            price: _formatPrice(plan.price),
+            priceUnit: _planPriceUnitLabel(plan, context),
+            dailyPrice: _planDailyPriceLabel(plan, context),
+            tag: plan.recommended ? context.l10n.recommended : null,
+            isGold: isGold,
+            gradientColors: isDark
+                ? [
+                    isGold
+                        ? const Color(0xFF3E2723).withOpacity(0.95)
+                        : AppTheme.voidDeeper.withOpacity(0.8),
+                    isGold
+                        ? const Color(0xFF5D4037).withOpacity(0.8)
+                        : AppTheme.inkGreen.withOpacity(0.6),
+                  ]
+                : [
+                    isGold ? const Color(0xFFFFFBEB) : Colors.white,
+                    isGold ? const Color(0xFFFFFBEB) : Colors.white,
+                  ],
+            textColor: isGold ? AppTheme.amberGold : Colors.white,
+            isDark: isDark,
+          ),
+        ),
+      );
+      if (i < plans.length - 1) {
+        children.add(const SizedBox(width: 8));
+      }
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: _buildPlanCard(
-            context,
-            index: 0,
-            title: context.l10n.weeklyPlan,
-            duration: context.l10n.days7,
-            benefits: [
-              context.l10n.giftCoins('50'),
-              context.l10n.dailyChatLimit('50'),
-              context.l10n.exclusiveBadge,
-            ],
-            originalPrice: '28',
-            price: '19.9',
-            priceUnit: '/${context.l10n.week}',
-            tag: null,
-            gradientColors: isDark 
-              ? [
-                  AppTheme.voidDeeper.withOpacity(0.8),
-                  AppTheme.inkGreen.withOpacity(0.6),
-                ]
-              : [
-                  Colors.white,
-                  Colors.white,
-                ],
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildPlanCard(
-            context,
-            index: 1,
-            title: context.l10n.monthlyPlan,
-            duration: context.l10n.days30,
-            benefits: [
-              context.l10n.giftCoins('70'),
-              context.l10n.dailyChatLimit('70'),
-              context.l10n.exclusiveBadge,
-              context.l10n.priorityExperience,
-            ],
-            originalPrice: '88',
-            price: '58',
-            priceUnit: '/${context.l10n.month}',
-            tag: context.l10n.recommended,
-            isGold: true,
-            gradientColors: isDark
-              ? [
-                  const Color(0xFF3E2723).withOpacity(0.95), // Deep brown
-                  const Color(0xFF5D4037).withOpacity(0.8),
-                ]
-              : [
-                  const Color(0xFFFFFBEB), // Very Light Amber
-                  const Color(0xFFFFFBEB),
-                ],
-            textColor: AppTheme.amberGold,
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildPlanCard(
-            context,
-            index: 2,
-            title: context.l10n.yearlyPlan,
-            duration: context.l10n.days365,
-            benefits: [
-              context.l10n.giftCoins('100'),
-              context.l10n.dailyChatLimit('100'),
-              context.l10n.exclusiveBadge,
-              context.l10n.priorityExperience,
-              context.l10n.customerService,
-            ],
-            originalPrice: '588',
-            price: '298',
-            priceUnit: '/${context.l10n.year}',
-            dailyPrice: context.l10n.pricePerDay('0.82'),
-            tag: context.l10n.bestValue,
-            gradientColors: isDark
-              ? [
-                  AppTheme.voidDeeper.withOpacity(0.8),
-                  AppTheme.inkGreen.withOpacity(0.6),
-                ]
-              : [
-                  Colors.white,
-                  Colors.white,
-                ],
-            isDark: isDark,
-          ),
-        ),
-      ],
+      children: children,
     );
   }
 
@@ -553,6 +540,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             label: context.l10n.wechatPay,
             textColor: textColor,
             isDark: isDark,
+            enabled: false,
           ),
           _buildPaymentOption(
             context,
@@ -562,6 +550,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             label: context.l10n.alipay,
             textColor: textColor,
             isDark: isDark,
+            enabled: true,
           ),
         ],
       ),
@@ -576,12 +565,19 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     required String label,
     required Color textColor,
     required bool isDark,
+    required bool enabled,
   }) {
     final isSelected = _selectedPaymentMethod == index;
     final activeColor = isDark ? AppTheme.fluorescentCyan : const Color(0xFF009688);
     
     return GestureDetector(
-      onTap: () => setState(() => _selectedPaymentMethod = index),
+      onTap: () {
+        if (!enabled) {
+          _showToast(context, context.l10n.paymentWechatUnavailable);
+          return;
+        }
+        setState(() => _selectedPaymentMethod = index);
+      },
       child: Row(
         children: [
           // Custom Radio Button
@@ -608,12 +604,12 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 : null,
           ),
           const SizedBox(width: 8),
-          Icon(icon, color: iconColor, size: 24),
+          Icon(icon, color: iconColor.withOpacity(enabled ? 1 : 0.4), size: 24),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              color: textColor,
+              color: textColor.withOpacity(enabled ? 1 : 0.5),
               fontSize: 14,
             ),
           ),
@@ -632,9 +628,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () {
-                // Handle payment logic
-              },
+              onPressed: _isPaying ? null : () => _handlePayment(context),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
@@ -664,7 +658,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 child: Container(
                   alignment: Alignment.center,
                   child: Text(
-                    context.l10n.activateNow,
+                    _isPaying ? context.l10n.paymentProcessing : context.l10n.activateNow,
                     style: TextStyle(
                       color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
                       fontSize: 18,
@@ -686,5 +680,225 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _loadPlans() async {
+    setState(() => _isLoadingPlans = true);
+    try {
+      final plans = await _membershipApi.fetchPlans();
+      if (mounted) {
+        _plans
+          ..clear()
+          ..addAll(plans);
+        _selectedPlanIndex = _recommendedPlanIndex(plans);
+      }
+    } catch (_) {
+      if (mounted) {
+        _showToast(context, context.l10n.paymentLoadPlansFailed);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingPlans = false);
+      }
+    }
+  }
+
+  Future<void> _handlePayment(BuildContext context) async {
+    if (_isPaying) return;
+    if (_selectedPaymentMethod == 0) {
+      _showToast(context, context.l10n.paymentWechatUnavailable);
+      return;
+    }
+
+    final plans = _displayPlans(context);
+    if (plans.isEmpty || _selectedPlanIndex >= plans.length) return;
+    final selectedPlan = plans[_selectedPlanIndex];
+
+    setState(() => _isPaying = true);
+    try {
+      final order = await _membershipApi.createOrder(
+        planId: selectedPlan.id,
+        paymentMethod: 'alipay',
+      );
+
+      final paymentUrl = order.paymentUrl;
+      if (paymentUrl == null || paymentUrl.isEmpty) {
+        throw MembershipApiException(context.l10n.paymentOrderFailed);
+      }
+
+      // 支付宝 App 支付返回的是订单字符串，需要转换为 URL Scheme
+      // 格式：alipays://platformapi/startapp?appId=20000067&url=编码后的订单字符串
+      final Uri launchUri;
+      if (paymentUrl.startsWith('http://') || paymentUrl.startsWith('https://') || paymentUrl.startsWith('alipays://')) {
+        // 已经是有效的 URL
+        launchUri = Uri.parse(paymentUrl);
+      } else {
+        // 支付宝订单字符串，转换为 URL Scheme
+        final encodedOrderString = Uri.encodeComponent(paymentUrl);
+        launchUri = Uri.parse('alipays://platformapi/startapp?appId=20000067&url=$encodedOrderString');
+      }
+
+      final launched = await launchUrl(
+        launchUri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        _showToast(context, context.l10n.paymentLaunchFailed);
+        return;
+      }
+
+      _showToast(context, context.l10n.paymentOrderCreated);
+      _startPolling(order.orderId);
+    } on MembershipApiException catch (e) {
+      if (e.message == 'AUTH_REQUIRED') {
+        _showToast(context, context.l10n.paymentAuthRequired);
+      } else {
+        _showToast(context, e.message);
+      }
+    } catch (e) {
+      debugPrint('支付错误: $e');
+      _showToast(context, context.l10n.paymentOrderFailed);
+    } finally {
+      if (mounted) {
+        setState(() => _isPaying = false);
+      }
+    }
+  }
+
+  void _startPolling(String orderId) {
+    _pollTimer?.cancel();
+    _pollAttempts = 0;
+    _pollTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_isPolling) return;
+      _isPolling = true;
+      _pollAttempts += 1;
+
+      try {
+        final status = await _membershipApi.fetchOrderStatus(orderId);
+        if (status.status == 'paid') {
+          await _membershipApi.fetchMembershipStatus();
+          _showToast(context, context.l10n.paymentSuccess);
+          timer.cancel();
+        } else if (status.status == 'expired') {
+          _showToast(context, context.l10n.paymentExpired);
+          timer.cancel();
+        } else if (status.status == 'cancelled') {
+          _showToast(context, context.l10n.paymentCancelled);
+          timer.cancel();
+        }
+      } catch (_) {
+        // 忽略单次查询失败，等待下一次轮询
+      } finally {
+        _isPolling = false;
+      }
+
+      if (_pollAttempts >= 60) {
+        _showToast(context, context.l10n.paymentStatusTimeout);
+        timer.cancel();
+      }
+    });
+  }
+
+  List<MembershipPlan> _displayPlans(BuildContext context) {
+    if (_plans.isNotEmpty) return _plans;
+    return _fallbackPlans(context);
+  }
+
+  List<MembershipPlan> _fallbackPlans(BuildContext context) {
+    return [
+      MembershipPlan(
+        id: 'weekly',
+        name: context.l10n.weeklyPlan,
+        durationDays: 7,
+        originalPrice: 28,
+        price: 19.9,
+        benefits: [
+          context.l10n.giftCoins('50'),
+          context.l10n.dailyChatLimit('50'),
+          context.l10n.exclusiveBadge,
+        ],
+        recommended: false,
+        spiritStones: 50,
+        dailyChatLimit: 50,
+        badges: const ['vip_weekly'],
+      ),
+      MembershipPlan(
+        id: 'monthly',
+        name: context.l10n.monthlyPlan,
+        durationDays: 30,
+        originalPrice: 88,
+        price: 58,
+        benefits: [
+          context.l10n.giftCoins('70'),
+          context.l10n.dailyChatLimit('70'),
+          context.l10n.exclusiveBadge,
+          context.l10n.priorityExperience,
+        ],
+        recommended: true,
+        spiritStones: 70,
+        dailyChatLimit: 70,
+        badges: const ['vip_monthly'],
+      ),
+      MembershipPlan(
+        id: 'yearly',
+        name: context.l10n.yearlyPlan,
+        durationDays: 365,
+        originalPrice: 588,
+        price: 298,
+        benefits: [
+          context.l10n.giftCoins('100'),
+          context.l10n.dailyChatLimit('100'),
+          context.l10n.exclusiveBadge,
+          context.l10n.priorityExperience,
+          context.l10n.customerService,
+        ],
+        recommended: false,
+        spiritStones: 100,
+        dailyChatLimit: 100,
+        badges: const ['vip_yearly'],
+      ),
+    ];
+  }
+
+  int _recommendedPlanIndex(List<MembershipPlan> plans) {
+    for (var i = 0; i < plans.length; i++) {
+      if (plans[i].recommended) return i;
+    }
+    return plans.isEmpty ? 0 : (plans.length > 1 ? 1 : 0);
+  }
+
+  String _planDurationLabel(MembershipPlan plan, BuildContext context) {
+    if (plan.durationDays == 7) return context.l10n.days7;
+    if (plan.durationDays == 30) return context.l10n.days30;
+    if (plan.durationDays == 365) return context.l10n.days365;
+    return '${plan.durationDays}天';
+  }
+
+  String _planPriceUnitLabel(MembershipPlan plan, BuildContext context) {
+    if (plan.durationDays == 7) return '/${context.l10n.week}';
+    if (plan.durationDays == 30) return '/${context.l10n.month}';
+    if (plan.durationDays == 365) return '/${context.l10n.year}';
+    return '/${plan.durationDays}天';
+  }
+
+  String? _planDailyPriceLabel(MembershipPlan plan, BuildContext context) {
+    if (plan.durationDays < 30) return null;
+    final pricePerDay = (plan.price / plan.durationDays).toStringAsFixed(2);
+    return context.l10n.pricePerDay(pricePerDay);
+  }
+
+  String _formatPrice(double value) {
+    if (value % 1 == 0) {
+      return value.toStringAsFixed(0);
+    }
+    return value.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+  }
+
+  void _showToast(BuildContext context, String message) {
+    ToastOverlay.show(context, message: message, icon: Icons.info_outline);
   }
 }

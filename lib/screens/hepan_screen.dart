@@ -128,44 +128,12 @@ class _HePanScreenState extends State<HePanScreen> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: AppBottomNavBar(
-                currentTarget: AppNavTarget.relationship,
-                onNavigation: (target) => _handleTabNavigation(context, target),
-              ),
+              child: AppBottomNavBar(currentTarget: AppNavTarget.relationship),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _handleTabNavigation(BuildContext context, AppNavTarget target) {
-    if (target == AppNavTarget.relationship) return;
-
-    switch (target) {
-      case AppNavTarget.home:
-        _switchTab(context, AppRoutes.home);
-        break;
-      case AppNavTarget.chat:
-        _switchTab(context, AppRoutes.chat);
-        break;
-      case AppNavTarget.fortune:
-        _switchTab(context, AppRoutes.fortune);
-        break;
-      case AppNavTarget.bazi:
-        _switchTab(context, AppRoutes.bazi);
-        break;
-      case AppNavTarget.plaza:
-        break;
-      case AppNavTarget.relationship:
-        break;
-    }
-  }
-
-  void _switchTab(BuildContext context, String routeName) {
-    final current = ModalRoute.of(context)?.settings.name;
-    if (current == routeName) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(routeName, (route) => false);
   }
 
   Widget _buildMyChartCard(String name, String birthInfo, String birthPlace, String currentPlace) {

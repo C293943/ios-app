@@ -1,19 +1,33 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
 
-enum AppNavTarget { home, chat, relationship, fortune, bazi, plaza }
+enum AppNavTarget { home, divination, relationship, fortune, bazi }
 
 class AppBottomNavBar extends StatefulWidget {
   const AppBottomNavBar({
     super.key,
     required this.currentTarget,
-    required this.onNavigation,
   });
 
   final AppNavTarget currentTarget;
-  final ValueChanged<AppNavTarget> onNavigation;
+
+  /// 统一的导航处理
+  static void navigateTo(BuildContext context, AppNavTarget target, AppNavTarget current) {
+    if (target == current) return;
+    
+    final route = switch (target) {
+      AppNavTarget.home => AppRoutes.home,
+      AppNavTarget.divination => AppRoutes.divination,
+      AppNavTarget.relationship => AppRoutes.relationshipSelect,
+      AppNavTarget.fortune => AppRoutes.fortune,
+      AppNavTarget.bazi => AppRoutes.bazi,
+    };
+    
+    Navigator.of(context).pushNamedAndRemoveUntil(route, (route) => false);
+  }
 
   @override
   State<AppBottomNavBar> createState() => _AppBottomNavBarState();
@@ -155,31 +169,31 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
                     icon: Icons.person_outline,
                     label: context.l10n.spiritName,
                     isActive: widget.currentTarget == AppNavTarget.home,
-                    onTap: () => widget.onNavigation(AppNavTarget.home),
+                    onTap: () => AppBottomNavBar.navigateTo(context, AppNavTarget.home, widget.currentTarget),
                   ),
                   _NavItem(
                     icon: Icons.help_outline,
-                    label: "问卜",
-                    isActive: widget.currentTarget == AppNavTarget.chat,
-                    onTap: () => widget.onNavigation(AppNavTarget.chat),
+                    label: context.l10n.divinationTitle,
+                    isActive: widget.currentTarget == AppNavTarget.divination,
+                    onTap: () => AppBottomNavBar.navigateTo(context, AppNavTarget.divination, widget.currentTarget),
                   ),
                   _NavItem(
                     icon: Icons.favorite_border,
                     label: context.l10n.navRelationship,
                     isActive: widget.currentTarget == AppNavTarget.relationship,
-                    onTap: () => widget.onNavigation(AppNavTarget.relationship),
+                    onTap: () => AppBottomNavBar.navigateTo(context, AppNavTarget.relationship, widget.currentTarget),
                   ),
                   _NavItem(
                     icon: Icons.auto_graph,
                     label: context.l10n.navFortune,
                     isActive: widget.currentTarget == AppNavTarget.fortune,
-                    onTap: () => widget.onNavigation(AppNavTarget.fortune),
+                    onTap: () => AppBottomNavBar.navigateTo(context, AppNavTarget.fortune, widget.currentTarget),
                   ),
                   _NavItem(
                     icon: Icons.grid_view,
                     label: context.l10n.navBazi,
                     isActive: widget.currentTarget == AppNavTarget.bazi,
-                    onTap: () => widget.onNavigation(AppNavTarget.bazi),
+                    onTap: () => AppBottomNavBar.navigateTo(context, AppNavTarget.bazi, widget.currentTarget),
                   ),
                 ],
               ),
@@ -302,41 +316,6 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
               ],
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _FloatingCrystal extends StatelessWidget {
-  const _FloatingCrystal();
-
-  static const String _crystalAsset = 'assets/images/spirit-stone-egg.png';
-
-  @override
-  Widget build(BuildContext context) {
-    // Check if asset exists, otherwise use container
-    return IgnorePointer( // Decoration only
-      child: Container(
-        width: 40, // Smaller than original 64 to fit better or as decoration
-        height: 40,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.jadeGreen.withOpacity(0.3),
-              blurRadius: 16,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            _crystalAsset,
-            fit: BoxFit.cover,
-            errorBuilder: (c, e, s) => Container(color: AppTheme.jadeGreen.withOpacity(0.5)),
-          ),
         ),
       ),
     );

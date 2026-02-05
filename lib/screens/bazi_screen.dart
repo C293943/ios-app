@@ -62,29 +62,7 @@ class BaziScreen extends StatelessWidget {
               left: 0,
               right: 0,
               bottom: 0,
-              child: AppBottomNavBar(
-                currentTarget: AppNavTarget.bazi,
-                onNavigation: (target) {
-                   if (target == AppNavTarget.bazi) return;
-                   
-                   switch (target) {
-                     case AppNavTarget.home:
-                       _switchTab(context, AppRoutes.home);
-                       break;
-                     case AppNavTarget.chat:
-                       _switchTab(context, AppRoutes.chat);
-                       break;
-                     case AppNavTarget.relationship:
-                       _switchTab(context, AppRoutes.relationshipSelect);
-                       break;
-                     case AppNavTarget.fortune:
-                       _switchTab(context, AppRoutes.fortune); 
-                       break;
-                     default:
-                       break;
-                   }
-                },
-              ),
+              child: AppBottomNavBar(currentTarget: AppNavTarget.bazi),
             ),
           ],
         ),
@@ -131,12 +109,6 @@ class BaziScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-void _switchTab(BuildContext context, String routeName) {
-  final current = ModalRoute.of(context)?.settings.name;
-  if (current == routeName) return;
-  Navigator.of(context).pushNamedAndRemoveUntil(routeName, (route) => false);
 }
 
 class _UserInfoCard extends StatelessWidget {

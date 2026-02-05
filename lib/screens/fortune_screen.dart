@@ -57,46 +57,12 @@ class FortuneScreen extends StatelessWidget {
               left: 0,
               right: 0,
               bottom: 0,
-              child: AppBottomNavBar(
-                currentTarget: AppNavTarget.fortune,
-                onNavigation: (target) => _handleNavigation(context, target),
-              ),
+              child: AppBottomNavBar(currentTarget: AppNavTarget.fortune),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _handleNavigation(BuildContext context, AppNavTarget target) {
-    if (target == AppNavTarget.fortune) return;
-
-    switch (target) {
-      case AppNavTarget.home:
-        _switchTab(context, AppRoutes.home);
-        break;
-      case AppNavTarget.chat:
-        _switchTab(context, AppRoutes.chat);
-        break;
-      case AppNavTarget.relationship:
-        _switchTab(context, AppRoutes.relationshipSelect);
-        break;
-      case AppNavTarget.bazi:
-        _switchTab(context, AppRoutes.bazi);
-        break;
-      case AppNavTarget.plaza:
-        // TODO: Implement Plaza route
-        break;
-      case AppNavTarget.fortune:
-        // Already on fortune screen
-        break;
-    }
-  }
-
-  void _switchTab(BuildContext context, String routeName) {
-    final current = ModalRoute.of(context)?.settings.name;
-    if (current == routeName) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(routeName, (route) => false);
   }
 }
 

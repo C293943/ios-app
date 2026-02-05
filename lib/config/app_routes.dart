@@ -22,6 +22,9 @@ import 'package:primordial_spirit/screens/fortune_screen.dart';
 import 'package:primordial_spirit/screens/fortune_detail_screen.dart';
 import 'package:primordial_spirit/screens/about_screen.dart';
 import 'package:primordial_spirit/screens/language_settings_screen.dart';
+import 'package:primordial_spirit/screens/divination_screen.dart';
+import 'package:primordial_spirit/screens/divination_history_screen.dart';
+import 'package:primordial_spirit/models/divination_models.dart';
 
 /// 路由配置
 class AppRoutes {
@@ -44,8 +47,9 @@ class AppRoutes {
   static const String about = '/about';
   static const String language = '/language';
   static const String bazi = '/bazi';
-
   static const String baziReport = '/bazi/report';
+  static const String divination = '/divination';
+  static const String divinationHistory = '/divination/history';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -64,6 +68,8 @@ class AppRoutes {
       note: (context) => const SpiritNoteScreen(),
       about: (context) => const AboutScreen(),
       language: (context) => const LanguageSettingsScreen(),
+      divination: (context) => const DivinationScreen(),
+      divinationHistory: (context) => const DivinationHistoryScreen(),
     };
   }
 
@@ -139,6 +145,14 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const BaziScreen());
       case AppRoutes.language:
         return MaterialPageRoute(builder: (_) => const LanguageSettingsScreen());
+      case AppRoutes.divination:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final restoredSession = args?['session'] as DivinationSession?;
+        return MaterialPageRoute(
+          builder: (_) => DivinationScreen(restoredSession: restoredSession),
+        );
+      case AppRoutes.divinationHistory:
+        return MaterialPageRoute(builder: (_) => const DivinationHistoryScreen());
       default:
         return null;
     }

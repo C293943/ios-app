@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In zh, this message translates to:
-  /// **'鸿初元灵'**
+  /// **'数字元神'**
   String get appName;
 
   /// No description provided for @accountSettings.
@@ -1154,6 +1154,72 @@ abstract class AppLocalizations {
   /// **'立即开通'**
   String get activateNow;
 
+  /// No description provided for @paymentProcessing.
+  ///
+  /// In zh, this message translates to:
+  /// **'支付处理中...'**
+  String get paymentProcessing;
+
+  /// No description provided for @paymentWechatUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'微信支付暂未开放'**
+  String get paymentWechatUnavailable;
+
+  /// No description provided for @paymentLoadPlansFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'套餐加载失败，已使用默认套餐'**
+  String get paymentLoadPlansFailed;
+
+  /// No description provided for @paymentAuthRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先登录后再支付'**
+  String get paymentAuthRequired;
+
+  /// No description provided for @paymentOrderCreated.
+  ///
+  /// In zh, this message translates to:
+  /// **'已唤起支付宝，请完成支付'**
+  String get paymentOrderCreated;
+
+  /// No description provided for @paymentLaunchFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'无法唤起支付宝，请检查是否安装'**
+  String get paymentLaunchFailed;
+
+  /// No description provided for @paymentOrderFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建订单失败'**
+  String get paymentOrderFailed;
+
+  /// No description provided for @paymentSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'支付成功，会员已开通'**
+  String get paymentSuccess;
+
+  /// No description provided for @paymentExpired.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单已过期'**
+  String get paymentExpired;
+
+  /// No description provided for @paymentCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单已取消'**
+  String get paymentCancelled;
+
+  /// No description provided for @paymentStatusTimeout.
+  ///
+  /// In zh, this message translates to:
+  /// **'订单状态查询超时'**
+  String get paymentStatusTimeout;
+
   /// No description provided for @agreementHint.
   ///
   /// In zh, this message translates to:
@@ -1902,6 +1968,144 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'我听到了你的心声... \\n风起于青萍之末，浪成于微澜之间。此刻的迷茫，或许是觉醒的前奏。'**
   String get chatOverlayMockReply;
+
+  /// No description provided for @divinationTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'问卜'**
+  String get divinationTitle;
+
+  /// No description provided for @divinationHistoryTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'历史记录'**
+  String get divinationHistoryTitle;
+
+  /// No description provided for @divinationWelcomeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'请诚心默念您的问题'**
+  String get divinationWelcomeTitle;
+
+  /// No description provided for @divinationWelcomeSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'然后在下方输入'**
+  String get divinationWelcomeSubtitle;
+
+  /// No description provided for @divinationTip1.
+  ///
+  /// In zh, this message translates to:
+  /// **'问卜需诚心正意'**
+  String get divinationTip1;
+
+  /// No description provided for @divinationTip2.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日同一事宜只问一次'**
+  String get divinationTip2;
+
+  /// No description provided for @divinationTip3.
+  ///
+  /// In zh, this message translates to:
+  /// **'问题越具体，解读越精准'**
+  String get divinationTip3;
+
+  /// No description provided for @divinationCasting.
+  ///
+  /// In zh, this message translates to:
+  /// **'摇卦中，请稍候...'**
+  String get divinationCasting;
+
+  /// No description provided for @divinationInputHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入您想问卜的问题...'**
+  String get divinationInputHint;
+
+  /// No description provided for @divinationContinueHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续提问...'**
+  String get divinationContinueHint;
+
+  /// No description provided for @divinationPrimaryHexagram.
+  ///
+  /// In zh, this message translates to:
+  /// **'本卦'**
+  String get divinationPrimaryHexagram;
+
+  /// No description provided for @divinationChangedHexagram.
+  ///
+  /// In zh, this message translates to:
+  /// **'变卦'**
+  String get divinationChangedHexagram;
+
+  /// No description provided for @divinationNoHistory.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无问卜记录'**
+  String get divinationNoHistory;
+
+  /// No description provided for @divinationNoHistorySubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'开始您的第一次问卜吧'**
+  String get divinationNoHistorySubtitle;
+
+  /// No description provided for @divinationDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除记录'**
+  String get divinationDeleteTitle;
+
+  /// No description provided for @divinationDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除这条问卜记录吗？'**
+  String get divinationDeleteConfirm;
+
+  /// No description provided for @divinationClearTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空记录'**
+  String get divinationClearTitle;
+
+  /// No description provided for @divinationClearConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要清空所有问卜记录吗？此操作不可撤销。'**
+  String get divinationClearConfirm;
+
+  /// No description provided for @divinationDeleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'记录已删除'**
+  String get divinationDeleted;
+
+  /// No description provided for @divinationCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'记录已清空'**
+  String get divinationCleared;
+
+  /// No description provided for @divinationFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'问卜失败，请重试'**
+  String get divinationFailed;
+
+  /// No description provided for @divinationInterpretFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'解读失败，请重试'**
+  String get divinationInterpretFailed;
+
+  /// No description provided for @divinationReplyFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'回复失败，请重试'**
+  String get divinationReplyFailed;
 }
 
 class _AppLocalizationsDelegate

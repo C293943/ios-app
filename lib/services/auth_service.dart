@@ -178,6 +178,11 @@ class AuthService {
     };
   }
 
+  /// 获取带鉴权的请求头（供其他服务复用）。
+  Future<Map<String, String>?> authorizedHeaders() async {
+    return _authorizedHeaders();
+  }
+
   Future<UserProfile?> _fetchProfileRemote() async {
     final url = Uri.parse('${AppConfig.baseUrl}${AppConfig.userMeEndpoint}');
     var headers = await _authorizedHeaders();

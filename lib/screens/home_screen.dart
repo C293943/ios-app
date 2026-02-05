@@ -67,43 +67,12 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: AppBottomNavBar(
-                currentTarget: AppNavTarget.home,
-                onNavigation: (target) => _handleNavTap(context, target),
-              ),
+              child: AppBottomNavBar(currentTarget: AppNavTarget.home),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _handleNavTap(BuildContext context, AppNavTarget target) {
-    switch (target) {
-      case AppNavTarget.home:
-        _navigateTo(context, AppRoutes.home);
-        break;
-      case AppNavTarget.chat:
-        _navigateTo(context, AppRoutes.chat);
-        break;
-      case AppNavTarget.relationship:
-        _navigateTo(context, AppRoutes.relationshipSelect);
-        break;
-      case AppNavTarget.fortune:
-        _navigateTo(context, AppRoutes.fortune);
-        break;
-      case AppNavTarget.bazi:
-        _navigateTo(context, AppRoutes.bazi);
-        break;
-      case AppNavTarget.plaza:
-        break;
-    }
-  }
-
-  void _navigateTo(BuildContext context, String routeName) {
-    final current = ModalRoute.of(context)?.settings.name;
-    if (current == routeName) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(routeName, (route) => false);
   }
 }
 

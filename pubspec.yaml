@@ -63,6 +63,7 @@ dependencies:
   markdown_widget: ^2.3.2+8
   google_fonts: ^6.2.1
   video_player: ^2.9.2
+  url_launcher: ^6.3.0
 
   # 文件选择
   file_picker: ^8.0.0+1
