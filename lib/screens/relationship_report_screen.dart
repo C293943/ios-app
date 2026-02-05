@@ -3,13 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
-import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/models/relationship_models.dart';
 import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
-import 'package:primordial_spirit/widgets/common/mystic_button.dart';
-import 'package:primordial_spirit/l10n/l10n.dart';
-
 class RelationshipReportScreen extends StatefulWidget {
   final String relationType;
   final RelationshipReport? report;
@@ -87,10 +83,8 @@ class _RelationshipReportScreenState extends State<RelationshipReportScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          _buildActionButton(Icons.history, 'History', () {
-             Navigator.of(context).pushNamed(AppRoutes.relationshipSelect); // Go back to history list essentially
-          }),
-          _buildActionButton(Icons.share, 'Share', () {}),
+          _buildActionButton(Icons.history, '历史', () {}),
+          _buildActionButton(Icons.share, '分享', () {}),
           const SizedBox(width: 8),
         ],
       ),

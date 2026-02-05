@@ -1,18 +1,17 @@
 // 聊天覆盖层，负责元神对话与背景切换（觉醒/未觉醒）。
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/cultivation_service.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
 import 'package:primordial_spirit/services/video_cache_service.dart';
-import 'package:primordial_spirit/widgets/common/glass_container.dart';
 import 'package:video_player/video_player.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
 
@@ -102,9 +101,9 @@ class _ChatOverlayState extends State<ChatOverlay> {
               Expanded(
                 child: ListView.builder(
                   controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
-                    vertical: 8.0,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingLg,
+                    vertical: AppTheme.spacingSm,
                   ),
                   itemCount: _messages.length,
                   itemBuilder: (context, index) {
@@ -361,27 +360,51 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      padding: EdgeInsets.fromLTRB(
+        AppTheme.spacingLg,
+        AppTheme.spacingMd,
+        AppTheme.spacingLg,
+        AppTheme.spacingMd,
+      ),
       child: Row(
         children: [
-          // Minimalist Back Button
+          // 液态玻璃风格返回按钮
           GestureDetector(
             onTap: widget.onBack,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.keyboard_arrow_down,
-                color: AppTheme.warmYellow,
-                size: 28,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(
+                  sigmaX: AppTheme.blurSubtle,
+                  sigmaY: AppTheme.blurSubtle,
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(AppTheme.spacingSm),
+                  decoration: BoxDecoration(
+                    color: AppTheme.liquidGlassBase.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppTheme.liquidGlassBorderSoft,
+                      width: AppTheme.borderThin,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.liquidGlow.withOpacity(0.15),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: AppTheme.warmYellow,
+                    size: 28,
+                  ),
+                ),
               ),
             ),
           ),
           const Spacer(),
-          // Optional: Subtle indicator or title if absolutely needed, otherwise keep clean
         ],
       ),
     );
@@ -393,63 +416,92 @@ class _ChatOverlayState extends State<ChatOverlay> {
     final markdownText = message.text
         .replaceAll(r'\r\n', '\n')
         .replaceAll(r'\n', '\n');
-    // Organic shapes: "Water Drop" feel
+    
+    // 液态玻璃风格圆角 - "水滴" 形状
     final borderRadius = isUser
-        ? const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-            bottomLeft: Radius.circular(24),
-            bottomRight: Radius.circular(4), // Point of origin
+        ? BorderRadius.only(
+            topLeft: Radius.circular(AppTheme.radiusLg),
+            topRight: Radius.circular(AppTheme.radiusLg),
+            bottomLeft: Radius.circular(AppTheme.radiusLg),
+            bottomRight: Radius.circular(AppTheme.radiusSm),
           )
-        : const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-            bottomLeft: Radius.circular(4), // Point of origin
-            bottomRight: Radius.circular(24),
+        : BorderRadius.only(
+            topLeft: Radius.circular(AppTheme.radiusLg),
+            topRight: Radius.circular(AppTheme.radiusLg),
+            bottomLeft: Radius.circular(AppTheme.radiusSm),
+            bottomRight: Radius.circular(AppTheme.radiusLg),
           );
 
+    final accentColor = isUser ? AppTheme.jadeGreen : AppTheme.amberGold;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24.0),
+      padding: EdgeInsets.only(bottom: AppTheme.spacingLg),
       child: Row(
         mainAxisAlignment: isUser
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isUser) ...[
-            // Avatar placeholder or small dot if needed, currently just bubble
-            const SizedBox(width: 0),
-          ],
           Flexible(
             child: Container(
-              constraints: const BoxConstraints(
-                maxWidth: 280,
-              ), // Limit width for readability
+              constraints: const BoxConstraints(maxWidth: 300),
               decoration: BoxDecoration(
-                color: isUser
-                    ? AppTheme.jadeGreen.withOpacity(0.14)
-                    : AppTheme.spiritGlass.withOpacity(0.55),
                 borderRadius: borderRadius,
-                border: Border.all(
-                  color: isUser
-                      ? AppTheme.jadeGreen.withOpacity(0.28)
-                      : AppTheme.amberGold.withOpacity(0.22),
-                  width: 0.8,
-                ),
                 boxShadow: [
+                  // 主色发光
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
-                    blurRadius: 18,
+                    color: accentColor.withOpacity(0.15),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                  ),
+                  // 深度阴影
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: MarkdownWidget(
-                data: markdownText,
-                selectable: true,
-                shrinkWrap: true,
-                config: markdownConfig,
+              child: ClipRRect(
+                borderRadius: borderRadius,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: AppTheme.blurStandard,
+                    sigmaY: AppTheme.blurStandard,
+                  ),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppTheme.spacingLg,
+                      vertical: AppTheme.spacingMd,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isUser
+                          ? AppTheme.liquidGlassBase.withOpacity(0.7)
+                          : AppTheme.liquidGlassBase.withOpacity(0.6),
+                      borderRadius: borderRadius,
+                      border: Border.all(
+                        color: accentColor.withOpacity(0.3),
+                        width: AppTheme.borderThin,
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          accentColor.withOpacity(0.12),
+                          Colors.transparent,
+                          accentColor.withOpacity(0.06),
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
+                      ),
+                    ),
+                    child: MarkdownWidget(
+                      data: markdownText,
+                      selectable: true,
+                      shrinkWrap: true,
+                      config: markdownConfig,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -587,60 +639,100 @@ class _ChatOverlayState extends State<ChatOverlay> {
     );
   }
 
-  /// 构建动画选择器
+  /// 构建动画选择器 - 液态玻璃风格
   Widget _buildAnimationSelector() {
     return Container(
-      height: 44,
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: GlassContainer(
-        borderRadius: BorderRadius.circular(22),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          itemCount: widget.animations.length,
-          itemBuilder: (context, index) {
-            final anim = widget.animations[index];
-            final isSelected = anim == widget.currentAnimation;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  widget.onAnimationSelected?.call(anim);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppTheme.jadeGreen
-                        : AppTheme.spiritGlass.withOpacity(0.35),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isSelected
-                          ? Colors.transparent
-                          : AppTheme.amberGold.withOpacity(0.22),
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _formatAnimationName(anim),
-                    style: GoogleFonts.notoSerifSc(
-                      color: isSelected ? Colors.white : AppTheme.inkText.withOpacity(0.92),
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
-                    ),
-                  ),
-                ),
+      height: 48,
+      margin: EdgeInsets.fromLTRB(
+        AppTheme.spacingLg,
+        0,
+        AppTheme.spacingLg,
+        AppTheme.spacingMd,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        boxShadow: AppTheme.liquidGlassShadows(),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppTheme.blurStandard,
+            sigmaY: AppTheme.blurStandard,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingSm,
+              vertical: AppTheme.spacingXs,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.liquidGlassBase.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+              border: Border.all(
+                color: AppTheme.liquidGlassBorderSoft,
+                width: AppTheme.borderThin,
               ),
-            );
-          },
+            ),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: widget.animations.length,
+              itemBuilder: (context, index) {
+                final anim = widget.animations[index];
+                final isSelected = anim == widget.currentAnimation;
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingXs),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      widget.onAnimationSelected?.call(anim);
+                    },
+                    child: AnimatedContainer(
+                      duration: AppTheme.animFast,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingMd,
+                        vertical: AppTheme.spacingSm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppTheme.jadeGreen.withOpacity(0.8)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppTheme.jadeGreen
+                              : AppTheme.liquidGlassBorderSoft,
+                          width: AppTheme.borderThin,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppTheme.jadeGreen.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _formatAnimationName(anim),
+                        style: GoogleFonts.notoSerifSc(
+                          color: isSelected
+                              ? Colors.white
+                              : AppTheme.inkText.withOpacity(0.85),
+                          fontSize: 12,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -656,45 +748,110 @@ class _ChatOverlayState extends State<ChatOverlay> {
 
   Widget _buildInputArea() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      child: GlassContainer(
-        borderRadius: BorderRadius.circular(32),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        child: Row(
-          children: [
-            Icon(Icons.mic_none, color: AppTheme.amberGold.withOpacity(0.75)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _messageController,
-                style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
-                cursorColor: AppTheme.jadeGreen,
-                decoration: InputDecoration(
-                  hintText: context.l10n.chatOverlayInputHint,
-                  hintStyle: GoogleFonts.notoSerifSc(
-                    color: AppTheme.inkText.withOpacity(0.45),
-                  ),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onSubmitted: (_) => _sendMessage(),
-              ),
+      padding: EdgeInsets.fromLTRB(
+        AppTheme.spacingLg,
+        0,
+        AppTheme.spacingLg,
+        AppTheme.spacingLg,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.liquidGlow.withOpacity(0.12),
+              blurRadius: 16,
+              spreadRadius: 2,
             ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: _sendMessage,
-              child: CircleAvatar(
-                radius: 18,
-                backgroundColor: AppTheme.spiritGlass.withOpacity(0.4),
-                child: Icon(
-                  Icons.arrow_upward,
-                  color: AppTheme.warmYellow,
-                  size: 20,
-                ),
-              ),
-            ),
+            ...AppTheme.liquidGlassShadows(),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: AppTheme.blurPremium,
+              sigmaY: AppTheme.blurPremium,
+            ),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLg,
+                vertical: AppTheme.spacingXs,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.liquidGlassBase.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                border: Border.all(
+                  color: AppTheme.liquidGlassBorder,
+                  width: AppTheme.borderStandard,
+                ),
+                gradient: AppTheme.liquidGlassInnerGradient(),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(AppTheme.spacingSm),
+                    decoration: BoxDecoration(
+                      color: AppTheme.amberGold.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    ),
+                    child: Icon(
+                      Icons.mic_none,
+                      color: AppTheme.amberGold,
+                      size: 20,
+                    ),
+                  ),
+                  SizedBox(width: AppTheme.spacingMd),
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      style: GoogleFonts.notoSansSc(color: AppTheme.inkText),
+                      cursorColor: AppTheme.jadeGreen,
+                      decoration: InputDecoration(
+                        hintText: context.l10n.chatOverlayInputHint,
+                        hintStyle: GoogleFonts.notoSerifSc(
+                          color: AppTheme.inkText.withOpacity(0.45),
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: AppTheme.spacingMd,
+                        ),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
+                  ),
+                  SizedBox(width: AppTheme.spacingSm),
+                  GestureDetector(
+                    onTap: _sendMessage,
+                    child: Container(
+                      padding: EdgeInsets.all(AppTheme.spacingSm),
+                      decoration: BoxDecoration(
+                        color: AppTheme.fluorescentCyan.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppTheme.fluorescentCyan.withOpacity(0.4),
+                          width: AppTheme.borderThin,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.fluorescentCyan.withOpacity(0.2),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.arrow_upward,
+                        color: AppTheme.fluorescentCyan,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

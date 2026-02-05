@@ -1,8 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
-import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/liquid_bottom_sheet.dart';
 
 /// 八字命格展示底部弹窗
 class BaziProfileSheet extends StatelessWidget {
@@ -12,11 +12,11 @@ class BaziProfileSheet extends StatelessWidget {
 
   /// 显示八字命格弹窗
   static Future<void> show(BuildContext context, FortuneData fortuneData) {
-    return showModalBottomSheet(
+    return LiquidBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => BaziProfileSheet(fortuneData: fortuneData),
+      title: '命格详情',
+      titleIcon: Icons.fingerprint,
+      child: BaziProfileSheet(fortuneData: fortuneData),
     );
   }
 
@@ -24,116 +24,59 @@ class BaziProfileSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final bazi = fortuneData.baziInfo;
     final birth = fortuneData.birthInfo;
-    final screenHeight = MediaQuery.of(context).size.height;
 
-    return Container(
-      constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.95),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border.all(color: AppTheme.amberGold.withOpacity(0.25), width: 0.8),
-      ),
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(top: AppTheme.spacingMd),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 拖动指示器
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppTheme.amberGold.withOpacity(0.35),
-              borderRadius: BorderRadius.circular(2),
-            ),
+          // 出生信息
+          _buildSection(
+            title: '出生信息',
+            icon: Icons.cake,
+            child: _buildBirthInfo(birth),
           ),
 
-          // 标题
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(Icons.fingerprint, color: AppTheme.jadeGreen, size: 28),
-                const SizedBox(width: 12),
-                Text(
-                  '命格详情',
-                  style: GoogleFonts.notoSerifSc(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.warmYellow,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: Icon(Icons.close, color: AppTheme.warmYellow),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
+          SizedBox(height: AppTheme.spacingLg),
+
+          // 四柱八字
+          _buildSection(
+            title: '四柱八字',
+            icon: Icons.view_column,
+            child: _buildFourPillars(bazi),
           ),
 
-          Divider(height: 1, color: AppTheme.amberGold.withOpacity(0.18)),
+          SizedBox(height: AppTheme.spacingLg),
 
-          // 内容区域
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 出生信息
-                  _buildSection(
-                    title: '出生信息',
-                    icon: Icons.cake,
-                    child: _buildBirthInfo(birth),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // 四柱八字
-                  _buildSection(
-                    title: '四柱八字',
-                    icon: Icons.view_column,
-                    child: _buildFourPillars(bazi),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // 五行分布
-                  if (bazi.fiveElements != null) ...[
-                    _buildSection(
-                      title: '五行分布',
-                      icon: Icons.pie_chart,
-                      child: _buildFiveElements(bazi),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // 纳音
-                  if (bazi.nayin != null) ...[
-                    _buildSection(
-                      title: '纳音',
-                      icon: Icons.music_note,
-                      child: _buildNayin(bazi.nayin!),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // 格局
-                  if (bazi.patterns != null && bazi.patterns!.isNotEmpty) ...[
-                    _buildSection(
-                      title: '命格',
-                      icon: Icons.auto_awesome,
-                      child: _buildPatterns(bazi.patterns!),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // 底部安全区域
-                  SizedBox(height: MediaQuery.of(context).padding.bottom),
-                ],
-              ),
+          // 五行分布
+          if (bazi.fiveElements != null) ...[
+            _buildSection(
+              title: '五行分布',
+              icon: Icons.pie_chart,
+              child: _buildFiveElements(bazi),
             ),
-          ),
+            SizedBox(height: AppTheme.spacingLg),
+          ],
+
+          // 纳音
+          if (bazi.nayin != null) ...[
+            _buildSection(
+              title: '纳音',
+              icon: Icons.music_note,
+              child: _buildNayin(bazi.nayin!),
+            ),
+            SizedBox(height: AppTheme.spacingLg),
+          ],
+
+          // 格局
+          if (bazi.patterns != null && bazi.patterns!.isNotEmpty) ...[
+            _buildSection(
+              title: '命格',
+              icon: Icons.auto_awesome,
+              child: _buildPatterns(bazi.patterns!),
+            ),
+            SizedBox(height: AppTheme.spacingLg),
+          ],
         ],
       ),
     );
@@ -147,38 +90,23 @@ class BaziProfileSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, size: 18, color: AppTheme.jadeGreen),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: GoogleFonts.notoSerifSc(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.warmYellow,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
+        LiquidSectionTitle(title: title, icon: icon),
+        SizedBox(height: AppTheme.spacingMd),
         child,
       ],
     );
   }
 
   Widget _buildBirthInfo(BirthInfo birth) {
-    return GlassContainer(
-      borderRadius: BorderRadius.circular(16),
-      padding: const EdgeInsets.all(16),
+    return LiquidContentCard(
       child: Column(
         children: [
           _buildInfoRow('出生日期', '${birth.year}年${birth.month}月${birth.day}日'),
-          const SizedBox(height: 8),
+          SizedBox(height: AppTheme.spacingSm),
           _buildInfoRow('出生时辰', '${birth.hour}:${birth.minute.toString().padLeft(2, '0')}'),
-          const SizedBox(height: 8),
+          SizedBox(height: AppTheme.spacingSm),
           _buildInfoRow('出生地点', birth.city),
-          const SizedBox(height: 8),
+          SizedBox(height: AppTheme.spacingSm),
           _buildInfoRow('性别', birth.gender),
         ],
       ),
@@ -246,16 +174,22 @@ class BaziProfileSheet extends StatelessWidget {
 
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        margin: EdgeInsets.symmetric(horizontal: AppTheme.spacingXs),
+        padding: EdgeInsets.symmetric(
+          vertical: AppTheme.spacingMd,
+          horizontal: AppTheme.spacingSm,
+        ),
         decoration: BoxDecoration(
           color: isMain
               ? AppTheme.jadeGreen.withOpacity(0.15)
-              : AppTheme.spiritGlass.withOpacity(0.35),
-          borderRadius: BorderRadius.circular(12),
-          border: isMain
-              ? Border.all(color: AppTheme.jadeGreen, width: 2)
-              : null,
+              : AppTheme.liquidGlassLight,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(
+            color: isMain
+                ? AppTheme.jadeGreen
+                : AppTheme.liquidGlassBorderSoft,
+            width: isMain ? AppTheme.borderThick : AppTheme.borderThin,
+          ),
         ),
         child: Column(
           children: [
@@ -386,9 +320,8 @@ class BaziProfileSheet extends StatelessWidget {
 
         // 五行力量百分比
         if (strength != null)
-          GlassContainer(
-            borderRadius: BorderRadius.circular(12),
-            padding: const EdgeInsets.all(12),
+          LiquidContentCard(
+            borderRadius: AppTheme.radiusMd,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -506,9 +439,8 @@ class BaziProfileSheet extends StatelessWidget {
   }
 
   Widget _buildNayin(Map<String, String> nayin) {
-    return GlassContainer(
-      borderRadius: BorderRadius.circular(12),
-      padding: const EdgeInsets.all(12),
+    return LiquidContentCard(
+      borderRadius: AppTheme.radiusMd,
       child: Column(
         children: nayin.entries.map((e) {
           return Padding(
@@ -543,10 +475,10 @@ class BaziProfileSheet extends StatelessWidget {
     return Column(
       children: patterns.map((pattern) {
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: GlassContainer(
-            borderRadius: BorderRadius.circular(12),
-            padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.only(bottom: AppTheme.spacingMd),
+          child: LiquidContentCard(
+            borderRadius: AppTheme.radiusMd,
+            padding: EdgeInsets.all(AppTheme.spacingMd),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

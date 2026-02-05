@@ -28,7 +28,6 @@ class BaziTo3dPromptService {
     required BaziInfo baziInfo,
     required String gender,
   }) {
-    final dayMaster = baziInfo.dayGan;
     final element = _getDominantElement(baziInfo);
     final visual = _elementVisuals[element] ?? _elementVisuals['土']!;
 

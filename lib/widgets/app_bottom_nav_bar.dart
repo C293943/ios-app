@@ -5,7 +5,7 @@ import 'package:primordial_spirit/l10n/l10n.dart';
 
 enum AppNavTarget { home, chat, relationship, fortune, bazi, plaza }
 
-class AppBottomNavBar extends StatelessWidget {
+class AppBottomNavBar extends StatefulWidget {
   const AppBottomNavBar({
     super.key,
     required this.currentTarget,
@@ -16,104 +16,182 @@ class AppBottomNavBar extends StatelessWidget {
   final ValueChanged<AppNavTarget> onNavigation;
 
   @override
+  State<AppBottomNavBar> createState() => _AppBottomNavBarState();
+}
+
+class _AppBottomNavBarState extends State<AppBottomNavBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _glowController = AnimationController(
+      vsync: this,
+      duration: AppTheme.animPulse,
+    )..repeat(reverse: true);
+    _glowAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _glowController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 96,
+      height: 100,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Positioned(
-            left: 16,
-            right: 16,
-            bottom: 12,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              height: 72,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                color: AppTheme.spiritGlass,
-                border: Border.all(color: AppTheme.scrollBorder, width: 0.6),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        _NavItem(
-                          icon: Icons.person_outline, // 元神 (Home) - using person as placeholder for "Spirit" if label only
-                          label: context.l10n.spiritName, // "元神"
-                          isActive: currentTarget == AppNavTarget.home,
-                          onTap: () => onNavigation(AppNavTarget.home),
-                          // Home in original was NavLabelOnly, let's keep it consistent or standard?
-                          // Original had _NavLabelOnly for the first item. 
-                          // Let's use standard items for all for consistency, or reproduce the special one.
-                          // The image shows "元神" as just text or standard icon?
-                          // Image: "元神" (bottom left). It looks like a standard tab.
-                          // In original code, it was _NavLabelOnly.
-                          // I will use _NavItem for all for now to ensure layout consistency.
+            left: AppTheme.spacingMd,
+            right: AppTheme.spacingMd,
+            bottom: AppTheme.spacingMd,
+            child: AnimatedBuilder(
+              animation: _glowAnimation,
+              builder: (context, child) {
+                return Container(
+                  height: 72,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    boxShadow: [
+                      // 外发光
+                      BoxShadow(
+                        color: AppTheme.liquidGlow.withOpacity(
+                          0.15 * _glowAnimation.value,
                         ),
-                        // _NavItem(
-                        //   icon: Icons.help_outline,
-                        //   label: "问卜", // Need to find l10n key or use this
-                        //   isActive: currentTarget == AppNavTarget.chat,
-                        //   onTap: () => onNavigation(AppNavTarget.chat),
-                        // ),
-                        _NavItem(
-                          icon: Icons.favorite_border,
-                          label: context.l10n.navRelationship, // "合盘"
-                          isActive: currentTarget == AppNavTarget.relationship,
-                          onTap: () => onNavigation(AppNavTarget.relationship),
+                        blurRadius: 20,
+                        spreadRadius: -4,
+                      ),
+                      // 深度阴影
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: AppTheme.blurStandard,
+                        sigmaY: AppTheme.blurStandard,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.liquidGlassBase,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                         ),
-                        _NavItem(
-                          icon: Icons.auto_graph,
-                          label: context.l10n.navFortune, // "运势"
-                          isActive: currentTarget == AppNavTarget.fortune,
-                          onTap: () => onNavigation(AppNavTarget.fortune),
+                        child: Stack(
+                          children: [
+                            // 内层渐变
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                  gradient: AppTheme.liquidGlassInnerGradient(
+                                    opacity: _glowAnimation.value,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // 顶部高光
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: 28,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(AppTheme.radiusLg),
+                                ),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: AppTheme.liquidTopHighlight(
+                                      intensity: _glowAnimation.value,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // 边框
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                                  border: Border.all(
+                                    color: AppTheme.liquidGlassBorder.withOpacity(
+                                      0.3 + 0.15 * _glowAnimation.value,
+                                    ),
+                                    width: AppTheme.borderStandard,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // 内容
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppTheme.spacingMd,
+                              ),
+                              child: child,
+                            ),
+                          ],
                         ),
-                        _NavItem(
-                          icon: Icons.grid_view,
-                          label: context.l10n.navBazi, // "八字"
-                          isActive: currentTarget == AppNavTarget.bazi,
-                          onTap: () => onNavigation(AppNavTarget.bazi),
-                        ),
-                         _NavItem(
-                          icon: Icons.public,
-                          label: "广场", // "Plaza" - Placeholder
-                          isActive: currentTarget == AppNavTarget.plaza,
-                          onTap: () => onNavigation(AppNavTarget.plaza),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                );
+              },
+              child: Row(
+                children: [
+                  _NavItem(
+                    icon: Icons.person_outline,
+                    label: context.l10n.spiritName,
+                    isActive: widget.currentTarget == AppNavTarget.home,
+                    onTap: () => widget.onNavigation(AppNavTarget.home),
+                  ),
+                  _NavItem(
+                    icon: Icons.help_outline,
+                    label: "问卜",
+                    isActive: widget.currentTarget == AppNavTarget.chat,
+                    onTap: () => widget.onNavigation(AppNavTarget.chat),
+                  ),
+                  _NavItem(
+                    icon: Icons.favorite_border,
+                    label: context.l10n.navRelationship,
+                    isActive: widget.currentTarget == AppNavTarget.relationship,
+                    onTap: () => widget.onNavigation(AppNavTarget.relationship),
+                  ),
+                  _NavItem(
+                    icon: Icons.auto_graph,
+                    label: context.l10n.navFortune,
+                    isActive: widget.currentTarget == AppNavTarget.fortune,
+                    onTap: () => widget.onNavigation(AppNavTarget.fortune),
+                  ),
+                  _NavItem(
+                    icon: Icons.grid_view,
+                    label: context.l10n.navBazi,
+                    isActive: widget.currentTarget == AppNavTarget.bazi,
+                    onTap: () => widget.onNavigation(AppNavTarget.bazi),
+                  ),
+                ],
               ),
             ),
           ),
-          // Center item floating effect if needed, otherwise just standard list
-          // The original code had a _FloatingCrystal. 
-          // If the "Fortune" is the center or highlighted one, or "Chat"?
-          // In the image, "运势" is selected. Nothing is floating above others significantly.
-          // But original code had _FloatingCrystal at `left: 24, bottom: 28`.
-          // That seems to be an ornament near the "Home" tab (since left 24 is near start).
-          // I'll leave the crystal out for generic nav bar or add it if it's part of the design.
-          // The image doesn't clearly show a floating crystal, just tabs.
-          // I will include the crystal decoration if it's part of the global theme, 
-          // but maybe just positioned relative to the bar.
-          // Positioned(
-          //    left: 24,
-          //    bottom: 28,
-          //    child: _FloatingCrystal(),
-          // ),
         ],
       ),
     );
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavItem extends StatefulWidget {
   const _NavItem({
     required this.icon,
     required this.label,
@@ -127,34 +205,103 @@ class _NavItem extends StatelessWidget {
   final bool isActive;
 
   @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin {
+  late AnimationController _activeController;
+  late Animation<double> _activeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _activeController = AnimationController(
+      vsync: this,
+      duration: AppTheme.animStandard,
+    );
+    _activeAnimation = CurvedAnimation(
+      parent: _activeController,
+      curve: Curves.easeOutCubic,
+    );
+    if (widget.isActive) {
+      _activeController.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(_NavItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive != oldWidget.isActive) {
+      if (widget.isActive) {
+        _activeController.forward();
+      } else {
+        _activeController.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _activeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // If isActive, use special color/style
-    final color = isActive
-        ? AppTheme.warmYellow
-        : AppTheme.inkText.withOpacity(0.5); // Fixed withOpacity for compatibility if withValues is new
-        
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: widget.onTap,
         behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                color: color,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ],
+        child: AnimatedBuilder(
+          animation: _activeAnimation,
+          builder: (context, child) {
+            // 激活时使用强调色，非激活时使用文本色
+            final activeColor = AppTheme.fluorescentCyan;
+            final inactiveColor = AppTheme.inkText.withOpacity(0.5);
+            final color = Color.lerp(
+              inactiveColor,
+              activeColor,
+              _activeAnimation.value,
+            )!;
+
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 图标容器 - 激活时显示发光背景
+                Container(
+                  width: 40,
+                  height: 32,
+                  decoration: widget.isActive
+                      ? BoxDecoration(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                          color: activeColor.withOpacity(0.12 * _activeAnimation.value),
+                          boxShadow: [
+                            BoxShadow(
+                              color: activeColor.withOpacity(0.2 * _activeAnimation.value),
+                              blurRadius: 12,
+                              spreadRadius: -2,
+                            ),
+                          ],
+                        )
+                      : null,
+                  child: Icon(
+                    widget.icon,
+                    color: color,
+                    size: 22,
+                  ),
+                ),
+                SizedBox(height: AppTheme.spacingXs),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: color,
+                    fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

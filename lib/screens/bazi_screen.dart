@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/app_bottom_nav_bar.dart';
-import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/liquid_card.dart';
 import 'package:primordial_spirit/widgets/hidden_stems_sheet.dart';
 
 class BaziScreen extends StatelessWidget {
@@ -28,24 +28,29 @@ class BaziScreen extends StatelessWidget {
                   _buildAppBar(context),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                      padding: EdgeInsets.fromLTRB(
+                        AppTheme.spacingMd,
+                        0,
+                        AppTheme.spacingMd,
+                        100,
+                      ),
                       child: Column(
                         children: [
-                          const SizedBox(height: 10),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _UserInfoCard(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _FourPillarsCard(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _FiveElementsChartCard(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _XiYongShenCard(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _DaYunCard(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _SpiritChatCard(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _LockedReportCard(),
-                          const SizedBox(height: 20),
+                          SizedBox(height: AppTheme.spacingLg),
                         ],
                       ),
                     ),
@@ -89,11 +94,14 @@ class BaziScreen extends StatelessWidget {
 
   Widget _buildAppBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingXs,
+        vertical: AppTheme.spacingSm,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const SizedBox(width: 48),
+          SizedBox(width: 48),
           Text(
             '八字',
             style: AppTheme.mysticTheme.textTheme.titleLarge?.copyWith(
@@ -101,11 +109,23 @@ class BaziScreen extends StatelessWidget {
               fontSize: 20,
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.share, color: AppTheme.inkText),
-            onPressed: () {
-              // Share functionality
-            },
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                padding: EdgeInsets.all(AppTheme.spacingSm),
+                decoration: BoxDecoration(
+                  color: AppTheme.liquidGlassLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  border: Border.all(
+                    color: AppTheme.liquidGlassBorderSoft,
+                    width: AppTheme.borderThin,
+                  ),
+                ),
+                child: Icon(Icons.share, color: AppTheme.inkText, size: 22),
+              ),
+            ),
           ),
         ],
       ),
@@ -124,41 +144,36 @@ class _UserInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+    return LiquidCard(
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '用户资料',
-                style: TextStyle(
-                  color: AppTheme.inkText.withOpacity(0.9),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
-                ),
-                child: Text(
-                  '编辑',
-                  style: TextStyle(
-                    color: AppTheme.inkText.withOpacity(0.8),
-                    fontSize: 12,
+              Row(
+                children: [
+                  Icon(Icons.person_outline, color: AppTheme.jadeGreen, size: 20),
+                  SizedBox(width: AppTheme.spacingSm),
+                  Text(
+                    '用户资料',
+                    style: TextStyle(
+                      color: AppTheme.inkText,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
+                ],
+              ),
+              LiquidInfoTag(
+                text: '编辑',
+                color: AppTheme.amberGold,
+                outlined: true,
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppTheme.spacingMd),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -176,11 +191,11 @@ class _UserInfoCard extends StatelessWidget {
                             fontSize: 15,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: AppTheme.spacingSm),
                         Icon(Icons.male, color: Colors.blue[300], size: 16),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppTheme.spacingSm),
                     Text(
                       '生肖: 龙',
                       style: TextStyle(
@@ -188,11 +203,11 @@ class _UserInfoCard extends StatelessWidget {
                         fontSize: 15,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppTheme.spacingSm),
                     Row(
                       children: [
                         Icon(Icons.sunny, color: Colors.orange[300], size: 16),
-                        const SizedBox(width: 4),
+                        SizedBox(width: AppTheme.spacingXs),
                         Text(
                           '真太阳时已校正',
                           style: TextStyle(
@@ -217,7 +232,7 @@ class _UserInfoCard extends StatelessWidget {
                         fontSize: 14,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppTheme.spacingSm),
                     Text(
                       '农历: 戊辰年正月廿八',
                       style: TextStyle(
@@ -241,21 +256,27 @@ class _FourPillarsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+    return LiquidCard(
+      margin: EdgeInsets.zero,
+      accentColor: AppTheme.amberGold,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '四柱排盘',
-            style: TextStyle(
-              color: AppTheme.inkText.withOpacity(0.9),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Icon(Icons.grid_view, color: AppTheme.amberGold, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                '四柱排盘',
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppTheme.spacingMd),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -302,30 +323,14 @@ class _FourPillarsCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppTheme.spacingMd),
           Center(
             child: GestureDetector(
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const HiddenStemsSheet(),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '展开藏干',
-                  style: TextStyle(
-                    color: AppTheme.inkText.withOpacity(0.8),
-                    fontSize: 12,
-                  ),
-                ),
+              onTap: () => HiddenStemsSheet.show(context),
+              child: LiquidInfoTag(
+                text: '展开藏干',
+                icon: Icons.expand_more,
+                color: AppTheme.fluorescentCyan,
               ),
             ),
           ),
@@ -450,62 +455,57 @@ class _FiveElementsChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      width: double.infinity,
-      height: 280,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '五行强弱分析',
-            style: TextStyle(
-              color: AppTheme.inkText.withOpacity(0.9),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: Stack(
-              alignment: Alignment.center,
+    return LiquidCard(
+      margin: EdgeInsets.zero,
+      accentColor: AppTheme.fluorescentCyan,
+      child: SizedBox(
+        height: 260,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                const _FiveElementsRadarChart(),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildStatusChip('最旺: 木', const Color(0xFF98CAA6)),
-                      const SizedBox(width: 16),
-                      _buildStatusChip('最弱: 水', const Color(0xFFA4C8E8)),
-                    ],
+                Icon(Icons.auto_graph, color: AppTheme.fluorescentCyan, size: 20),
+                SizedBox(width: AppTheme.spacingSm),
+                Text(
+                  '五行强弱分析',
+                  style: TextStyle(
+                    color: AppTheme.inkText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.6)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: AppTheme.inkText,
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
+            SizedBox(height: AppTheme.spacingMd),
+            Expanded(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const _FiveElementsRadarChart(),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        LiquidInfoTag(
+                          text: '最旺: 木',
+                          color: const Color(0xFF98CAA6),
+                        ),
+                        SizedBox(width: AppTheme.spacingMd),
+                        LiquidInfoTag(
+                          text: '最弱: 水',
+                          color: const Color(0xFFA4C8E8),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -644,30 +644,31 @@ class _XiYongShenCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+    return LiquidCard(
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '喜用神 / 忌神',
-            style: TextStyle(
-              color: AppTheme.inkText.withOpacity(0.9),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Icon(Icons.balance, color: AppTheme.jadeGreen, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                '喜用神 / 忌神',
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppTheme.spacingMd),
           Row(
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                child: LiquidMiniCard(
+                  accentColor: AppTheme.jadeGreen,
                   child: Column(
                     children: [
                       Text(
@@ -677,12 +678,12 @@ class _XiYongShenCard extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppTheme.spacingSm),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text('木', style: TextStyle(color: const Color(0xFF98CAA6), fontSize: 24, fontWeight: FontWeight.bold)),
-                          const SizedBox(width: 8),
+                          SizedBox(width: AppTheme.spacingSm),
                           Text('火', style: TextStyle(color: const Color(0xFFE8B0B0), fontSize: 24, fontWeight: FontWeight.bold)),
                         ],
                       ),
@@ -690,14 +691,25 @@ class _XiYongShenCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(width: 1, height: 60, color: Colors.white.withOpacity(0.1), margin: const EdgeInsets.symmetric(horizontal: 8)), // Reduced from 16
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10), // Reduced from 12
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(12),
+              Container(
+                width: AppTheme.borderStandard,
+                height: 60,
+                margin: EdgeInsets.symmetric(horizontal: AppTheme.spacingSm),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      AppTheme.liquidGlassBorder.withOpacity(0.5),
+                      Colors.transparent,
+                    ],
                   ),
+                ),
+              ),
+              Expanded(
+                child: LiquidMiniCard(
+                  accentColor: const Color(0xFFFF6B6B),
                   child: Column(
                     children: [
                       Text(
@@ -707,12 +719,12 @@ class _XiYongShenCard extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppTheme.spacingSm),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text('金', style: TextStyle(color: const Color(0xFFE8EBF0), fontSize: 24, fontWeight: FontWeight.bold)),
-                          const SizedBox(width: 8),
+                          SizedBox(width: AppTheme.spacingSm),
                           Text('水', style: TextStyle(color: const Color(0xFFA4C8E8), fontSize: 24, fontWeight: FontWeight.bold)),
                         ],
                       ),
@@ -722,10 +734,10 @@ class _XiYongShenCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.center,
-            child: Column(
+          SizedBox(height: AppTheme.spacingMd),
+          LiquidMiniCard(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Text(
                   '八字格局: 正官格',
@@ -734,7 +746,6 @@ class _XiYongShenCard extends StatelessWidget {
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
                   '日元旺衰: 偏弱 (45分)',
                   style: TextStyle(
@@ -756,21 +767,27 @@ class _DaYunCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+    return LiquidCard(
+      margin: EdgeInsets.zero,
+      accentColor: AppTheme.electricBlue,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '大运流年',
-            style: TextStyle(
-              color: AppTheme.inkText.withOpacity(0.9),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Icon(Icons.timeline, color: AppTheme.electricBlue, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                '大运流年',
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppTheme.spacingMd),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -780,19 +797,22 @@ class _DaYunCard extends StatelessWidget {
               _buildDaYunItem('53-62岁', false),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Text(
-                '当前大运: 癸亥 (水水)',
-                style: TextStyle(
-                  color: AppTheme.inkText,
-                  fontSize: 15,
+          SizedBox(height: AppTheme.spacingMd),
+          LiquidMiniCard(
+            accentColor: const Color(0xFFA4C8E8),
+            child: Row(
+              children: [
+                Icon(Icons.water_drop, size: 16, color: const Color(0xFFA4C8E8)),
+                SizedBox(width: AppTheme.spacingSm),
+                Text(
+                  '当前大运: 癸亥 (水水)',
+                  style: TextStyle(
+                    color: AppTheme.inkText,
+                    fontSize: 15,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Icon(Icons.water_drop, size: 14, color: Color(0xFFA4C8E8)),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -801,17 +821,35 @@ class _DaYunCard extends StatelessWidget {
 
   Widget _buildDaYunItem(String label, bool isActive) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // Reduced padding from 12 to 8 to prevent overflow
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingSm,
+        vertical: AppTheme.spacingSm,
+      ),
       decoration: BoxDecoration(
-        color: isActive ? AppTheme.jadeGreen.withOpacity(0.3) : Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: isActive ? Border.all(color: AppTheme.jadeGreen.withOpacity(0.6)) : null,
-        boxShadow: isActive ? [BoxShadow(color: AppTheme.jadeGreen.withOpacity(0.2), blurRadius: 8)] : null,
+        color: isActive 
+            ? AppTheme.jadeGreen.withOpacity(0.2) 
+            : AppTheme.liquidGlassLight,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(
+          color: isActive 
+              ? AppTheme.jadeGreen.withOpacity(0.5) 
+              : AppTheme.liquidGlassBorderSoft,
+          width: AppTheme.borderThin,
+        ),
+        boxShadow: isActive 
+            ? [
+                BoxShadow(
+                  color: AppTheme.jadeGreen.withOpacity(0.2),
+                  blurRadius: 8,
+                  spreadRadius: -2,
+                ),
+              ] 
+            : null,
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: isActive ? AppTheme.inkText : AppTheme.inkText.withOpacity(0.6),
+          color: isActive ? AppTheme.jadeGreen : AppTheme.inkText.withOpacity(0.6),
           fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           fontSize: 13,
         ),
@@ -825,20 +863,25 @@ class _SpiritChatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
+    return LiquidCard(
+      margin: EdgeInsets.zero,
+      compact: true,
+      accentColor: AppTheme.jadeGreen,
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(AppTheme.spacingSm),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: AppTheme.jadeGreen.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(
+                color: AppTheme.jadeGreen.withOpacity(0.3),
+                width: AppTheme.borderThin,
+              ),
             ),
             child: Icon(Icons.chat_bubble_outline, color: AppTheme.jadeGreen, size: 24),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: AppTheme.spacingMd),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -851,7 +894,7 @@ class _SpiritChatCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: AppTheme.spacingXs),
                 Text(
                   '我的八字适合什么职业?',
                   style: TextStyle(
@@ -865,12 +908,25 @@ class _SpiritChatCard extends StatelessWidget {
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, AppRoutes.chat),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingMd,
+                vertical: AppTheme.spacingSm,
+              ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppTheme.jadeGreen.withOpacity(0.8), AppTheme.fluorescentCyan.withOpacity(0.8)],
+                  colors: [
+                    AppTheme.jadeGreen.withOpacity(0.8),
+                    AppTheme.fluorescentCyan.withOpacity(0.8),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.jadeGreen.withOpacity(0.3),
+                    blurRadius: 8,
+                    spreadRadius: -2,
+                  ),
+                ],
               ),
               child: Text(
                 '开始对话',
@@ -895,76 +951,104 @@ class _LockedReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, AppRoutes.baziReport),
-      child: GlassContainer(
-        width: double.infinity,
-        height: 180,
-        padding: const EdgeInsets.all(20),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '详细命理报告',
-                  style: TextStyle(
-                    color: AppTheme.inkText,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+      child: LiquidCard(
+        margin: EdgeInsets.zero,
+        accentColor: AppTheme.amberGold,
+        elevated: true,
+        child: SizedBox(
+          height: 160,
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.article_outlined, color: AppTheme.amberGold, size: 20),
+                      SizedBox(width: AppTheme.spacingSm),
+                      Text(
+                        '详细命理报告',
+                        style: TextStyle(
+                          color: AppTheme.inkText,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: Opacity(
-                    opacity: 0.3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(4, (index) => 
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          width: double.infinity,
-                          height: 12,
-                          color: Colors.grey,
-                        )
+                  SizedBox(height: AppTheme.spacingMd),
+                  Expanded(
+                    child: Opacity(
+                      opacity: 0.3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: List.generate(4, (index) => 
+                          Container(
+                            margin: EdgeInsets.only(bottom: AppTheme.spacingSm),
+                            width: double.infinity,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: AppTheme.inkText.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                            ),
+                          )
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.amberGold.withOpacity(0.9), Color(0xFFF0E68C)],
-                  ),
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.amberGold.withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.lock, color: Color(0xFF8B6D43), size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      '解锁完整报告',
-                      style: TextStyle(
-                        color: Color(0xFF5D4037),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                ],
+              ),
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingLg,
+                        vertical: AppTheme.spacingMd,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.amberGold.withOpacity(0.9),
+                            const Color(0xFFF0E68C),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: AppTheme.borderThin,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.amberGold.withOpacity(0.4),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.lock, color: const Color(0xFF8B6D43), size: 18),
+                          SizedBox(width: AppTheme.spacingSm),
+                          Text(
+                            '解锁完整报告',
+                            style: TextStyle(
+                              color: const Color(0xFF5D4037),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

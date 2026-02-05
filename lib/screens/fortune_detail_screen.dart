@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
+import 'package:primordial_spirit/widgets/common/liquid_card.dart';
 
 class FortuneDetailScreen extends StatelessWidget {
   const FortuneDetailScreen({super.key});
@@ -15,7 +16,27 @@ class FortuneDetailScreen extends StatelessWidget {
         elevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.of(context).pop(),
-          child: Icon(Icons.arrow_back_ios, color: AppTheme.inkText, size: 20),
+          child: Padding(
+            padding: EdgeInsets.all(AppTheme.spacingSm),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                child: Container(
+                  padding: EdgeInsets.all(AppTheme.spacingSm),
+                  decoration: BoxDecoration(
+                    color: AppTheme.liquidGlassLight,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    border: Border.all(
+                      color: AppTheme.liquidGlassBorderSoft,
+                      width: AppTheme.borderThin,
+                    ),
+                  ),
+                  child: Icon(Icons.arrow_back_ios, color: AppTheme.inkText, size: 18),
+                ),
+              ),
+            ),
+          ),
         ),
         title: Text(
           "流年详情",
@@ -28,8 +49,25 @@ class FortuneDetailScreen extends StatelessWidget {
         ),
         centerTitle: true,
         actions: [
-          Icon(Icons.share, color: AppTheme.inkText, size: 24),
-          const SizedBox(width: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                padding: EdgeInsets.all(AppTheme.spacingSm),
+                decoration: BoxDecoration(
+                  color: AppTheme.liquidGlassLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  border: Border.all(
+                    color: AppTheme.liquidGlassBorderSoft,
+                    width: AppTheme.borderThin,
+                  ),
+                ),
+                child: Icon(Icons.share, color: AppTheme.inkText, size: 22),
+              ),
+            ),
+          ),
+          SizedBox(width: AppTheme.spacingMd),
         ],
       ),
       body: Container(
@@ -38,21 +76,24 @@ class FortuneDetailScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingMd,
+              vertical: AppTheme.spacingMd,
+            ),
             child: Column(
               children: [
                 const _OverviewCard(),
-                const SizedBox(height: 16),
+                SizedBox(height: AppTheme.spacingMd),
                 const _RadarChartCard(),
-                const SizedBox(height: 16),
+                SizedBox(height: AppTheme.spacingMd),
                 const _MonthlyTrendCard(),
-                const SizedBox(height: 16),
+                SizedBox(height: AppTheme.spacingMd),
                 const _TenGodsCard(),
-                const SizedBox(height: 16),
+                SizedBox(height: AppTheme.spacingMd),
                 const _DetailedAnalysisList(),
-                const SizedBox(height: 16),
+                SizedBox(height: AppTheme.spacingMd),
                 const _LuckTipsCard(),
-                const SizedBox(height: 30),
+                SizedBox(height: AppTheme.spacingXl),
               ],
             ),
           ),
@@ -67,13 +108,10 @@ class _OverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      elevated: true,
+      accentColor: AppTheme.jadeGreen,
+      margin: EdgeInsets.zero,
       child: Row(
         children: [
           Expanded(
@@ -88,7 +126,7 @@ class _OverviewCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: AppTheme.spacingXs),
                 Text(
                   "当前大运: 癸亥 (33-42岁)",
                   style: TextStyle(
@@ -96,14 +134,10 @@ class _OverviewCard extends StatelessWidget {
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  "整体运势: 平稳向上",
-                  style: TextStyle(
-                    color: AppTheme.inkText,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                SizedBox(height: AppTheme.spacingLg),
+                LiquidInfoTag(
+                  text: "整体运势: 平稳向上",
+                  color: AppTheme.jadeGreen,
                 ),
               ],
             ),
@@ -181,30 +215,33 @@ class _RadarChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      accentColor: AppTheme.amberGold,
+      margin: EdgeInsets.zero,
       child: Column(
         children: [
-          Text(
-            "五维运势分析",
-            style: TextStyle(
-              color: AppTheme.inkText,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.radar, color: AppTheme.amberGold, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                "五维运势分析",
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: AppTheme.spacingLg),
           SizedBox(
             height: 200,
-            width: double.infinity, // Match other cards
+            width: double.infinity,
             child: CustomPaint(
               painter: _RadarChartPainter(
-                values: [0.8, 0.7, 0.65, 0.75, 0.85], // Career, Wealth, Love, Health, Social
+                values: [0.8, 0.7, 0.65, 0.75, 0.85],
                 labels: ["事业运", "财运", "感情运", "健康运", "人际运"],
                 color: AppTheme.amberGold,
               ),
@@ -300,25 +337,27 @@ class _MonthlyTrendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      accentColor: AppTheme.fluorescentCyan,
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "流月运势走势",
-            style: TextStyle(
-              color: AppTheme.inkText,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Icon(Icons.trending_up, color: AppTheme.fluorescentCyan, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                "流月运势走势",
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: AppTheme.spacingLg),
           SizedBox(
             height: 120,
             width: double.infinity,
@@ -400,33 +439,35 @@ class _TenGodsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      accentColor: AppTheme.amberGold,
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "流年十神与神煞",
-            style: TextStyle(
-              color: AppTheme.inkText,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Icon(Icons.stars, color: AppTheme.amberGold, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                "流年十神与神煞",
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppTheme.spacingMd),
           Row(
             children: [
               Expanded(child: _InfoBox(title: "主导十神", content: "🟡 正财")),
-              const SizedBox(width: 12),
+              SizedBox(width: AppTheme.spacingMd),
               Expanded(child: _InfoBox(title: "吉神", content: "✨ 天乙贵人, 文昌")),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppTheme.spacingMd),
           _InfoBox(title: "凶煞", content: "⚠️ 无"),
         ],
       ),
@@ -442,18 +483,26 @@ class _InfoBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return LiquidMiniCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(color: AppTheme.inkText.withOpacity(0.6), fontSize: 12)),
-          const SizedBox(height: 4),
-          Text(content, style: TextStyle(color: AppTheme.inkText, fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            style: TextStyle(
+              color: AppTheme.inkText.withOpacity(0.6),
+              fontSize: 12,
+            ),
+          ),
+          SizedBox(height: AppTheme.spacingXs),
+          Text(
+            content,
+            style: TextStyle(
+              color: AppTheme.inkText,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -469,27 +518,37 @@ class _DetailedAnalysisList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Text(
-            "详细运势分析",
-            style: TextStyle(color: AppTheme.inkText, fontSize: 18, fontWeight: FontWeight.bold),
+          padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingXs),
+          child: Row(
+            children: [
+              Icon(Icons.article_outlined, color: AppTheme.inkText, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                "详细运势分析",
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppTheme.spacingMd),
         _AnalysisItem(
           icon: Icons.work_outline,
           title: "事业运 (Career) - 80分",
           content: "今年事业运势较好，有升迁机会。正财星得地，适合稳扎稳打...",
           color: AppTheme.electricBlue,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppTheme.spacingMd),
         _AnalysisItem(
           icon: Icons.monetization_on_outlined,
           title: "财运 (Wealth) - 70分",
           content: "正财稳定，偏财一般。上半年财运较好，下半年需谨慎投资...",
           color: AppTheme.amberGold,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppTheme.spacingMd),
         _AnalysisItem(
           icon: Icons.favorite_border,
           title: "感情运 (Love) - 65分",
@@ -507,40 +566,79 @@ class _AnalysisItem extends StatelessWidget {
   final String content;
   final Color color;
 
-  const _AnalysisItem({required this.icon, required this.title, required this.content, required this.color});
+  const _AnalysisItem({
+    required this.icon,
+    required this.title,
+    required this.content,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      accentColor: color,
+      margin: EdgeInsets.zero,
+      compact: true,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(AppTheme.spacingSm),
             decoration: BoxDecoration(
               color: color.withOpacity(0.2),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: color.withOpacity(0.3),
+                width: AppTheme.borderThin,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.2),
+                  blurRadius: 8,
+                  spreadRadius: -2,
+                ),
+              ],
             ),
             child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: AppTheme.spacingMd),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: AppTheme.inkText, fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 4),
-                Text(content, style: TextStyle(color: AppTheme.inkText.withOpacity(0.8), fontSize: 14, height: 1.4)),
-                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppTheme.inkText,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: AppTheme.spacingXs),
+                Text(
+                  content,
+                  style: TextStyle(
+                    color: AppTheme.inkText.withOpacity(0.8),
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+                SizedBox(height: AppTheme.spacingSm),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: Text("展开全文 >", style: TextStyle(color: AppTheme.inkText.withOpacity(0.5), fontSize: 12)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "展开全文",
+                        style: TextStyle(
+                          color: color.withOpacity(0.8),
+                          fontSize: 12,
+                        ),
+                      ),
+                      Icon(Icons.chevron_right, color: color.withOpacity(0.8), size: 16),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -556,31 +654,58 @@ class _LuckTipsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      accentColor: AppTheme.jadeGreen,
+      margin: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("开运锦囊", style: TextStyle(color: AppTheme.inkText, fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
+          Row(
+            children: [
+              Icon(Icons.auto_awesome, color: AppTheme.jadeGreen, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                "开运锦囊",
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: AppTheme.spacingMd),
           Row(
             children: [
               Expanded(child: _TipBox(label: "幸运色", value: "绿色, 青色", highlight: true)),
-              const SizedBox(width: 8),
+              SizedBox(width: AppTheme.spacingSm),
               Expanded(child: _TipBox(label: "幸运数字", value: "3, 8")),
-              const SizedBox(width: 8),
+              SizedBox(width: AppTheme.spacingSm),
               Expanded(child: _TipBox(label: "吉利方位", value: "东方, 东南")),
             ],
           ),
-          const SizedBox(height: 16),
-          Text("宜: 求职, 投资, 结婚", style: TextStyle(color: AppTheme.inkText.withOpacity(0.9), fontSize: 14)),
-          const SizedBox(height: 4),
-          Text("忌: 搬家, 动土, 大额借贷", style: TextStyle(color: AppTheme.inkText.withOpacity(0.9), fontSize: 14)),
+          SizedBox(height: AppTheme.spacingMd),
+          LiquidMiniCard(
+            accentColor: AppTheme.jadeGreen,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text("宜: ", style: TextStyle(color: AppTheme.jadeGreen, fontWeight: FontWeight.bold)),
+                    Text("求职, 投资, 结婚", style: TextStyle(color: AppTheme.inkText.withOpacity(0.9))),
+                  ],
+                ),
+                SizedBox(height: AppTheme.spacingXs),
+                Row(
+                  children: [
+                    Text("忌: ", style: TextStyle(color: const Color(0xFFFF6B6B), fontWeight: FontWeight.bold)),
+                    Text("搬家, 动土, 大额借贷", style: TextStyle(color: AppTheme.inkText.withOpacity(0.9))),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -596,20 +721,51 @@ class _TipBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = highlight ? AppTheme.jadeGreen : AppTheme.liquidGlow;
+    
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      padding: EdgeInsets.symmetric(
+        vertical: AppTheme.spacingMd,
+        horizontal: AppTheme.spacingXs,
+      ),
       decoration: BoxDecoration(
-        color: highlight ? AppTheme.jadeGreen.withOpacity(0.2) : AppTheme.inkText.withOpacity(0.05), // Adjusted for visibility
-        borderRadius: BorderRadius.circular(12),
-        border: highlight ? Border.all(color: AppTheme.jadeGreen.withOpacity(0.5)) : null,
+        color: highlight 
+            ? AppTheme.jadeGreen.withOpacity(0.15) 
+            : AppTheme.liquidGlassLight,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(
+          color: highlight 
+              ? AppTheme.jadeGreen.withOpacity(0.4) 
+              : AppTheme.liquidGlassBorderSoft,
+          width: AppTheme.borderThin,
+        ),
+        boxShadow: highlight
+            ? [
+                BoxShadow(
+                  color: effectiveColor.withOpacity(0.15),
+                  blurRadius: 8,
+                  spreadRadius: -2,
+                ),
+              ]
+            : null,
       ),
       child: Column(
         children: [
-          Text(label, style: TextStyle(color: AppTheme.inkText.withOpacity(0.6), fontSize: 11)),
-          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppTheme.inkText.withOpacity(0.6),
+              fontSize: 11,
+            ),
+          ),
+          SizedBox(height: AppTheme.spacingXs),
           Text(
             value,
-            style: TextStyle(color: AppTheme.inkText, fontSize: 13, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: highlight ? AppTheme.jadeGreen : AppTheme.inkText,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

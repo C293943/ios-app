@@ -1,10 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
-import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/liquid_card.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/widgets/qi_convergence_animation.dart';
 import 'package:primordial_spirit/services/cultivation_service.dart';
@@ -55,7 +56,10 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
         children: [
           ThemedBackground(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 80.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLg,
+                vertical: 80.0,
+              ),
               child: Column(
                 children: [
                   Text(
@@ -67,7 +71,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                       letterSpacing: 2,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppTheme.spacingSm),
                   Text(
                     context.l10n.baziPromptSubtitle,
                     style: GoogleFonts.notoSerifSc(
@@ -76,11 +80,11 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                       letterSpacing: 1,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: AppTheme.spacingXl),
 
-                  GlassContainer(
-                    borderRadius: BorderRadius.circular(20),
-                    padding: const EdgeInsets.all(24),
+                  LiquidCard(
+                    margin: EdgeInsets.zero,
+                    accentColor: AppTheme.amberGold,
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -96,7 +100,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                                   icon: Icons.male,
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: AppTheme.spacingMd),
                               Expanded(
                                 child: _buildGenderOption(
                                   value: '女',
@@ -106,7 +110,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: AppTheme.spacingLg),
 
                           _buildSectionLabel(context.l10n.baziDateLabel),
                           _buildMysticInput(
@@ -123,7 +127,10 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                           ),
                           if (_selectedDate == null)
                             Padding(
-                              padding: const EdgeInsets.only(top: 4, left: 12),
+                              padding: EdgeInsets.only(
+                                top: AppTheme.spacingXs,
+                                left: AppTheme.spacingMd,
+                              ),
                               child: Text(
                                 context.l10n.birthDateRequired,
                                 style: GoogleFonts.notoSerifSc(
@@ -132,7 +139,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: AppTheme.spacingLg),
 
                           _buildSectionLabel(context.l10n.baziTimeLabel),
                           _buildMysticInput(
@@ -148,7 +155,10 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                           ),
                           if (_selectedTime == null)
                             Padding(
-                              padding: const EdgeInsets.only(top: 4, left: 12),
+                              padding: EdgeInsets.only(
+                                top: AppTheme.spacingXs,
+                                left: AppTheme.spacingMd,
+                              ),
                               child: Text(
                                 context.l10n.birthTimeRequired,
                                 style: GoogleFonts.notoSerifSc(
@@ -157,7 +167,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: AppTheme.spacingLg),
 
                           _buildSectionLabel(context.l10n.baziCityLabel),
                           _buildMysticInput(
@@ -171,7 +181,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 48),
+                  SizedBox(height: AppTheme.spacingXl),
 
                   SizedBox(
                     width: double.infinity,
@@ -226,7 +236,7 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
 
   Widget _buildSectionLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: AppTheme.spacingMd),
       child: Text(
         text,
         style: GoogleFonts.notoSerifSc(
@@ -245,41 +255,58 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     required IconData icon,
   }) {
     final isSelected = _gender == value;
-    return InkWell(
+    return GestureDetector(
       onTap: () => setState(() => _gender = value),
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected 
-              ? AppTheme.jadeGreen.withOpacity(0.14) 
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: isSelected
-                ? AppTheme.jadeGreen.withOpacity(0.55)
-                : AppTheme.amberGold.withOpacity(0.22),
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: AppTheme.animNormal),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
+            decoration: BoxDecoration(
               color: isSelected
-                  ? AppTheme.warmYellow
-                  : AppTheme.inkText.withOpacity(0.65),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.notoSerifSc(
+                  ? AppTheme.jadeGreen.withOpacity(0.18)
+                  : AppTheme.liquidGlassLight,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(
                 color: isSelected
-                    ? AppTheme.warmYellow
-                    : AppTheme.inkText.withOpacity(0.65),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ? AppTheme.jadeGreen.withOpacity(0.55)
+                    : AppTheme.liquidGlassBorderSoft,
+                width: AppTheme.borderThin,
               ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.jadeGreen.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
-          ],
+            child: Column(
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected
+                      ? AppTheme.warmYellow
+                      : AppTheme.inkText.withOpacity(0.65),
+                ),
+                SizedBox(height: AppTheme.spacingXs),
+                Text(
+                  label,
+                  style: GoogleFonts.notoSerifSc(
+                    color: isSelected
+                        ? AppTheme.warmYellow
+                        : AppTheme.inkText.withOpacity(0.65),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -291,31 +318,39 @@ class _BaziInputScreenState extends State<BaziInputScreen> {
     required VoidCallback onTap,
     required bool isPlaceholder,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.spiritGlass.withOpacity(0.35),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: AppTheme.amberGold.withOpacity(0.22)),
-        ),
-        child: Row(
-          children: [
-            Text(
-              value,
-              style: GoogleFonts.notoSerifSc(
-                color: isPlaceholder
-                    ? AppTheme.inkText.withOpacity(0.55)
-                    : AppTheme.inkText,
-                fontSize: 16,
-                fontWeight: isPlaceholder ? FontWeight.normal : FontWeight.w500,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+          child: Container(
+            padding: EdgeInsets.all(AppTheme.spacingMd),
+            decoration: BoxDecoration(
+              color: AppTheme.liquidGlassLight,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(
+                color: AppTheme.liquidGlassBorderSoft,
+                width: AppTheme.borderThin,
               ),
             ),
-            const Spacer(),
-            Icon(icon, color: AppTheme.amberGold.withOpacity(0.85), size: 20),
-          ],
+            child: Row(
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.notoSerifSc(
+                    color: isPlaceholder
+                        ? AppTheme.inkText.withOpacity(0.55)
+                        : AppTheme.inkText,
+                    fontSize: 16,
+                    fontWeight: isPlaceholder ? FontWeight.normal : FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                Icon(icon, color: AppTheme.amberGold.withOpacity(0.85), size: 20),
+              ],
+            ),
+          ),
         ),
       ),
     );

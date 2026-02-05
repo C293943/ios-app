@@ -65,13 +65,6 @@ class CharacterDisplayState extends State<CharacterDisplay> {
   void initState() {
     super.initState();
   }
-
-  void _toggleModelSelector() {
-    setState(() {
-      _showModelSelector = !_showModelSelector;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     // 如果不可见，返回空容器
@@ -227,19 +220,6 @@ class CharacterDisplayState extends State<CharacterDisplay> {
     }
   }
 
-  /// 更新动画列表
-  void _updateAnimations() {
-    final viewerState = _viewer3DKey.currentState;
-    if (viewerState != null && viewerState.availableAnimations.isNotEmpty) {
-      if (_animations.isEmpty ||
-          _animations.length != viewerState.availableAnimations.length) {
-        setState(() {
-          _animations = viewerState.availableAnimations;
-          _currentAnimation = viewerState.currentAnimation;
-        });
-      }
-    }
-  }
 
   /// 构建动画选择器包装器
   Widget _buildAnimationSelectorWrapper() {

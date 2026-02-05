@@ -1,17 +1,14 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:primordial_spirit/config/app_config.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:primordial_spirit/services/model_manager_service.dart';
-import 'package:primordial_spirit/widgets/common/themed_background.dart';
-import 'package:primordial_spirit/widgets/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/liquid_card.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
 
 /// 聊天页面 - 带角色背景的沉浸式对话界面
@@ -181,73 +178,111 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildCustomAppBar(BuildContext context) {
     // 获取状态栏高度
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = AppTheme.inkText;
 
-    return GlassContainer(
-      height: statusBarHeight + 60,
-      width: double.infinity,
-      borderRadius: const BorderRadius.only(
-        bottomLeft: Radius.circular(24),
-        bottomRight: Radius.circular(24),
+    return ClipRRect(
+      borderRadius: BorderRadius.only(
+        bottomLeft: Radius.circular(AppTheme.radiusXl),
+        bottomRight: Radius.circular(AppTheme.radiusXl),
       ),
-      margin: EdgeInsets.zero,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: statusBarHeight,
-        bottom: 8,
-      ),
-      variant: GlassVariant.spirit,
-      blurSigma: 10,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // 居中标题
-          Text(
-            context.l10n.spiritName,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: AppTheme.blurMd, sigmaY: AppTheme.blurMd),
+        child: Container(
+          height: statusBarHeight + 60,
+          width: double.infinity,
+          padding: EdgeInsets.only(
+            left: AppTheme.spacingMd,
+            right: AppTheme.spacingMd,
+            top: statusBarHeight,
+            bottom: AppTheme.spacingSm,
+          ),
+          decoration: BoxDecoration(
+            color: AppTheme.liquidGlassBase,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(AppTheme.radiusXl),
+              bottomRight: Radius.circular(AppTheme.radiusXl),
+            ),
+            border: Border(
+              bottom: BorderSide(
+                color: AppTheme.liquidGlassBorder,
+                width: AppTheme.borderThin,
+              ),
             ),
           ),
-
-          // 左右按钮
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              // 返回按钮
-              IconButton(
-                icon: Icon(Icons.arrow_back_ios_new, color: textColor, size: 20),
-                onPressed: () => Navigator.pop(context),
+              // 居中标题
+              Text(
+                context.l10n.spiritName,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.2,
+                ),
               ),
 
-              // 元神档案按钮
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppTheme.scrollBorder.withOpacity(0.2),
-                    width: 1,
+              // 左右按钮
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // 返回按钮
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                      child: Container(
+                        padding: EdgeInsets.all(AppTheme.spacingSm),
+                        decoration: BoxDecoration(
+                          color: AppTheme.liquidGlassLight,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                          border: Border.all(
+                            color: AppTheme.liquidGlassBorderSoft,
+                            width: AppTheme.borderThin,
+                          ),
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            if (Navigator.of(context).canPop()) {
+                              Navigator.of(context).pop();
+                            } else {
+                              Navigator.of(context).pushReplacementNamed('/');
+                            }
+                          },
+                          child: Icon(Icons.arrow_back_ios_new, color: textColor, size: 18),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: Icon(Icons.folder_open_outlined, color: textColor, size: 18),
-                  tooltip: '元神档案',
-                  onPressed: () {
-                    _showSpiritArchive(context);
-                  },
-                ),
+
+                  // 元神档案按钮
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                      child: Container(
+                        padding: EdgeInsets.all(AppTheme.spacingSm),
+                        decoration: BoxDecoration(
+                          color: AppTheme.liquidGlassLight,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                          border: Border.all(
+                            color: AppTheme.liquidGlassBorderSoft,
+                            width: AppTheme.borderThin,
+                          ),
+                        ),
+                        child: GestureDetector(
+                          onTap: () => _showSpiritArchive(context),
+                          child: Icon(Icons.folder_open_outlined, color: textColor, size: 18),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -256,7 +291,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void _showSpiritArchive(BuildContext context) {
     final modelManager = context.read<ModelManagerService>();
     final fortuneData = modelManager.fortuneData;
-    final textColor = AppTheme.inkText; // 适配主题色
+    final textColor = AppTheme.inkText;
     final labelColor = AppTheme.inkText.withOpacity(0.7);
 
     if (fortuneData == null) {
@@ -279,51 +314,80 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         return Center(
           child: Material(
             color: Colors.transparent,
-            child: GlassContainer(
-              width: 320,
-              padding: const EdgeInsets.all(24),
-              borderRadius: BorderRadius.circular(24),
-              // 使用 theme-aware variant
-              variant: GlassVariant.spirit,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 标题
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '元神档案',
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close, color: textColor.withOpacity(0.7)),
-                        onPressed: () => Navigator.of(context).pop(),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: AppTheme.blurLg, sigmaY: AppTheme.blurLg),
+                child: Container(
+                  width: 320,
+                  padding: EdgeInsets.all(AppTheme.spacingLg),
+                  decoration: BoxDecoration(
+                    color: AppTheme.liquidGlassBase,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                    border: Border.all(
+                      color: AppTheme.liquidGlassBorder,
+                      width: AppTheme.borderThin,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  
-                  // 内容列表
-                  _buildArchiveItem('元神名', '元神', labelColor, textColor),
-                  _buildArchiveItem('元神属性', dayMaster, labelColor, textColor),
-                  _buildArchiveItem('觉醒时间', '${awakeningDate.year}年${awakeningDate.month}月${awakeningDate.day}日', labelColor, textColor),
-                  _buildArchiveItem('已守护时间', '$guardedDays天', labelColor, textColor),
-                  _buildArchiveItem('累计对话次数', '$totalChats次', labelColor, textColor),
-                  const SizedBox(height: 12),
-                  Divider(color: textColor.withOpacity(0.2)),
-                  const SizedBox(height: 12),
-                  _buildArchiveItem('元神性格', '善解人意、温和睿智', labelColor, textColor, isMultiLine: true),
-                  _buildArchiveItem('元神寄语', '愿为你照亮前行的道路，指引人生方向', labelColor, textColor, isMultiLine: true),
-                ],
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 标题
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.auto_awesome, color: AppTheme.amberGold, size: 22),
+                              SizedBox(width: AppTheme.spacingSm),
+                              Text(
+                                '元神档案',
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                          GestureDetector(
+                            onTap: () => Navigator.of(context).pop(),
+                            child: Container(
+                              padding: EdgeInsets.all(AppTheme.spacingXs),
+                              decoration: BoxDecoration(
+                                color: AppTheme.liquidGlassLight,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                              ),
+                              child: Icon(Icons.close, color: textColor.withOpacity(0.7), size: 18),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: AppTheme.spacingLg),
+                      
+                      // 内容列表
+                      _buildArchiveItem('元神名', '元神', labelColor, textColor),
+                      _buildArchiveItem('元神属性', dayMaster, labelColor, textColor),
+                      _buildArchiveItem('觉醒时间', '${awakeningDate.year}年${awakeningDate.month}月${awakeningDate.day}日', labelColor, textColor),
+                      _buildArchiveItem('已守护时间', '$guardedDays天', labelColor, textColor),
+                      _buildArchiveItem('累计对话次数', '$totalChats次', labelColor, textColor),
+                      SizedBox(height: AppTheme.spacingMd),
+                      LiquidDivider(),
+                      SizedBox(height: AppTheme.spacingMd),
+                      _buildArchiveItem('元神性格', '善解人意、温和睿智', labelColor, textColor, isMultiLine: true),
+                      _buildArchiveItem('元神寄语', '愿为你照亮前行的道路，指引人生方向', labelColor, textColor, isMultiLine: true),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -393,43 +457,48 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   /// 打字指示器
   Widget _buildTypingIndicator() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20, left: 54),
+      padding: EdgeInsets.only(bottom: AppTheme.spacingLg, left: 54),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppTheme.spiritGlass.withOpacity(0.55),
-              borderRadius: const BorderRadius.all(Radius.circular(20)),
-              border: Border.all(color: AppTheme.amberGold.withOpacity(0.18), width: 0.8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.35),
-                  blurRadius: 18,
-                  offset: const Offset(0, 2),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingMd,
+                  vertical: AppTheme.spacingMd,
                 ),
-              ],
-            ),
-            child: AnimatedBuilder(
-              animation: _typingAnimation,
-              builder: (context, child) {
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(3, (index) {
-                    final delay = index * 0.3;
-                    final opacity = ((_typingAnimation.value - delay) % 1.0).clamp(0.0, 1.0);
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppTheme.jadeGreen.withOpacity(0.25 + opacity * 0.6),
-                      ),
+                decoration: BoxDecoration(
+                  color: AppTheme.liquidGlassLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(
+                    color: AppTheme.liquidGlassBorderSoft,
+                    width: AppTheme.borderThin,
+                  ),
+                ),
+                child: AnimatedBuilder(
+                  animation: _typingAnimation,
+                  builder: (context, child) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(3, (index) {
+                        final delay = index * 0.3;
+                        final opacity = ((_typingAnimation.value - delay) % 1.0).clamp(0.0, 1.0);
+                        return Container(
+                          margin: EdgeInsets.symmetric(horizontal: AppTheme.spacingXs),
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.jadeGreen.withOpacity(0.25 + opacity * 0.6),
+                          ),
+                        );
+                      }),
                     );
-                  }),
-                );
-              },
+                  },
+                ),
+              ),
             ),
           ),
         ],
@@ -441,130 +510,141 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildInputArea(BuildContext context, bool isSmallScreen) {
     // 获取底部安全区域高度
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    // 输入框背景色 - 磨砂玻璃上的半透明层
-    final inputFillColor = isDark 
-        ? Colors.white.withOpacity(0.1) 
-        : Colors.black.withOpacity(0.05);
-    
-    final iconColor = isDark ? Colors.white70 : AppTheme.inkText.withOpacity(0.8);
+    final iconColor = AppTheme.inkText.withOpacity(0.8);
 
-    return GlassContainer(
-      borderRadius: const BorderRadius.only(
-        topLeft: Radius.circular(24),
-        topRight: Radius.circular(24),
+    return ClipRRect(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(AppTheme.radiusXl),
+        topRight: Radius.circular(AppTheme.radiusXl),
       ),
-      margin: EdgeInsets.zero,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 12,
-        bottom: MediaQuery.of(context).viewInsets.bottom + bottomPadding + 12,
-      ),
-      variant: GlassVariant.spirit,
-      blurSigma: 15,
-      child: Row(
-        children: [
-          // 语音按钮
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: inputFillColor,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppTheme.scrollBorder.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: Icon(Icons.mic, color: iconColor, size: 22),
-              onPressed: () {
-                // TODO: 语音输入
-                HapticFeedback.lightImpact();
-              },
-            ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: AppTheme.blurLg, sigmaY: AppTheme.blurLg),
+        child: Container(
+          padding: EdgeInsets.only(
+            left: AppTheme.spacingMd,
+            right: AppTheme.spacingMd,
+            top: AppTheme.spacingMd,
+            bottom: MediaQuery.of(context).viewInsets.bottom + bottomPadding + AppTheme.spacingMd,
           ),
-
-          const SizedBox(width: 12),
-
-          // 文本输入框
-          Expanded(
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: inputFillColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppTheme.scrollBorder.withOpacity(0.2),
-                  width: 1,
-                ),
-              ),
-              child: TextField(
-                controller: _messageController,
-                style: TextStyle(
-                  color: AppTheme.inkText,
-                  fontSize: 15,
-                ),
-                decoration: InputDecoration(
-                  hintText: context.l10n.chatInputHint,
-                  hintStyle: TextStyle(
-                    color: AppTheme.inkText.withOpacity(0.5),
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8, // 垂直居中修正
-                  ),
-                  isDense: true,
-                ),
-                maxLines: 1,
-                textCapitalization: TextCapitalization.sentences,
-                onSubmitted: (_) => _sendMessage(),
+          decoration: BoxDecoration(
+            color: AppTheme.liquidGlassBase,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(AppTheme.radiusXl),
+              topRight: Radius.circular(AppTheme.radiusXl),
+            ),
+            border: Border(
+              top: BorderSide(
+                color: AppTheme.liquidGlassBorder,
+                width: AppTheme.borderThin,
               ),
             ),
           ),
-
-          const SizedBox(width: 12),
-
-          // 发送按钮
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFA5F3FC), Color(0xFF22D3EE)], // 亮青色渐变
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF22D3EE).withOpacity(0.4),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+          child: Row(
+            children: [
+              // 语音按钮
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.liquidGlassLight,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppTheme.liquidGlassBorderSoft,
+                    width: AppTheme.borderThin,
+                  ),
                 ),
-              ],
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: Icon(Icons.mic, color: iconColor, size: 22),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                  },
+                ),
+              ),
+
+              SizedBox(width: AppTheme.spacingMd),
+
+              // 文本输入框
+              Expanded(
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppTheme.liquidGlassLight,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                    border: Border.all(
+                      color: AppTheme.liquidGlassBorderSoft,
+                      width: AppTheme.borderThin,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _messageController,
+                    style: TextStyle(
+                      color: AppTheme.inkText,
+                      fontSize: 15,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: context.l10n.chatInputHint,
+                      hintStyle: TextStyle(
+                        color: AppTheme.inkText.withOpacity(0.5),
+                        fontSize: 14,
                       ),
-                    )
-                  : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-              onPressed: _isLoading ? null : _sendMessage,
-            ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingMd,
+                        vertical: AppTheme.spacingSm,
+                      ),
+                      isDense: true,
+                    ),
+                    maxLines: 1,
+                    textCapitalization: TextCapitalization.sentences,
+                    onSubmitted: (_) => _sendMessage(),
+                  ),
+                ),
+              ),
+
+              SizedBox(width: AppTheme.spacingMd),
+
+              // 发送按钮
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppTheme.fluorescentCyan, AppTheme.electricBlue],
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: AppTheme.borderThin,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.fluorescentCyan.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                  onPressed: _isLoading ? null : _sendMessage,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -577,74 +657,71 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         .replaceAll(r'\r\n', '\n')
         .replaceAll(r'\n', '\n');
 
-    // 气泡样式配置 - 仿玻璃拟态
-    final bubbleGradient = isUser
-        ? LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF6F9BFB).withOpacity(0.5), // 较亮蓝
-              const Color(0xFF6F9BFB).withOpacity(0.2), // 较暗蓝
-            ],
-          )
-        : LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF4ADE80).withOpacity(0.4), // 较亮绿
-              const Color(0xFF4ADE80).withOpacity(0.15), // 较暗绿
-            ],
-          );
-
-    final borderColor = isUser
-        ? const Color(0xFF6F9BFB).withOpacity(0.4)
-        : const Color(0xFF4ADE80).withOpacity(0.4);
+    // 气泡样式配置 - 液态玻璃风格
+    final accentColor = isUser ? AppTheme.electricBlue : AppTheme.jadeGreen;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: EdgeInsets.only(bottom: AppTheme.spacingLg),
       child: Row(
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 气泡内容
           Flexible(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: isSmallScreen ? 260 : 300,
+            child: ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(AppTheme.radiusMd),
+                topRight: Radius.circular(AppTheme.radiusMd),
+                bottomLeft: Radius.circular(isUser ? AppTheme.radiusMd : AppTheme.radiusXs),
+                bottomRight: Radius.circular(isUser ? AppTheme.radiusXs : AppTheme.radiusMd),
               ),
-              // 调整内边距：水平12，垂直2
-              padding: const EdgeInsets.only(
-                left: 12,
-                right: 12,
-                top: 0,
-                bottom: 2,
-              ),
-              decoration: BoxDecoration(
-                gradient: bubbleGradient,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(isUser ? 20 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 20),
-                ),
-                border: Border.all(
-                  color: borderColor,
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: (isUser ? const Color(0xFF6F9BFB) : const Color(0xFF4ADE80)).withOpacity(0.1),
-                    blurRadius: 12,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 4),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxWidth: isSmallScreen ? 260 : 300,
                   ),
-                ],
-              ),
-              child: MarkdownWidget(
-                data: markdownText,
-                selectable: true,
-                shrinkWrap: true,
-                config: _buildMarkdownConfig(isUser),
+                  padding: EdgeInsets.only(
+                    left: AppTheme.spacingMd,
+                    right: AppTheme.spacingMd,
+                    top: 0,
+                    bottom: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        accentColor.withOpacity(0.35),
+                        accentColor.withOpacity(0.15),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(AppTheme.radiusMd),
+                      topRight: Radius.circular(AppTheme.radiusMd),
+                      bottomLeft: Radius.circular(isUser ? AppTheme.radiusMd : AppTheme.radiusXs),
+                      bottomRight: Radius.circular(isUser ? AppTheme.radiusXs : AppTheme.radiusMd),
+                    ),
+                    border: Border.all(
+                      color: accentColor.withOpacity(0.4),
+                      width: AppTheme.borderThin,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withOpacity(0.15),
+                        blurRadius: 12,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: MarkdownWidget(
+                    data: markdownText,
+                    selectable: true,
+                    shrinkWrap: true,
+                    config: _buildMarkdownConfig(isUser),
+                  ),
+                ),
               ),
             ),
           ),
@@ -884,59 +961,119 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => GlassContainer(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+      builder: (context) => ClipRRect(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppTheme.radiusXl),
+          topRight: Radius.circular(AppTheme.radiusXl),
         ),
-        variant: GlassVariant.spirit,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.cleaning_services, color: iconColor),
-                title: Text(
-                  context.l10n.chatClear,
-                  style: TextStyle(color: textColor),
-                ),
-                onTap: () {
-                  setState(() {
-                    _messages.clear();
-                    _messages.add(ChatMessage(
-                      text: context.l10n.chatWelcomeMessage,
-                      isUser: false,
-                      timestamp: DateTime.now(),
-                    ));
-                  });
-                  Navigator.pop(context);
-                },
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: AppTheme.blurLg, sigmaY: AppTheme.blurLg),
+          child: Container(
+            padding: EdgeInsets.all(AppTheme.spacingLg),
+            decoration: BoxDecoration(
+              color: AppTheme.liquidGlassBase,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(AppTheme.radiusXl),
+                topRight: Radius.circular(AppTheme.radiusXl),
               ),
-              ListTile(
-                leading: Icon(Icons.history, color: iconColor),
-                title: Text(
-                  context.l10n.chatHistory,
-                  style: TextStyle(color: textColor),
+              border: Border(
+                top: BorderSide(
+                  color: AppTheme.liquidGlassBorder,
+                  width: AppTheme.borderThin,
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: 显示对话历史
-                },
               ),
-              ListTile(
-                leading: Icon(Icons.settings, color: iconColor),
-                title: Text(
-                  context.l10n.settingsTitle,
-                  style: TextStyle(color: textColor),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: EdgeInsets.only(bottom: AppTheme.spacingMd),
+                  decoration: BoxDecoration(
+                    color: AppTheme.inkText.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/settings');
-                },
-              ),
-            ],
+                _buildOptionTile(
+                  icon: Icons.cleaning_services,
+                  iconColor: iconColor,
+                  title: context.l10n.chatClear,
+                  textColor: textColor,
+                  onTap: () {
+                    setState(() {
+                      _messages.clear();
+                      _messages.add(ChatMessage(
+                        text: context.l10n.chatWelcomeMessage,
+                        isUser: false,
+                        timestamp: DateTime.now(),
+                      ));
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                _buildOptionTile(
+                  icon: Icons.history,
+                  iconColor: iconColor,
+                  title: context.l10n.chatHistory,
+                  textColor: textColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                _buildOptionTile(
+                  icon: Icons.settings,
+                  iconColor: iconColor,
+                  title: context.l10n.settingsTitle,
+                  textColor: textColor,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/settings');
+                  },
+                ),
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required Color textColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppTheme.spacingMd,
+          vertical: AppTheme.spacingMd,
+        ),
+        margin: EdgeInsets.only(bottom: AppTheme.spacingSm),
+        decoration: BoxDecoration(
+          color: AppTheme.liquidGlassLight,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(
+            color: AppTheme.liquidGlassBorderSoft,
+            width: AppTheme.borderThin,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 22),
+            SizedBox(width: AppTheme.spacingMd),
+            Text(
+              title,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+              ),
+            ),
+          ],
         ),
       ),
     );

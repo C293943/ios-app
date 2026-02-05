@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/widgets/app_bottom_nav_bar.dart';
+import 'package:primordial_spirit/widgets/common/liquid_card.dart';
 import 'package:intl/intl.dart';
 
 class FortuneScreen extends StatelessWidget {
@@ -25,26 +26,26 @@ class FortuneScreen extends StatelessWidget {
                   const _FortuneAppBar(),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 100), // Space for nav bar
+                      padding: const EdgeInsets.only(bottom: 100),
                       child: Column(
                         children: [
-                          const SizedBox(height: 10),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _DailyFortuneCard(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _FortuneGrid(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _LuckyActionCard(),
-                          const SizedBox(height: 16),
+                          SizedBox(height: AppTheme.spacingMd),
                           const _YiJiCard(),
-                          const SizedBox(height: 16),
-                          const _AuspiciousTimeCard(), // Added
-                          const SizedBox(height: 16),
-                          const _FortuneTrendCard(), // Added
-                          const SizedBox(height: 16),
-                          const _AnalysisReportCard(), // Added
-                          const SizedBox(height: 16),
-                          const _WishesCard(), // Added
-                          const SizedBox(height: 20),
+                          SizedBox(height: AppTheme.spacingMd),
+                          const _AuspiciousTimeCard(),
+                          SizedBox(height: AppTheme.spacingMd),
+                          const _FortuneTrendCard(),
+                          SizedBox(height: AppTheme.spacingMd),
+                          const _AnalysisReportCard(),
+                          SizedBox(height: AppTheme.spacingMd),
+                          const _WishesCard(),
+                          SizedBox(height: AppTheme.spacingLg),
                         ],
                       ),
                     ),
@@ -115,11 +116,14 @@ class _FortuneAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMd,
+        vertical: AppTheme.spacingSm,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const SizedBox(width: 20),
+          SizedBox(width: AppTheme.spacingLg),
           Expanded(
             child: Text(
               "今日运势",
@@ -134,12 +138,33 @@ class _FortuneAppBar extends StatelessWidget {
           ),
           Row(
             children: [
-              Icon(Icons.calendar_month, color: AppTheme.inkText, size: 24),
-              const SizedBox(width: 16),
-              Icon(Icons.share, color: AppTheme.inkText, size: 24),
+              _buildIconButton(Icons.calendar_month),
+              SizedBox(width: AppTheme.spacingMd),
+              _buildIconButton(Icons.share),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildIconButton(IconData icon) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+        child: Container(
+          padding: EdgeInsets.all(AppTheme.spacingSm),
+          decoration: BoxDecoration(
+            color: AppTheme.liquidGlassLight,
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            border: Border.all(
+              color: AppTheme.liquidGlassBorderSoft,
+              width: AppTheme.borderThin,
+            ),
+          ),
+          child: Icon(icon, color: AppTheme.inkText, size: 22),
+        ),
       ),
     );
   }
@@ -153,21 +178,9 @@ class _DailyFortuneCard extends StatelessWidget {
     final now = DateTime.now();
     final dateStr = DateFormat('yyyy年MM月dd日，EEEE', 'zh_CN').format(now);
     
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return LiquidCard(
+      elevated: true,
+      accentColor: AppTheme.amberGold,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -178,50 +191,26 @@ class _DailyFortuneCard extends StatelessWidget {
               fontSize: 14,
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  "今日吉星高照，宜静心修炼，静待花开",
-                  style: TextStyle(
-                    color: AppTheme.inkText,
-                    fontSize: 22,
-                    height: 1.4,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'ZCOOLXiaoWei', // Assuming this font is used in theme
-                  ),
-                ),
-              ),
-            ],
+          SizedBox(height: AppTheme.spacingMd),
+          Text(
+            "今日吉星高照，宜静心修炼，静待花开",
+            style: TextStyle(
+              color: AppTheme.inkText,
+              fontSize: 22,
+              height: 1.4,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'ZCOOLXiaoWei',
+            ),
           ),
+          SizedBox(height: AppTheme.spacingMd),
           Align(
             alignment: Alignment.bottomRight,
             child: GestureDetector(
               onTap: () => Navigator.of(context).pushNamed(AppRoutes.chat),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppTheme.jadeGreen.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.jadeGreen.withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.chat_bubble_outline, color: AppTheme.jadeGreen, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      "问问元神",
-                      style: TextStyle(
-                        color: AppTheme.jadeGreen,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+              child: LiquidInfoTag(
+                text: "问问元神",
+                icon: Icons.chat_bubble_outline,
+                color: AppTheme.jadeGreen,
               ),
             ),
           ),
@@ -237,7 +226,7 @@ class _FortuneGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
       child: Row(
         children: [
           Expanded(
@@ -248,20 +237,18 @@ class _FortuneGrid extends StatelessWidget {
                   title: "财运",
                   stars: 4,
                   color: AppTheme.amberGold,
-                  iconBgColor: AppTheme.jadeGreen.withOpacity(0.2),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppTheme.spacingMd),
                 _FortuneItem(
                   icon: Icons.favorite_outline,
                   title: "健康",
                   stars: 3,
                   color: AppTheme.lotusPink,
-                  iconBgColor: AppTheme.fluorescentCyan.withOpacity(0.2),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: AppTheme.spacingMd),
           Expanded(
             child: Column(
               children: [
@@ -270,15 +257,13 @@ class _FortuneGrid extends StatelessWidget {
                   title: "事业",
                   stars: 5,
                   color: AppTheme.electricBlue,
-                  iconBgColor: AppTheme.electricBlue.withOpacity(0.2),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppTheme.spacingMd),
                 _FortuneItem(
                   icon: Icons.favorite,
                   title: "感情",
                   stars: 5,
                   color: AppTheme.lotusPink,
-                  iconBgColor: AppTheme.lotusPink.withOpacity(0.2),
                 ),
               ],
             ),
@@ -294,36 +279,44 @@ class _FortuneItem extends StatelessWidget {
   final String title;
   final int stars;
   final Color color;
-  final Color iconBgColor;
 
   const _FortuneItem({
     required this.icon,
     required this.title,
     required this.stars,
     required this.color,
-    required this.iconBgColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
+    return LiquidMiniCard(
+      accentColor: color,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMd,
+        vertical: AppTheme.spacingMd,
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(AppTheme.spacingSm),
             decoration: BoxDecoration(
-              color: iconBgColor,
+              color: color.withOpacity(0.2),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: color.withOpacity(0.3),
+                width: AppTheme.borderThin,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.2),
+                  blurRadius: 8,
+                  spreadRadius: -2,
+                ),
+              ],
             ),
-            child: Icon(icon, color: AppTheme.inkText, size: 24),
+            child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: AppTheme.spacingMd),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,15 +329,24 @@ class _FortuneItem extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: List.generate(5, (index) {
-                    return Icon(
-                      Icons.star,
-                      size: 12,
-                      color: index < stars ? AppTheme.amberGold : Colors.grey.withOpacity(0.3),
-                    );
-                  }),
+                SizedBox(height: AppTheme.spacingXs),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(5, (index) {
+                      final isActive = index < stars;
+                      return Padding(
+                        padding: EdgeInsets.only(right: 2),
+                        child: Icon(
+                          isActive ? Icons.star : Icons.star_outline,
+                          size: 14,
+                          color: isActive ? AppTheme.amberGold : AppTheme.inkText.withOpacity(0.2),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               ],
             ),
@@ -360,22 +362,28 @@ class _LuckyActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
+    return LiquidCard(
+      compact: true,
+      accentColor: AppTheme.amberGold,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMd,
+        vertical: AppTheme.spacingMd,
       ),
       child: Row(
         children: [
-          Icon(Icons.auto_awesome, color: AppTheme.amberGold, size: 20),
-          const SizedBox(width: 8),
+          Container(
+            padding: EdgeInsets.all(AppTheme.spacingSm),
+            decoration: BoxDecoration(
+              color: AppTheme.amberGold.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            ),
+            child: Icon(Icons.auto_awesome, color: AppTheme.amberGold, size: 18),
+          ),
+          SizedBox(width: AppTheme.spacingMd),
           Text(
             "今日开运: ",
             style: TextStyle(
-              color: AppTheme.inkText,
+              color: AppTheme.amberGold,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -388,6 +396,11 @@ class _LuckyActionCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          Icon(
+            Icons.chevron_right,
+            color: AppTheme.inkText.withOpacity(0.4),
+            size: 20,
+          ),
         ],
       ),
     );
@@ -399,14 +412,7 @@ class _YiJiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
       child: Row(
         children: [
           Expanded(
@@ -414,21 +420,30 @@ class _YiJiCard extends StatelessWidget {
               type: "宜",
               items: const ["祭祀", "静修", "安床"],
               color: AppTheme.jadeGreen,
-              bgColor: AppTheme.jadeGreen.withOpacity(0.1),
             ),
           ),
           Container(
-            width: 1,
-            height: 60,
-            color: AppTheme.scrollBorder.withOpacity(0.3),
-            margin: const EdgeInsets.symmetric(horizontal: 16),
+            width: AppTheme.borderStandard,
+            height: 70,
+            margin: EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  AppTheme.liquidGlassBorder.withOpacity(0.5),
+                  AppTheme.liquidGlassBorder.withOpacity(0.5),
+                  Colors.transparent,
+                ],
+              ),
+            ),
           ),
           Expanded(
             child: _YiJiItem(
               type: "忌",
               items: const ["出行", "动土", "嫁娶"],
-              color: const Color(0xFFFF6B6B), // Reddish
-              bgColor: const Color(0xFFFF6B6B).withOpacity(0.1),
+              color: const Color(0xFFFF6B6B),
             ),
           ),
         ],
@@ -441,13 +456,11 @@ class _YiJiItem extends StatelessWidget {
   final String type;
   final List<String> items;
   final Color color;
-  final Color bgColor;
 
   const _YiJiItem({
     required this.type,
     required this.items,
     required this.color,
-    required this.bgColor,
   });
 
   @override
@@ -455,13 +468,23 @@ class _YiJiItem extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: color.withOpacity(0.15),
             shape: BoxShape.circle,
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(
+              color: color.withOpacity(0.4),
+              width: AppTheme.borderStandard,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 12,
+                spreadRadius: -2,
+              ),
+            ],
           ),
           child: Text(
             type,
@@ -473,7 +496,7 @@ class _YiJiItem extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppTheme.spacingMd),
         Text(
           "【$type】 ${items.join('、')}",
           textAlign: TextAlign.center,
@@ -495,30 +518,30 @@ class _AuspiciousTimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      accentColor: AppTheme.fluorescentCyan,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "今日吉时",
-            style: TextStyle(
-              color: AppTheme.inkText,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Icon(Icons.schedule, color: AppTheme.fluorescentCyan, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                "今日吉时",
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppTheme.spacingMd),
           _TimeSlotRow(time: "14:00 - 15:00", activity: "宜：重要会议"),
-          const SizedBox(height: 8),
+          SizedBox(height: AppTheme.spacingSm),
           _TimeSlotRow(time: "16:00 - 17:00", activity: "宜：签约合作"),
-          const SizedBox(height: 8),
+          SizedBox(height: AppTheme.spacingSm),
           _TimeSlotRow(time: "19:00 - 20:00", activity: "宜：放松休息"),
         ],
       ),
@@ -534,26 +557,41 @@ class _TimeSlotRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(Icons.access_time, color: AppTheme.jadeGreen.withOpacity(0.7), size: 18),
-        const SizedBox(width: 8),
-        Text(
-          time,
-          style: TextStyle(
-            color: AppTheme.inkText.withOpacity(0.9),
-            fontSize: 14,
-          ),
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMd,
+        vertical: AppTheme.spacingSm,
+      ),
+      decoration: BoxDecoration(
+        color: AppTheme.liquidGlassLight,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        border: Border.all(
+          color: AppTheme.liquidGlassBorderSoft,
+          width: AppTheme.borderThin,
         ),
-        const Spacer(),
-        Text(
-          activity,
-          style: TextStyle(
-            color: AppTheme.inkText.withOpacity(0.9),
-            fontSize: 14,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.access_time, color: AppTheme.jadeGreen, size: 16),
+          SizedBox(width: AppTheme.spacingSm),
+          Text(
+            time,
+            style: TextStyle(
+              color: AppTheme.inkText,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+          const Spacer(),
+          Text(
+            activity,
+            style: TextStyle(
+              color: AppTheme.inkText.withOpacity(0.8),
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -563,32 +601,36 @@ class _FortuneTrendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      accentColor: AppTheme.jadeGreen,
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "运势走势",
-                style: TextStyle(
-                  color: AppTheme.inkText,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Icon(Icons.show_chart, color: AppTheme.jadeGreen, size: 20),
+                  SizedBox(width: AppTheme.spacingSm),
+                  Text(
+                    "运势走势",
+                    style: TextStyle(
+                      color: AppTheme.inkText,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
               Container(
-                padding: const EdgeInsets.all(2),
+                padding: EdgeInsets.all(AppTheme.spacingXs),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppTheme.liquidGlassLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  border: Border.all(
+                    color: AppTheme.liquidGlassBorderSoft,
+                    width: AppTheme.borderThin,
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -600,7 +642,7 @@ class _FortuneTrendCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: AppTheme.spacingLg),
           SizedBox(
             height: 100,
             child: CustomPaint(
@@ -608,13 +650,13 @@ class _FortuneTrendCard extends StatelessWidget {
               child: Container(),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: AppTheme.spacingSm),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("每一", style: TextStyle(fontSize: 12, color: AppTheme.inkText.withOpacity(0.5))),
+              Text("周一", style: TextStyle(fontSize: 12, color: AppTheme.inkText.withOpacity(0.5))),
               Text("2024年10月", style: TextStyle(fontSize: 12, color: AppTheme.inkText.withOpacity(0.5))),
-              Text("每日", style: TextStyle(fontSize: 12, color: AppTheme.inkText.withOpacity(0.5))),
+              Text("周日", style: TextStyle(fontSize: 12, color: AppTheme.inkText.withOpacity(0.5))),
             ],
           ),
         ],
@@ -632,10 +674,19 @@ class _TabItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMd,
+        vertical: AppTheme.spacingXs,
+      ),
       decoration: BoxDecoration(
         color: isSelected ? AppTheme.jadeGreen.withOpacity(0.3) : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: isSelected
+            ? Border.all(
+                color: AppTheme.jadeGreen.withOpacity(0.5),
+                width: AppTheme.borderThin,
+              )
+            : null,
       ),
       child: Text(
         title,
@@ -718,94 +769,124 @@ class _AnalysisReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      height: 140, // Fixed height for visual consistency
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "分析报告",
-                style: TextStyle(
-                  color: AppTheme.inkText,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Blurred content simulation
-              Opacity(
-                opacity: 0.3,
-                child: Column(
+    return LiquidCard(
+      accentColor: AppTheme.amberGold,
+      padding: EdgeInsets.all(AppTheme.spacingMd),
+      child: SizedBox(
+        height: 120,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    _BlurredRow(),
-                    const SizedBox(height: 8),
-                    _BlurredRow(),
-                    const SizedBox(height: 8),
-                    _BlurredRow(),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Center(
-            child: GestureDetector(
-              onTap: () {
-                // Navigate to details
-                Navigator.of(context).pushNamed(AppRoutes.fortuneDetail);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.lock_outline, color: AppTheme.amberGold, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(Icons.analytics_outlined, color: AppTheme.amberGold, size: 20),
+                    SizedBox(width: AppTheme.spacingSm),
                     Text(
-                      "解锁本月运势报告 (5灵石)",
+                      "分析报告",
                       style: TextStyle(
                         color: AppTheme.inkText,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
+                SizedBox(height: AppTheme.spacingMd),
+                // 模糊内容
+                Opacity(
+                  opacity: 0.3,
+                  child: Column(
+                    children: [
+                      _BlurredRow(),
+                      SizedBox(height: AppTheme.spacingSm),
+                      _BlurredRow(),
+                      SizedBox(height: AppTheme.spacingSm),
+                      _BlurredRow(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Center(
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.fortuneDetail),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingLg,
+                        vertical: AppTheme.spacingMd,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.liquidGlassBase.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                        border: Border.all(
+                          color: AppTheme.amberGold.withOpacity(0.5),
+                          width: AppTheme.borderStandard,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.amberGold.withOpacity(0.2),
+                            blurRadius: 12,
+                            spreadRadius: -2,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.lock_outline, color: AppTheme.amberGold, size: 18),
+                          SizedBox(width: AppTheme.spacingSm),
+                          Text(
+                            "解锁本月运势报告 (5灵石)",
+                            style: TextStyle(
+                              color: AppTheme.inkText,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _BlurredRow extends StatelessWidget {
+  const _BlurredRow({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 100, height: 12, color: Colors.grey),
+        Container(
+          width: 100,
+          height: 12,
+          decoration: BoxDecoration(
+            color: AppTheme.inkText.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          ),
+        ),
         const Spacer(),
-        Container(width: 60, height: 12, color: Colors.grey),
+        Container(
+          width: 60,
+          height: 12,
+          decoration: BoxDecoration(
+            color: AppTheme.inkText.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          ),
+        ),
       ],
     );
   }
@@ -816,51 +897,67 @@ class _WishesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.scrollBorder.withOpacity(0.3)),
-      ),
+    return LiquidCard(
+      accentColor: AppTheme.lotusPink,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "我的愿望",
-            style: TextStyle(
-              color: AppTheme.inkText,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Icon(Icons.auto_awesome, color: AppTheme.lotusPink, size: 20),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                "我的愿望",
+                style: TextStyle(
+                  color: AppTheme.inkText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppTheme.spacingMd),
           Row(
             children: [
               Expanded(child: _WishItem(title: "考试顺利", date: "2024-10-28")),
-              const SizedBox(width: 12),
+              SizedBox(width: AppTheme.spacingMd),
               Expanded(child: _WishItem(title: "身体健康", date: "2024-09-30")),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppTheme.spacingMd),
           Center(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingLg,
+                vertical: AppTheme.spacingSm,
+              ),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppTheme.jadeGreen.withOpacity(0.8), AppTheme.fluorescentCyan.withOpacity(0.8)],
+                  colors: [
+                    AppTheme.jadeGreen.withOpacity(0.8),
+                    AppTheme.fluorescentCyan.withOpacity(0.8),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.jadeGreen.withOpacity(0.3),
+                    blurRadius: 12,
+                    spreadRadius: -2,
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.add, color: Colors.white, size: 18),
-                  const SizedBox(width: 4),
+                  SizedBox(width: AppTheme.spacingXs),
                   Text(
                     "添加愿望",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -880,12 +977,8 @@ class _WishItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return LiquidMiniCard(
+      accentColor: AppTheme.lotusPink,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -897,7 +990,7 @@ class _WishItem extends StatelessWidget {
               fontSize: 16,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: AppTheme.spacingXs),
           Text(
             date,
             style: TextStyle(

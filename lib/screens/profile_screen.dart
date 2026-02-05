@@ -1,14 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:primordial_spirit/config/app_routes.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 import 'package:primordial_spirit/models/user_models.dart';
 import 'package:primordial_spirit/services/auth_service.dart';
 import 'package:primordial_spirit/widgets/common/themed_background.dart';
-import 'package:primordial_spirit/widgets/common/glass_container.dart';
+import 'package:primordial_spirit/widgets/common/liquid_card.dart';
 import 'package:primordial_spirit/widgets/common/mystic_button.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
-import 'dart:ui';
 
 /// 个人信息页面 (重构版 - 全局风格适配)
 class ProfileScreen extends StatefulWidget {
@@ -126,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // 主要内容
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+              padding: EdgeInsets.fromLTRB(AppTheme.spacingLg, AppTheme.spacingSm, AppTheme.spacingLg, 100),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -140,7 +139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         letterSpacing: 1,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: AppTheme.spacingLg),
 
                     // 卡片 1: 基本信息
                     _buildCard(
@@ -152,30 +151,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           controller: _nameController,
                           required: true,
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: AppTheme.spacingLg),
                         _buildLabel('性别*'),
-                        const SizedBox(height: 12),
+                        SizedBox(height: AppTheme.spacingMd),
                         Row(
                           children: [
                             _buildGenderOption('男', Icons.male),
-                            const SizedBox(width: 16),
+                            SizedBox(width: AppTheme.spacingMd),
                             _buildGenderOption('女', Icons.female),
-                            const SizedBox(width: 16),
+                            SizedBox(width: AppTheme.spacingMd),
                             _buildGenderOption('其他', Icons.person_outline),
                           ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppTheme.spacingMd),
 
                     // 卡片 2: 八字信息
                     _buildCard(
                       title: '八字信息',
                       children: [
                         _buildDateInput(),
-                        const SizedBox(height: 20),
+                        SizedBox(height: AppTheme.spacingLg),
                         _buildTimeInput(),
-                        const SizedBox(height: 20),
+                        SizedBox(height: AppTheme.spacingLg),
                         _buildCityInput(
                           label: '出生地*',
                           value: _birthCity,
@@ -184,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppTheme.spacingMd),
 
                     // 卡片 3: 现状信息
                     _buildCard(
@@ -198,7 +197,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           isOptional: true,
                           onTap: () => _selectCity(isBirth: false),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: AppTheme.spacingLg),
                         _buildDropdown(
                           label: '职业',
                           value: _occupation,
@@ -207,7 +206,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           isOptional: true,
                           onChanged: (v) => setState(() => _occupation = v),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: AppTheme.spacingLg),
                         _buildDropdown(
                           label: '学历',
                           value: _education,
@@ -216,15 +215,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           isOptional: true,
                           onChanged: (v) => setState(() => _education = v),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: AppTheme.spacingLg),
                         _buildLabel('婚姻状况'),
-                        const SizedBox(height: 12),
+                        SizedBox(height: AppTheme.spacingMd),
                         Row(
                           children: [
                             _buildRadioOption('未婚', _maritalStatus, (v) => setState(() => _maritalStatus = v)),
-                            const SizedBox(width: 16),
+                            SizedBox(width: AppTheme.spacingMd),
                             _buildRadioOption('已婚', _maritalStatus, (v) => setState(() => _maritalStatus = v)),
-                            const SizedBox(width: 16),
+                            SizedBox(width: AppTheme.spacingMd),
                             _buildRadioOption('离异', _maritalStatus, (v) => setState(() => _maritalStatus = v)),
                           ],
                         ),
@@ -237,18 +236,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.voidBackground.withOpacity(0.95), // 接近不透明的深色背景
-          border: Border(top: BorderSide(color: AppTheme.scrollBorder, width: 0.5)),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: SafeArea(
-          child: SizedBox(
-            width: double.infinity,
-            child: MysticButton(
-              text: '开启元神探索',
-              onPressed: _submitProfile,
+      bottomNavigationBar: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: AppTheme.blurMd, sigmaY: AppTheme.blurMd),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.liquidGlassBase,
+              border: Border(
+                top: BorderSide(
+                  color: AppTheme.liquidGlassBorder,
+                  width: AppTheme.borderThin,
+                ),
+              ),
+            ),
+            padding: EdgeInsets.all(AppTheme.spacingLg),
+            child: SafeArea(
+              child: SizedBox(
+                width: double.infinity,
+                child: MysticButton(
+                  text: '开启元神探索',
+                  onPressed: _submitProfile,
+                ),
+              ),
             ),
           ),
         ),
@@ -261,37 +270,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required List<Widget> children,
     String? subtitle,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.spiritGlass.withOpacity(0.15), // 略微增加不透明度
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.scrollBorder.withOpacity(0.5), // 清晰的细边框
-          width: 0.8,
-        ),
-        // 移除导致模糊的阴影，仅保留极淡的黑色阴影增加层次
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return LiquidCard(
+      margin: EdgeInsets.zero,
+      accentColor: AppTheme.warmYellow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              // 移除原本的青色装饰条，改用简单的图标
               Icon(
                 Icons.circle, 
                 size: 8, 
                 color: AppTheme.warmYellow,
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: AppTheme.spacingSm),
               RichText(
                 text: TextSpan(
                   text: title,
@@ -316,7 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: AppTheme.spacingLg),
           ...children,
         ],
       ),
@@ -344,28 +336,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(label),
-        const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.spiritGlass.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
-          ),
-          child: TextFormField(
-            controller: controller,
-            validator: required ? (v) => v?.isEmpty == true ? '此项必填' : null : null,
-            style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: AppTheme.softGrayText, fontSize: 14),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: AppTheme.fluorescentCyan, width: 1.0),
+        SizedBox(height: AppTheme.spacingMd),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.liquidGlassLight,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: Border.all(
+                  color: AppTheme.liquidGlassBorderSoft,
+                  width: AppTheme.borderThin,
+                ),
               ),
-              filled: false,
+              child: TextFormField(
+                controller: controller,
+                validator: required ? (v) => v?.isEmpty == true ? '此项必填' : null : null,
+                style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: TextStyle(color: AppTheme.softGrayText, fontSize: 14),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingMd,
+                    vertical: AppTheme.spacingMd,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    borderSide: BorderSide(color: AppTheme.fluorescentCyan, width: AppTheme.borderMedium),
+                  ),
+                  filled: false,
+                ),
+              ),
             ),
           ),
         ),
@@ -380,36 +384,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _gender = label),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? activeColor.withOpacity(0.15) : AppTheme.spiritGlass.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isSelected ? activeColor : AppTheme.scrollBorder,
-              width: isSelected ? 1.0 : 0.8,
-            ),
-            // 移除阴影，保持干净
-          ),
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon, 
-                size: 16, 
-                color: isSelected ? activeColor : AppTheme.softGrayText,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? activeColor : AppTheme.softGrayText,
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: AppTheme.animNormal),
+              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? activeColor.withOpacity(0.18)
+                    : AppTheme.liquidGlassLight,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: Border.all(
+                  color: isSelected
+                      ? activeColor
+                      : AppTheme.liquidGlassBorderSoft,
+                  width: isSelected ? AppTheme.borderMedium : AppTheme.borderThin,
                 ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: activeColor.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
-            ],
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon, 
+                    size: 16, 
+                    color: isSelected ? activeColor : AppTheme.softGrayText,
+                  ),
+                  SizedBox(width: AppTheme.spacingSm),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected ? activeColor : AppTheme.softGrayText,
+                      fontSize: 14,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -431,7 +454,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: _isLunar,
                   onChanged: (v) => setState(() => _isLunar = v),
                   activeColor: AppTheme.fluorescentCyan,
-                  inactiveTrackColor: AppTheme.spiritGlass.withOpacity(0.3),
+                  inactiveTrackColor: AppTheme.liquidGlassLight,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 Text('农历', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
@@ -462,27 +485,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
             if (picked != null) setState(() => _birthDate = picked);
           },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppTheme.spiritGlass.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.calendar_today, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
-                const SizedBox(width: 10),
-                Text(
-                  _birthDate == null 
-                      ? 'YYYY年 MM月 DD日' 
-                      : '${_birthDate!.year}年 ${_birthDate!.month}月 ${_birthDate!.day}日',
-                  style: GoogleFonts.notoSerifSc(
-                    color: _birthDate == null ? AppTheme.softGrayText : AppTheme.warmYellow,
-                    fontSize: 14,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingMd,
+                  vertical: AppTheme.spacingMd,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.liquidGlassLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(
+                    color: AppTheme.liquidGlassBorderSoft,
+                    width: AppTheme.borderThin,
                   ),
                 ),
-              ],
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                    SizedBox(width: AppTheme.spacingSm),
+                    Text(
+                      _birthDate == null 
+                          ? 'YYYY年 MM月 DD日' 
+                          : '${_birthDate!.year}年 ${_birthDate!.month}月 ${_birthDate!.day}日',
+                      style: GoogleFonts.notoSerifSc(
+                        color: _birthDate == null ? AppTheme.softGrayText : AppTheme.warmYellow,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -507,14 +542,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     size: 18,
                     color: _isTimeUnknown ? AppTheme.fluorescentCyan : AppTheme.softGrayText,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: AppTheme.spacingXs),
                   Text('不确定可选择"不详"', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
                 ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppTheme.spacingMd),
         GestureDetector(
           onTap: _isTimeUnknown ? null : () async {
             final picked = await showTimePicker(
@@ -536,31 +571,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
             if (picked != null) setState(() => _birthTime = picked);
           },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppTheme.spiritGlass.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.access_time, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
-                const SizedBox(width: 10),
-                Text(
-                  _isTimeUnknown
-                      ? '时间不详'
-                      : (_birthTime == null 
-                          ? 'HH时 MM分' 
-                          : '${_birthTime!.hour.toString().padLeft(2, '0')}时 ${_birthTime!.minute.toString().padLeft(2, '0')}分'),
-                  style: GoogleFonts.notoSerifSc(
-                    color: (_birthTime == null && !_isTimeUnknown) ? AppTheme.softGrayText : AppTheme.warmYellow,
-                    fontSize: 14,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingMd,
+                  vertical: AppTheme.spacingMd,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.liquidGlassLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(
+                    color: AppTheme.liquidGlassBorderSoft,
+                    width: AppTheme.borderThin,
                   ),
                 ),
-                const Spacer(),
-                Icon(Icons.keyboard_arrow_down, color: AppTheme.softGrayText),
-              ],
+                child: Row(
+                  children: [
+                    Icon(Icons.access_time, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                    SizedBox(width: AppTheme.spacingSm),
+                    Text(
+                      _isTimeUnknown
+                          ? '时间不详'
+                          : (_birthTime == null 
+                              ? 'HH时 MM分' 
+                              : '${_birthTime!.hour.toString().padLeft(2, '0')}时 ${_birthTime!.minute.toString().padLeft(2, '0')}分'),
+                      style: GoogleFonts.notoSerifSc(
+                        color: (_birthTime == null && !_isTimeUnknown) ? AppTheme.softGrayText : AppTheme.warmYellow,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.keyboard_arrow_down, color: AppTheme.softGrayText),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -585,30 +632,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(' (选填)', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppTheme.spacingMd),
         GestureDetector(
           onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppTheme.spiritGlass.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.location_on_outlined, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
-                const SizedBox(width: 10),
-                Text(
-                  value.isEmpty ? placeholder : value,
-                  style: GoogleFonts.notoSerifSc(
-                    color: value.isEmpty ? AppTheme.softGrayText : AppTheme.warmYellow,
-                    fontSize: 14,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingMd,
+                  vertical: AppTheme.spacingMd,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.liquidGlassLight,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(
+                    color: AppTheme.liquidGlassBorderSoft,
+                    width: AppTheme.borderThin,
                   ),
                 ),
-                const Spacer(),
-                Icon(Icons.search, size: 20, color: AppTheme.softGrayText),
-              ],
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on_outlined, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                    SizedBox(width: AppTheme.spacingSm),
+                    Text(
+                      value.isEmpty ? placeholder : value,
+                      style: GoogleFonts.notoSerifSc(
+                        color: value.isEmpty ? AppTheme.softGrayText : AppTheme.warmYellow,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.search, size: 20, color: AppTheme.softGrayText),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -634,28 +693,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(' (选填)', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
           ],
         ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: AppTheme.spiritGlass.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.scrollBorder, width: 0.8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              hint: Text(hint, style: TextStyle(color: AppTheme.softGrayText, fontSize: 14)),
-              isExpanded: true,
-              dropdownColor: AppTheme.voidBackground,
-              icon: Icon(Icons.arrow_drop_down, color: AppTheme.softGrayText),
-              items: items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item, style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow)),
-                );
-              }).toList(),
-              onChanged: onChanged,
+        SizedBox(height: AppTheme.spacingMd),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+              decoration: BoxDecoration(
+                color: AppTheme.liquidGlassLight,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                border: Border.all(
+                  color: AppTheme.liquidGlassBorderSoft,
+                  width: AppTheme.borderThin,
+                ),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: value,
+                  hint: Text(hint, style: TextStyle(color: AppTheme.softGrayText, fontSize: 14)),
+                  isExpanded: true,
+                  dropdownColor: AppTheme.liquidGlassBase,
+                  icon: Icon(Icons.arrow_drop_down, color: AppTheme.softGrayText),
+                  items: items.map((String item) {
+                    return DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item, style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow)),
+                    );
+                  }).toList(),
+                  onChanged: onChanged,
+                ),
+              ),
             ),
           ),
         ),
@@ -671,16 +739,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onTap: () => onChanged(label),
       child: Row(
         children: [
-          Container(
+          AnimatedContainer(
+            duration: AppTheme.animFast,
             width: 20,
             height: 20,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
+              color: isSelected ? activeColor.withOpacity(0.1) : Colors.transparent,
               border: Border.all(
                 color: isSelected ? activeColor : AppTheme.softGrayText,
-                width: 2,
+                width: isSelected ? AppTheme.borderMedium : AppTheme.borderThin,
               ),
-              // 移除发光阴影
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: activeColor.withOpacity(0.3),
+                        blurRadius: 4,
+                        spreadRadius: 0,
+                      ),
+                    ]
+                  : null,
             ),
             child: isSelected
                 ? Center(
@@ -695,7 +773,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   )
                 : null,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: AppTheme.spacingSm),
           Text(
             label,
             style: GoogleFonts.notoSerifSc(
@@ -714,41 +792,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
-        return GlassContainer(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          height: MediaQuery.of(context).size.height * 0.6,
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  '选择城市',
-                  style: GoogleFonts.notoSerifSc(
-                    fontSize: 18, 
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.warmYellow,
+        return ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXl)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: AppTheme.blurLg, sigmaY: AppTheme.blurLg),
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: BoxDecoration(
+                color: AppTheme.liquidGlassBase,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXl)),
+                border: Border(
+                  top: BorderSide(
+                    color: AppTheme.liquidGlassBorder,
+                    width: AppTheme.borderThin,
                   ),
                 ),
               ),
-              Divider(height: 1, color: AppTheme.amberGold.withOpacity(0.2)),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: _cities.length,
-                  separatorBuilder: (_, __) => Divider(height: 1, color: AppTheme.inkText.withOpacity(0.05)),
-                  itemBuilder: (context, index) {
-                    final city = _cities[index];
-                    return ListTile(
-                      title: Text(
-                        city,
-                        style: GoogleFonts.notoSerifSc(color: AppTheme.inkText),
+              child: Column(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: EdgeInsets.only(top: AppTheme.spacingMd),
+                    decoration: BoxDecoration(
+                      color: AppTheme.inkText.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(AppTheme.spacingLg),
+                    child: Text(
+                      '选择城市',
+                      style: GoogleFonts.notoSerifSc(
+                        fontSize: 18, 
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.warmYellow,
                       ),
-                      onTap: () => Navigator.pop(context, city),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                  LiquidDivider(),
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: _cities.length,
+                      separatorBuilder: (_, __) => Divider(height: 1, color: AppTheme.inkText.withOpacity(0.05)),
+                      itemBuilder: (context, index) {
+                        final city = _cities[index];
+                        return ListTile(
+                          title: Text(
+                            city,
+                            style: GoogleFonts.notoSerifSc(color: AppTheme.inkText),
+                          ),
+                          onTap: () => Navigator.pop(context, city),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },

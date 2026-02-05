@@ -1,13 +1,14 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:primordial_spirit/config/app_theme.dart';
 
-/// 中间非模态提示框组件
+/// 液态玻璃风格的中间非模态提示框组件
 /// 用于替代 SnackBar，显示在屏幕中央，不阻塞用户操作
 class ToastOverlay extends StatefulWidget {
   final String message;
   final IconData? icon;
-  final Color backgroundColor;
+  final Color accentColor;
   final Duration duration;
   final VoidCallback? onComplete;
 
@@ -15,16 +16,18 @@ class ToastOverlay extends StatefulWidget {
     super.key,
     required this.message,
     this.icon,
-    Color? backgroundColor,
+    Color? accentColor,
     this.duration = const Duration(seconds: 2),
     this.onComplete,
-  }) : backgroundColor = backgroundColor ?? AppTheme.fluorescentCyan;
+  }) : accentColor = accentColor ?? AppTheme.fluorescentCyan;
 
   /// 显示提示框
+  /// [backgroundColor] 是 [accentColor] 的别名，用于向后兼容
   static void show(
     BuildContext context, {
     required String message,
     IconData? icon,
+    Color? accentColor,
     Color? backgroundColor,
     Duration duration = const Duration(seconds: 2),
     VoidCallback? onComplete,
@@ -32,11 +35,14 @@ class ToastOverlay extends StatefulWidget {
     final overlay = Overlay.of(context);
     late OverlayEntry overlayEntry;
 
+    // backgroundColor 作为 accentColor 的别名，优先使用 accentColor
+    final effectiveColor = accentColor ?? backgroundColor ?? AppTheme.fluorescentCyan;
+
     overlayEntry = OverlayEntry(
       builder: (context) => ToastOverlay(
         message: message,
         icon: icon,
-        backgroundColor: backgroundColor ?? AppTheme.fluorescentCyan,
+        accentColor: effectiveColor,
         duration: duration,
         onComplete: () {
           overlayEntry.remove();
@@ -63,7 +69,7 @@ class _ToastOverlayState extends State<ToastOverlay>
     super.initState();
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: Duration(milliseconds: AppTheme.animStandard.inMilliseconds),
       vsync: this,
     );
 
@@ -122,59 +128,84 @@ class _ToastOverlayState extends State<ToastOverlay>
 
   Widget _buildToast() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 40),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      margin: EdgeInsets.symmetric(horizontal: AppTheme.spacingXl),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            widget.backgroundColor.withValues(alpha: 0.95),
-            widget.backgroundColor.withValues(alpha: 0.85),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         boxShadow: [
+          // 主色发光
           BoxShadow(
-            color: widget.backgroundColor.withValues(alpha: 0.4),
+            color: widget.accentColor.withOpacity(0.3),
             blurRadius: 20,
-            spreadRadius: 5,
+            spreadRadius: 2,
           ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+          // 液态玻璃阴影
+          ...AppTheme.liquidGlassShadows(),
         ],
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (widget.icon != null) ...[
-            Icon(
-              widget.icon,
-              color: Colors.white,
-              size: 24,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppTheme.blurPremium,
+            sigmaY: AppTheme.blurPremium,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingLg,
+              vertical: AppTheme.spacingMd,
             ),
-            const SizedBox(width: 12),
-          ],
-          Flexible(
-            child: Text(
-              widget.message,
-              style: GoogleFonts.outfit(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-                letterSpacing: 0.3,
+            decoration: BoxDecoration(
+              color: AppTheme.liquidGlassBase,
+              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+              border: Border.all(
+                color: widget.accentColor.withOpacity(0.4),
+                width: AppTheme.borderStandard,
               ),
-              textAlign: TextAlign.center,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  widget.accentColor.withOpacity(0.15),
+                  Colors.transparent,
+                  widget.accentColor.withOpacity(0.08),
+                ],
+                stops: const [0.0, 0.5, 1.0],
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.icon != null) ...[
+                  Container(
+                    padding: EdgeInsets.all(AppTheme.spacingSm),
+                    decoration: BoxDecoration(
+                      color: widget.accentColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    ),
+                    child: Icon(
+                      widget.icon,
+                      color: widget.accentColor,
+                      size: 20,
+                    ),
+                  ),
+                  SizedBox(width: AppTheme.spacingMd),
+                ],
+                Flexible(
+                  child: Text(
+                    widget.message,
+                    style: GoogleFonts.notoSansSc(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.inkText,
+                      letterSpacing: 0.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:primordial_spirit/screens/avatar_generation_screen.dart';
 import 'package:primordial_spirit/screens/bazi_input_screen.dart';
-import 'package:primordial_spirit/screens/bazi_input_screen.dart';
 import 'package:primordial_spirit/screens/bazi_report_screen.dart';
 import 'package:primordial_spirit/screens/bazi_screen.dart';
 import 'package:primordial_spirit/screens/chat_screen.dart';
@@ -23,7 +22,6 @@ import 'package:primordial_spirit/screens/fortune_screen.dart';
 import 'package:primordial_spirit/screens/fortune_detail_screen.dart';
 import 'package:primordial_spirit/screens/about_screen.dart';
 import 'package:primordial_spirit/screens/language_settings_screen.dart';
-import 'package:primordial_spirit/widgets/auth_guard.dart';
 
 /// 路由配置
 class AppRoutes {
