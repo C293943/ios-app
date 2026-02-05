@@ -40,21 +40,25 @@ class LiquidCard extends StatelessWidget {
     final effectivePadding = padding ?? EdgeInsets.all(
       compact ? AppTheme.spacingMd : AppTheme.spacingLg,
     );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget card = Container(
       margin: margin ?? EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
         boxShadow: [
-          // 主色发光
+          // 主色发光 - 大幅减弱
           if (glowIntensity > 0)
             BoxShadow(
-              color: effectiveAccent.withOpacity(glowIntensity),
+              color: effectiveAccent.withOpacity(glowIntensity * (isDark ? 0.8 : 0.3)),
               blurRadius: 16,
-              spreadRadius: -2,
+              spreadRadius: -4,
             ),
           // 深度阴影
-          ...AppTheme.liquidGlassShadows(),
+          ...AppTheme.liquidGlassShadows(
+            elevated: elevated, 
+            intensity: isDark ? 1.0 : 0.5 // 浅色模式阴影减半
+          ),
         ],
       ),
       child: ClipRRect(
@@ -67,32 +71,33 @@ class LiquidCard extends StatelessWidget {
           child: Container(
             padding: effectivePadding,
             decoration: BoxDecoration(
-              color: AppTheme.liquidGlassBase.withOpacity(elevated ? 0.75 : 0.6),
+              // 减少不透明度，增加毛玻璃感
+              color: AppTheme.liquidGlassBase.withOpacity(elevated ? (isDark ? 0.6 : 0.4) : (isDark ? 0.4 : 0.2)),
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(
-                color: AppTheme.liquidGlassBorder,
+                color: AppTheme.liquidGlassBorder.withOpacity(isDark ? 0.2 : 0.15),
                 width: AppTheme.borderThin,
               ),
             ),
             child: Stack(
               children: [
-                // 内部渐变层
+                // 内部渐变层 - 几乎透明，仅保留极微弱的光感
                 Positioned.fill(
                   child: IgnorePointer(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(radius),
-                        gradient: AppTheme.liquidGlassInnerGradient(),
+                        gradient: AppTheme.liquidGlassInnerGradient(opacity: 0.5),
                       ),
                     ),
                   ),
                 ),
-                // 顶部高光
+                // 顶部高光 - 更加柔和
                 Positioned(
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 32,
+                  height: 40,
                   child: IgnorePointer(
                     child: ClipRRect(
                       borderRadius: BorderRadius.only(
@@ -101,7 +106,7 @@ class LiquidCard extends StatelessWidget {
                       ),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          gradient: AppTheme.liquidTopHighlight(intensity: 0.5),
+                          gradient: AppTheme.liquidTopHighlight(intensity: 0.3),
                         ),
                       ),
                     ),

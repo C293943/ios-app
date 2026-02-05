@@ -79,7 +79,9 @@ class _ThemedBackgroundState extends State<ThemedBackground> with SingleTickerPr
                     center: Alignment.topCenter,
                     radius: 1.2,
                     colors: [
-                      AppTheme.moonHalo.withValues(alpha: isDark ? 0.12 : 0.18),
+                      isDark 
+                          ? AppTheme.moonHalo.withValues(alpha: 0.12)
+                          : const Color(0xFFFCD34D).withValues(alpha: 0.15), // Bright Gold in Light Mode
                       Colors.transparent,
                     ],
                     stops: const [0.0, 0.7],
@@ -115,10 +117,10 @@ class _ThemedBackgroundState extends State<ThemedBackground> with SingleTickerPr
                         Colors.transparent,
                         isDark
                             ? AppTheme.voidDeeper.withValues(alpha: 0.45)
-                            : AppTheme.pureBlack.withValues(alpha: 0.1),
+                            : Colors.white.withValues(alpha: 0.0), // No vignette in light mode
                         isDark
                             ? AppTheme.voidDeeper.withValues(alpha: 0.75)
-                            : AppTheme.pureBlack.withValues(alpha: 0.2),
+                            : Colors.black.withValues(alpha: 0.03), // Very subtle darkening at edges
                       ],
                       stops: const [0.0, 0.65, 1.0],
                     ),

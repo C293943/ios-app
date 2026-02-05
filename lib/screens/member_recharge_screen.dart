@@ -23,14 +23,13 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     final textColor = isDark ? Colors.white : AppTheme.inkText;
     final subTextColor = isDark ? Colors.white.withOpacity(0.7) : AppTheme.inkText.withOpacity(0.6);
 
-    // Light mode background gradient
+    // Light mode background gradient - Soft & Clean
     final lightBgGradient = const LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
       colors: [
-        Color(0xFFF5F7FA), // Very light grey-blue
-        Color(0xFFE8EAF6), // Light indigo tint
-        Color(0xFFE0F2F1), // Light teal tint
+        Color(0xFFF8FAFC), // Slate 50
+        Color(0xFFF1F5F9), // Slate 100
       ],
     );
 
@@ -47,8 +46,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
               shape: BoxShape.circle,
               boxShadow: isDark ? [] : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
                 )
               ],
@@ -129,24 +128,27 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
       decoration: BoxDecoration(
-        // In light mode, use a colorful gradient to make it pop against the light background
+        // In light mode, use a clean gradient matching brand (Teal/Cyan)
         gradient: isDark 
             ? null 
-            : const LinearGradient(
-                colors: [Color(0xFF29B6F6), Color(0xFFAB47BC)], // Light Blue to Purple
+            : LinearGradient(
+                colors: [
+                  AppTheme.jadeGreen,
+                  AppTheme.jadeGreen.withOpacity(0.8),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
         color: isDark ? AppTheme.voidDeeper.withOpacity(0.8) : null,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? AppTheme.fluorescentCyan.withOpacity(0.3) : Colors.white.withOpacity(0.2),
+          color: isDark ? AppTheme.fluorescentCyan.withOpacity(0.3) : Colors.white.withOpacity(0.1),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.4) : const Color(0xFFAB47BC).withOpacity(0.3),
-            blurRadius: 15,
+            color: (isDark ? Colors.black : AppTheme.jadeGreen).withOpacity(0.25),
+            blurRadius: 20,
             offset: const Offset(0, 8),
           ),
         ],
@@ -166,13 +168,6 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
               fontSize: 22,
               fontWeight: FontWeight.bold,
               letterSpacing: 1,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withOpacity(0.2),
-                  offset: const Offset(0, 2),
-                  blurRadius: 4,
-                )
-              ],
             ),
           ),
           const SizedBox(height: 8),
@@ -214,7 +209,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 ]
               : [
                   Colors.white,
-                  const Color(0xFFF5F5F5),
+                  Colors.white,
                 ],
             isDark: isDark,
           ),
@@ -243,8 +238,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                   const Color(0xFF5D4037).withOpacity(0.8),
                 ]
               : [
-                  const Color(0xFFFFF8E1), // Light Amber
-                  const Color(0xFFFFECB3),
+                  const Color(0xFFFFFBEB), // Very Light Amber
+                  const Color(0xFFFFFBEB),
                 ],
             textColor: AppTheme.amberGold,
             isDark: isDark,
@@ -276,7 +271,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 ]
               : [
                   Colors.white,
-                  const Color(0xFFF5F5F5),
+                  Colors.white,
                 ],
             isDark: isDark,
           ),
@@ -310,9 +305,9 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     } else {
       // Light mode text colors
       if (isGold) {
-        effectiveTextColor = const Color(0xFF5D4037); // Dark brown
+        effectiveTextColor = const Color(0xFF92400E); // Dark Amber
       } else {
-        effectiveTextColor = isSelected ? const Color(0xFF00695C) : const Color(0xFF455A64); // Teal or Grey
+        effectiveTextColor = isSelected ? AppTheme.jadeGreen : AppTheme.inkText; 
       }
     }
     
@@ -326,8 +321,8 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
         ];
       } else {
         effectiveGradient = [
-          const Color(0xFFE0F7FA), // Light Cyan
-          const Color(0xFFB2EBF2),
+          const Color(0xFFECFEFF), // Cyan 50
+          const Color(0xFFECFEFF),
         ];
       }
     } else {
@@ -339,9 +334,9 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
     if (isSelected) {
       borderColor = isGold 
           ? AppTheme.amberGold 
-          : (isDark ? AppTheme.fluorescentCyan : const Color(0xFF26A69A));
+          : (isDark ? AppTheme.fluorescentCyan : AppTheme.jadeGreen);
     } else {
-      borderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2);
+      borderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.1);
     }
 
     return GestureDetector(
@@ -360,7 +355,7 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                 end: Alignment.bottomCenter,
                 colors: effectiveGradient,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: borderColor,
                 width: isSelected ? 2 : 1,
@@ -370,16 +365,16 @@ class _MemberRechargeScreenState extends State<MemberRechargeScreen> {
                       BoxShadow(
                         color: (isGold 
                             ? AppTheme.amberGold 
-                            : (isDark ? AppTheme.fluorescentCyan : const Color(0xFF26A69A))).withOpacity(0.3),
-                        blurRadius: 12,
-                        spreadRadius: 1,
+                            : (isDark ? AppTheme.fluorescentCyan : AppTheme.jadeGreen)).withOpacity(0.2),
+                        blurRadius: 16,
+                        spreadRadius: 0,
                         offset: const Offset(0, 4),
                       )
                     ]
                   : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-                        blurRadius: 6,
+                        color: Colors.black.withOpacity(isDark ? 0.3 : 0.03),
+                        blurRadius: 10,
                         offset: const Offset(0, 4),
                       )
                   ],

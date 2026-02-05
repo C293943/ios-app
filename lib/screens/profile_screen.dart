@@ -98,13 +98,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           '完善个人信息',
           style: GoogleFonts.notoSerifSc(
-            color: AppTheme.warmYellow,
+            color: isDark ? AppTheme.warmYellow : const Color(0xFF1E293B), // Dark text for light mode
             fontWeight: FontWeight.w600,
             fontSize: 18,
             letterSpacing: 1.2,
@@ -114,7 +116,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: AppTheme.warmYellow, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new, 
+            color: isDark ? AppTheme.warmYellow : const Color(0xFF1E293B), 
+            size: 20
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -270,18 +276,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required List<Widget> children,
     String? subtitle,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = isDark ? AppTheme.warmYellow : const Color(0xFF0F766E); // Jade/Teal for light mode
+
     return LiquidCard(
       margin: EdgeInsets.zero,
-      accentColor: AppTheme.warmYellow,
+      accentColor: accentColor,
+      glowIntensity: isDark ? 0.15 : 0.05, // 浅色模式减少发光
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.circle, 
-                size: 8, 
-                color: AppTheme.warmYellow,
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
               SizedBox(width: AppTheme.spacingSm),
               RichText(
@@ -290,7 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: GoogleFonts.notoSerifSc(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.warmYellow,
+                    color: isDark ? AppTheme.warmYellow : const Color(0xFF334155), // Slate-700
                     letterSpacing: 1,
                   ),
                   children: [
@@ -332,44 +345,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required TextEditingController controller,
     bool required = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(label),
         SizedBox(height: AppTheme.spacingMd),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppTheme.liquidGlassLight,
+        Container(
+          decoration: BoxDecoration(
+            color: isDark 
+                ? Colors.black.withOpacity(0.2) // Dark: 深色半透明
+                : const Color(0xFFF1F5F9).withOpacity(0.5), // Light: 极淡的 Slate-100
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(
+              color: isDark 
+                  ? Colors.white.withOpacity(0.1) 
+                  : const Color(0xFFCBD5E1).withOpacity(0.5), // Slate-300
+              width: AppTheme.borderThin,
+            ),
+          ),
+          child: TextFormField(
+            controller: controller,
+            validator: required ? (v) => v?.isEmpty == true ? '此项必填' : null : null,
+            style: GoogleFonts.notoSerifSc(
+              color: isDark ? AppTheme.warmYellow : const Color(0xFF334155)
+            ),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: isDark ? AppTheme.softGrayText : const Color(0xFF94A3B8), // Slate-400
+                fontSize: 14
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingMd,
+                vertical: AppTheme.spacingMd,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                border: Border.all(
-                  color: AppTheme.liquidGlassBorderSoft,
-                  width: AppTheme.borderThin,
+                borderSide: BorderSide(
+                  color: isDark ? AppTheme.fluorescentCyan : AppTheme.jadeGreen, 
+                  width: 1
                 ),
               ),
-              child: TextFormField(
-                controller: controller,
-                validator: required ? (v) => v?.isEmpty == true ? '此项必填' : null : null,
-                style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow),
-                decoration: InputDecoration(
-                  hintText: hint,
-                  hintStyle: TextStyle(color: AppTheme.softGrayText, fontSize: 14),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: AppTheme.spacingMd,
-                    vertical: AppTheme.spacingMd,
-                  ),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                    borderSide: BorderSide(color: AppTheme.fluorescentCyan, width: AppTheme.borderMedium),
-                  ),
-                  filled: false,
-                ),
-              ),
+              filled: false,
             ),
           ),
         ),
@@ -378,61 +399,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildGenderOption(String label, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _gender == label;
     final activeColor = AppTheme.jadeGreen;
     
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _gender = label),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: AppTheme.animNormal),
-              padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? activeColor.withOpacity(0.18)
-                    : AppTheme.liquidGlassLight,
-                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                border: Border.all(
-                  color: isSelected
-                      ? activeColor
-                      : AppTheme.liquidGlassBorderSoft,
-                  width: isSelected ? AppTheme.borderMedium : AppTheme.borderThin,
-                ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: activeColor.withOpacity(0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    icon, 
-                    size: 16, 
-                    color: isSelected ? activeColor : AppTheme.softGrayText,
-                  ),
-                  SizedBox(width: AppTheme.spacingSm),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isSelected ? activeColor : AppTheme.softGrayText,
-                      fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: AppTheme.animNormal),
+          padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMd),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (isDark ? activeColor.withOpacity(0.18) : activeColor.withOpacity(0.1))
+                : (isDark ? AppTheme.liquidGlassLight : Colors.white),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(
+              color: isSelected
+                  ? activeColor
+                  : (isDark ? AppTheme.liquidGlassBorderSoft : Colors.grey.withOpacity(0.2)),
+              width: isSelected ? AppTheme.borderMedium : AppTheme.borderThin,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: activeColor.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : (isDark ? null : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ]),
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon, 
+                size: 16, 
+                color: isSelected ? activeColor : AppTheme.softGrayText,
+              ),
+              SizedBox(width: AppTheme.spacingSm),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? activeColor : AppTheme.softGrayText,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -440,6 +462,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildDateInput() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -454,7 +478,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   value: _isLunar,
                   onChanged: (v) => setState(() => _isLunar = v),
                   activeColor: AppTheme.fluorescentCyan,
-                  inactiveTrackColor: AppTheme.liquidGlassLight,
+                  inactiveTrackColor: isDark ? AppTheme.liquidGlassLight : Colors.grey.withOpacity(0.2),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 Text('农历', style: TextStyle(fontSize: 12, color: AppTheme.softGrayText)),
@@ -472,11 +496,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               builder: (context, child) {
                 return Theme(
                   data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.dark(
+                    colorScheme: isDark ? ColorScheme.dark(
                       primary: AppTheme.jadeGreen,
                       onPrimary: AppTheme.voidBackground,
                       surface: AppTheme.voidBackground,
                       onSurface: AppTheme.warmYellow,
+                    ) : ColorScheme.light(
+                      primary: AppTheme.jadeGreen,
+                      onPrimary: Colors.white,
+                      surface: Colors.white,
+                      onSurface: Colors.black,
                     ),
                   ),
                   child: child!,
@@ -485,39 +514,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
             if (picked != null) setState(() => _birthDate = picked);
           },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingMd,
-                  vertical: AppTheme.spacingMd,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.liquidGlassLight,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  border: Border.all(
-                    color: AppTheme.liquidGlassBorderSoft,
-                    width: AppTheme.borderThin,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingMd,
+              vertical: AppTheme.spacingMd,
+            ),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.liquidGlassLight : Colors.white,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(
+                color: isDark ? AppTheme.liquidGlassBorderSoft : Colors.grey.withOpacity(0.2),
+                width: AppTheme.borderThin,
+              ),
+              boxShadow: isDark ? [] : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                SizedBox(width: AppTheme.spacingSm),
+                Text(
+                  _birthDate == null 
+                      ? 'YYYY年 MM月 DD日' 
+                      : '${_birthDate!.year}年 ${_birthDate!.month}月 ${_birthDate!.day}日',
+                  style: GoogleFonts.notoSerifSc(
+                    color: _birthDate == null ? AppTheme.softGrayText : (isDark ? AppTheme.warmYellow : AppTheme.inkText),
+                    fontSize: 14,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.calendar_today, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
-                    SizedBox(width: AppTheme.spacingSm),
-                    Text(
-                      _birthDate == null 
-                          ? 'YYYY年 MM月 DD日' 
-                          : '${_birthDate!.year}年 ${_birthDate!.month}月 ${_birthDate!.day}日',
-                      style: GoogleFonts.notoSerifSc(
-                        color: _birthDate == null ? AppTheme.softGrayText : AppTheme.warmYellow,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
         ),
@@ -526,6 +556,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildTimeInput() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -558,11 +590,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               builder: (context, child) {
                 return Theme(
                   data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.dark(
+                    colorScheme: isDark ? ColorScheme.dark(
                       primary: AppTheme.jadeGreen,
                       onPrimary: AppTheme.voidBackground,
                       surface: AppTheme.voidBackground,
                       onSurface: AppTheme.warmYellow,
+                    ) : ColorScheme.light(
+                      primary: AppTheme.jadeGreen,
+                      onPrimary: Colors.white,
+                      surface: Colors.white,
+                      onSurface: Colors.black,
                     ),
                   ),
                   child: child!,
@@ -571,43 +608,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
             if (picked != null) setState(() => _birthTime = picked);
           },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingMd,
-                  vertical: AppTheme.spacingMd,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.liquidGlassLight,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  border: Border.all(
-                    color: AppTheme.liquidGlassBorderSoft,
-                    width: AppTheme.borderThin,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingMd,
+              vertical: AppTheme.spacingMd,
+            ),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.liquidGlassLight : Colors.white,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(
+                color: isDark ? AppTheme.liquidGlassBorderSoft : Colors.grey.withOpacity(0.2),
+                width: AppTheme.borderThin,
+              ),
+              boxShadow: isDark ? [] : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.access_time, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                SizedBox(width: AppTheme.spacingSm),
+                Text(
+                  _isTimeUnknown
+                      ? '时间不详'
+                      : (_birthTime == null 
+                          ? 'HH时 MM分' 
+                          : '${_birthTime!.hour.toString().padLeft(2, '0')}时 ${_birthTime!.minute.toString().padLeft(2, '0')}分'),
+                  style: GoogleFonts.notoSerifSc(
+                    color: (_birthTime == null && !_isTimeUnknown) 
+                      ? AppTheme.softGrayText 
+                      : (isDark ? AppTheme.warmYellow : AppTheme.inkText),
+                    fontSize: 14,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.access_time, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
-                    SizedBox(width: AppTheme.spacingSm),
-                    Text(
-                      _isTimeUnknown
-                          ? '时间不详'
-                          : (_birthTime == null 
-                              ? 'HH时 MM分' 
-                              : '${_birthTime!.hour.toString().padLeft(2, '0')}时 ${_birthTime!.minute.toString().padLeft(2, '0')}分'),
-                      style: GoogleFonts.notoSerifSc(
-                        color: (_birthTime == null && !_isTimeUnknown) ? AppTheme.softGrayText : AppTheme.warmYellow,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const Spacer(),
-                    Icon(Icons.keyboard_arrow_down, color: AppTheme.softGrayText),
-                  ],
-                ),
-              ),
+                const Spacer(),
+                Icon(Icons.keyboard_arrow_down, color: AppTheme.softGrayText),
+              ],
             ),
           ),
         ),
@@ -622,6 +662,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required VoidCallback onTap,
     bool isOptional = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -635,39 +677,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SizedBox(height: AppTheme.spacingMd),
         GestureDetector(
           onTap: onTap,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingMd,
-                  vertical: AppTheme.spacingMd,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.liquidGlassLight,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  border: Border.all(
-                    color: AppTheme.liquidGlassBorderSoft,
-                    width: AppTheme.borderThin,
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingMd,
+              vertical: AppTheme.spacingMd,
+            ),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.liquidGlassLight : Colors.white,
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(
+                color: isDark ? AppTheme.liquidGlassBorderSoft : Colors.grey.withOpacity(0.2),
+                width: AppTheme.borderThin,
+              ),
+              boxShadow: isDark ? [] : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.location_on_outlined, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
+                SizedBox(width: AppTheme.spacingSm),
+                Text(
+                  value.isEmpty ? placeholder : value,
+                  style: GoogleFonts.notoSerifSc(
+                    color: value.isEmpty ? AppTheme.softGrayText : (isDark ? AppTheme.warmYellow : AppTheme.inkText),
+                    fontSize: 14,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.location_on_outlined, size: 18, color: AppTheme.amberGold.withOpacity(0.7)),
-                    SizedBox(width: AppTheme.spacingSm),
-                    Text(
-                      value.isEmpty ? placeholder : value,
-                      style: GoogleFonts.notoSerifSc(
-                        color: value.isEmpty ? AppTheme.softGrayText : AppTheme.warmYellow,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const Spacer(),
-                    Icon(Icons.search, size: 20, color: AppTheme.softGrayText),
-                  ],
-                ),
-              ),
+                const Spacer(),
+                Icon(Icons.search, size: 20, color: AppTheme.softGrayText),
+              ],
             ),
           ),
         ),
@@ -683,6 +726,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required ValueChanged<String?> onChanged,
     bool isOptional = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -694,36 +739,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
         SizedBox(height: AppTheme.spacingMd),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
-              decoration: BoxDecoration(
-                color: AppTheme.liquidGlassLight,
-                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                border: Border.all(
-                  color: AppTheme.liquidGlassBorderSoft,
-                  width: AppTheme.borderThin,
-                ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: value,
-                  hint: Text(hint, style: TextStyle(color: AppTheme.softGrayText, fontSize: 14)),
-                  isExpanded: true,
-                  dropdownColor: AppTheme.liquidGlassBase,
-                  icon: Icon(Icons.arrow_drop_down, color: AppTheme.softGrayText),
-                  items: items.map((String item) {
-                    return DropdownMenuItem<String>(
-                      value: item,
-                      child: Text(item, style: GoogleFonts.notoSerifSc(color: AppTheme.warmYellow)),
-                    );
-                  }).toList(),
-                  onChanged: onChanged,
-                ),
-              ),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.liquidGlassLight : Colors.white,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+            border: Border.all(
+              color: isDark ? AppTheme.liquidGlassBorderSoft : Colors.grey.withOpacity(0.2),
+              width: AppTheme.borderThin,
+            ),
+            boxShadow: isDark ? [] : [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              )
+            ],
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              hint: Text(hint, style: TextStyle(color: AppTheme.softGrayText, fontSize: 14)),
+              isExpanded: true,
+              dropdownColor: isDark ? AppTheme.liquidGlassBase : Colors.white,
+              icon: Icon(Icons.arrow_drop_down, color: AppTheme.softGrayText),
+              items: items.map((String item) {
+                return DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(
+                    item, 
+                    style: GoogleFonts.notoSerifSc(
+                      color: isDark ? AppTheme.warmYellow : AppTheme.inkText
+                    )
+                  ),
+                );
+              }).toList(),
+              onChanged: onChanged,
             ),
           ),
         ),
@@ -732,6 +783,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildRadioOption(String label, String groupValue, ValueChanged<String> onChanged) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = groupValue == label;
     final activeColor = AppTheme.fluorescentCyan;
     
@@ -777,8 +829,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Text(
             label,
             style: GoogleFonts.notoSerifSc(
-              color: isSelected ? AppTheme.warmYellow : AppTheme.softGrayText,
+              color: isSelected ? (isDark ? AppTheme.warmYellow : AppTheme.jadeGreen) : AppTheme.softGrayText,
               fontSize: 14,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ],
@@ -787,6 +840,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _selectCity({required bool isBirth}) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -826,7 +880,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: GoogleFonts.notoSerifSc(
                         fontSize: 18, 
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.warmYellow,
+                        color: isDark ? AppTheme.warmYellow : AppTheme.jadeGreen,
                       ),
                     ),
                   ),

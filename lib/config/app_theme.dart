@@ -36,14 +36,14 @@ class AppTheme {
   static const Color _bronzeDeep = Color(0xFF4E3F20); // 深古铜
 
   // --- 背景基调 (Void / Cloud) ---
-  static const Color _voidDark    = Color(0xFF0B181B); // 深渊黑 (Deep Teal Base)
+  static const Color _voidDark    = Color(0xFF0B181B); // 深渊黑
   static const Color _voidSurface = Color(0xFF13282C); // 深层表面
-  static const Color _voidDeeper  = Color(0xFF091214); // 近黑深渊
-
-  static const Color _cloudPaper  = Color(0xFFF6FBFD); // 云纹纸 (浅色背景)
-  static const Color _jadeWhite   = Color(0xFFFFFFFF); // 羊脂白玉 (浅色表面)
-  static const Color _cloudDeep   = Color(0xFFE3F0F2); // 浅色深层
   
+  // 浅色模式背景优化：更纯净的灰白，带极淡的青色倾向，去除浑浊感
+  static const Color _cloudPaper  = Color(0xFFFAFCFD); 
+  static const Color _jadeWhite   = Color(0xFFFFFFFF); 
+  static const Color _cloudDeep   = Color(0xFFF1F5F9); 
+
   static const Color _jadeGlassBase = Color(0xCC0F2222); // Jade Glass base
 
   // --- 墨色 (Ink / Text) ---
@@ -104,7 +104,7 @@ class AppTheme {
 
   static Color get voidBackground => _isDark ? _voidDark : _cloudPaper;
   static Color get inkGreen => _isDark ? _voidSurface : _cloudDeep;
-  static Color get voidDeeper => _isDark ? _voidDeeper : _cloudDeep;
+  static Color get voidDeeper => _isDark ? const Color(0xFF091214) : _cloudDeep;
   
   // Accents
   static Color get fluorescentCyan => _isDark ? _cyanGlow : _cyanInk;
@@ -145,43 +145,44 @@ class AppTheme {
   static Color get fluidGold => amberGold;
 
   // ===========================================================================
-  // 💧 Liquid Glass System 2.0 (液态玻璃系统)
+  // 💧 Liquid Glass System 2.0 (液态玻璃系统 - 优化版)
   // ===========================================================================
 
-  /// 液态玻璃基础色 - 增强可见性
+  /// 液态玻璃基础色 - 增强通透感
   static Color get liquidGlassBase => _isDark
-      ? const Color(0xFF0A1A1E).withValues(alpha: 0.72)
-      : const Color(0xFFF0F7FA).withValues(alpha: 0.88);
+      ? const Color(0xFF0E1F24).withValues(alpha: 0.60) // Dark: 降低不透明度，增加通透
+      : const Color(0xFFFFFFFF).withValues(alpha: 0.65); // Light: 纯白底，高通透
 
-  /// 液态玻璃 - 更强透明度变体 (用于背景叠加)
+  /// 液态玻璃 - 更强透明度变体
   static Color get liquidGlassLight => _isDark
-      ? const Color(0xFF0E2228).withValues(alpha: 0.55)
-      : const Color(0xFFFFFFFF).withValues(alpha: 0.65);
+      ? const Color(0xFF152A30).withValues(alpha: 0.40)
+      : const Color(0xFFFFFFFF).withValues(alpha: 0.40);
 
-  /// 液态玻璃高光 - 顶部边缘微光
+  /// 液态玻璃高光 - 顶部边缘微光 (减弱强度)
   static Color get liquidGlassHighlight => _isDark
-      ? Colors.white.withValues(alpha: 0.15)
-      : Colors.white.withValues(alpha: 0.95);
+      ? Colors.white.withValues(alpha: 0.10)
+      : Colors.white.withValues(alpha: 0.60);
 
-  /// 液态玻璃高光渐变起始色
+  /// 液态玻璃高光渐变起始色 (大幅减弱，避免金属感)
   static Color get liquidHighlightStart => _isDark
-      ? Colors.white.withValues(alpha: 0.18)
-      : Colors.white.withValues(alpha: 0.98);
+      ? Colors.white.withValues(alpha: 0.08)
+      : Colors.white.withValues(alpha: 0.40);
 
-  /// 液态玻璃内阴影 - 增加深度感
+  /// 液态玻璃内阴影 - 移除脏感
   static Color get liquidGlassInnerShadow => _isDark
-      ? Colors.black.withValues(alpha: 0.5)
-      : const Color(0xFF1A3A45).withValues(alpha: 0.08);
+      ? Colors.black.withValues(alpha: 0.3)
+      : const Color(0xFF0F172A).withValues(alpha: 0.03); // Light: 极淡的蓝灰色阴影
 
   /// 液态玻璃边框色
   static Color get liquidGlassBorder => _isDark
-      ? _jadeLight.withValues(alpha: 0.35)
-      : _cyanInk.withValues(alpha: 0.25);
+      ? const Color(0xFF4ADE80).withValues(alpha: 0.15) // 微弱的翡翠绿边框
+      : const Color(0xFFCBD5E1).withValues(alpha: 0.30); // 浅色模式用淡灰边框
 
   /// 液态玻璃边框色 - 柔和版
   static Color get liquidGlassBorderSoft => _isDark
-      ? Colors.white.withValues(alpha: 0.12)
-      : const Color(0xFF88B8C8).withValues(alpha: 0.35);
+      ? Colors.white.withValues(alpha: 0.08)
+      : const Color(0xFFE2E8F0).withValues(alpha: 0.40);
+
 
   /// 液态玻璃发光色
   static Color get liquidGlow => _isDark
@@ -217,7 +218,7 @@ class AppTheme {
   /// 液态玻璃装饰 - 完整的 BoxDecoration (UI-UX-Pro-Max 优化版)
   static BoxDecoration liquidGlassDecoration({
     double borderRadius = radiusLg, // 使用常量
-    double borderWidth = borderStandard, // 使用常量
+    double borderWidth = borderThin, // 减细边框
     double glowIntensity = 0.6,
     bool showIridescent = true,
     bool elevated = true,
@@ -232,23 +233,17 @@ class AppTheme {
         width: borderWidth,
       ),
       boxShadow: elevated ? [
-        // 外发光
+        // 外发光 (更柔和)
         BoxShadow(
-          color: liquidGlow.withValues(alpha: 0.2 * glowIntensity),
-          blurRadius: 24,
+          color: liquidGlow.withValues(alpha: (_isDark ? 0.15 : 0.1) * glowIntensity),
+          blurRadius: 20,
           spreadRadius: -4,
         ),
-        // 底部深阴影
+        // 底部阴影 (更通透)
         BoxShadow(
-          color: Colors.black.withValues(alpha: _isDark ? 0.55 : 0.12),
-          blurRadius: 28,
-          offset: const Offset(0, 10),
-        ),
-        // 边缘微光
-        if (_isDark) BoxShadow(
-          color: _cyanGlow.withValues(alpha: 0.08 * glowIntensity),
-          blurRadius: 12,
-          spreadRadius: -2,
+          color: (_isDark ? Colors.black : const Color(0xFF64748B)).withValues(alpha: _isDark ? 0.4 : 0.08),
+          blurRadius: 24,
+          offset: const Offset(0, 8),
         ),
       ] : [],
     );
@@ -263,60 +258,59 @@ class AppTheme {
     if (!elevated) return [];
     final glow = glowColor ?? liquidGlow;
     return [
+      // 柔和辉光
       BoxShadow(
-        color: glow.withValues(alpha: 0.2 * intensity),
-        blurRadius: 28,
+        color: glow.withValues(alpha: (_isDark ? 0.15 : 0.08) * intensity),
+        blurRadius: 24,
         spreadRadius: -4,
       ),
+      // 投影
       BoxShadow(
-        color: Colors.black.withValues(alpha: _isDark ? 0.5 : 0.1),
-        blurRadius: 32,
-        offset: const Offset(0, 14),
-      ),
-      BoxShadow(
-        color: Colors.white.withValues(alpha: _isDark ? 0.06 : 0.2),
-        blurRadius: 1,
-        spreadRadius: 0,
-        offset: const Offset(0, -1),
+        color: (_isDark ? Colors.black : const Color(0xFF475569)).withValues(alpha: _isDark ? 0.4 : 0.06),
+        blurRadius: 28,
+        offset: const Offset(0, 12),
       ),
     ];
   }
   
-  /// 液态玻璃内层渐变 - 顶部高光效果 (兼容旧API)
+  /// 液态玻璃内层渐变 - 顶部高光效果 (优化版：移除强烈渐变)
   static LinearGradient liquidGlassInnerGradient({double opacity = 1.0}) {
     return LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        liquidHighlightStart.withValues(alpha: opacity),
+        // 顶部极淡的高光，几乎透明
+        liquidHighlightStart.withValues(alpha: (_isDark ? 0.05 : 0.2) * opacity),
         Colors.transparent,
-        liquidGlassInnerShadow.withValues(alpha: 0.4 * opacity),
+        // 底部极淡的阴影
+        liquidGlassInnerShadow.withValues(alpha: (_isDark ? 0.2 : 0.02) * opacity),
       ],
-      stops: const [0.0, 0.35, 1.0],
+      stops: const [0.0, 0.4, 1.0],
     );
   }
 
-  /// 液态玻璃顶部高光条渐变 (兼容旧API)
+  /// 液态玻璃顶部高光条渐变 (优化版：更细更淡)
   static LinearGradient liquidTopHighlight({double intensity = 1.0}) {
     return LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        (_isDark ? Colors.white : Colors.white).withValues(
-          alpha: (_isDark ? 0.2 : 0.9) * intensity,
+        Colors.white.withValues(
+          alpha: (_isDark ? 0.15 : 0.4) * intensity,
         ),
         Colors.transparent,
       ],
+      stops: const [0.0, 1.0],
     );
   }
 
-  /// 液态玻璃底部阴影渐变 (兼容旧API)
+  /// 液态玻璃底部阴影渐变 (优化版：几乎不可见)
   static LinearGradient liquidBottomShadow({double intensity = 1.0}) {
     return LinearGradient(
       begin: Alignment.bottomCenter,
       end: Alignment.topCenter,
       colors: [
-        liquidGlassInnerShadow.withValues(alpha: 0.5 * intensity),
+        liquidGlassInnerShadow.withValues(alpha: 0.1 * intensity),
         Colors.transparent,
       ],
     );
