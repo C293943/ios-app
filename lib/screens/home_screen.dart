@@ -9,6 +9,10 @@ import 'package:primordial_spirit/services/theme_service.dart';
 import 'package:primordial_spirit/widgets/home_drawer.dart';
 import 'package:primordial_spirit/widgets/app_bottom_nav_bar.dart';
 import 'package:primordial_spirit/widgets/common/liquid_glass_container.dart';
+import 'package:primordial_spirit/widgets/common/wuxing_shader_background.dart';
+import 'package:primordial_spirit/widgets/common/wuxing_aura_ring.dart';
+import 'package:primordial_spirit/widgets/common/wuxing_3d_vortex.dart';
+import 'package:primordial_spirit/widgets/common/wuxing_water_ripple.dart';
 import 'package:primordial_spirit/l10n/l10n.dart';
 
 /// 首页 - 仙侠主题沉浸式界面
@@ -52,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            // (海浪已移入 _HeroAvatar 内部)
             Positioned(
               left: 0,
               right: 0,
@@ -81,11 +86,16 @@ class _DecorLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 监听主题变化，确保背景颜色更新
+    context.watch<ThemeService>();
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 1. 多色弥散背景
-        const _MetaphysicalDispersion(),
+        // 1. 五行 GLSL 着色器背景 (Fragment Shader 驱动)
+        WuxingShaderBackground(
+          key: ValueKey(AppTheme.isDark), // 主题变化时强制重建
+          element: WuxingElement.water,
+        ),
         // 2. 星尘点缀
         const _StarDustPainter(),
       ],
@@ -93,100 +103,158 @@ class _DecorLayer extends StatelessWidget {
   }
 }
 
-class _MetaphysicalDispersion extends StatelessWidget {
-  const _MetaphysicalDispersion();
+/* [已废弃] 以下旧代码已被 WuxingShaderBackground (GLSL) 替代
+class _MetaphysicalBackgroundState {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // 根据主题模式调整透明度
     final isDark = AppTheme.isDark;
-    final opacity = isDark ? 0.35 : 0.25;
+    
+    // 定义五行颜色 (适配深色/浅色模式)
+    final colors = isDark 
+      ? [
+          const Color(0xFF1E40AF), // 水 (Deep Blue)
+          const Color(0xFF991B1B), // 火 (Deep Red)
+          const Color(0xFF065F46), // 木 (Deep Green)
+          const Color(0xFF92400E), // 土 (Deep Amber)
+          const Color(0xFF475569), // 金 (Slate)
+        ]
+      : [
+          const Color(0xFFBFDBFE), // 水 (Light Blue)
+          const Color(0xFFFECACA), // 火 (Light Red)
+          const Color(0xFFA7F3D0), // 木 (Light Green)
+          const Color(0xFFFDE68A), // 土 (Light Amber)
+          const Color(0xFFE2E8F0), // 金 (Light Slate)
+        ];
 
     return Stack(
       children: [
-        // 左上 - 翡翠绿 (木/生机)
-        Positioned(
-          top: -120,
-          left: -80,
-          child: _DispersionBlob(
-            color: AppTheme.jadeGreen,
-            radius: 400,
-            opacity: opacity * 0.9,
+        // 1. 底层：动态网格渐变
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    // 动态混合颜色
+                    Color.lerp(colors[0], colors[2], _controller.value)!,
+                    Color.lerp(colors[1], colors[3], 1 - _controller.value)!,
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        
+        // 2. 中层：高斯模糊的流体色块
+        // 水/金 (左上)
+        _buildBlurBlob(const Alignment(-0.8, -0.7), colors[0], 300),
+        // 火/土 (右中)
+        _buildBlurBlob(const Alignment(0.8, 0.2), colors[1], 350),
+        // 木 (左下)
+        _buildBlurBlob(const Alignment(-0.5, 0.8), colors[2], 320),
+        
+        // 3. 顶层：半透明装饰纹理 (模拟气韵流动)
+        Opacity(
+          opacity: isDark ? 0.15 : 0.3, // 深色模式下降低纹理不透明度
+          child: CustomPaint(
+            painter: _WaveLinePainter(color: isDark ? Colors.white : colors[0]),
+            size: Size.infinite,
           ),
         ),
         
-        // 右中 - 荧光青 (水/灵性)
-        Positioned(
-          top: 200,
-          right: -100,
-          child: _DispersionBlob(
-            color: AppTheme.fluorescentCyan,
-            radius: 350,
-            opacity: opacity * 0.8,
-          ),
-        ),
-        
-        // 左下 - 琥珀金 (土/财富)
-        Positioned(
-          bottom: -50,
-          left: -50,
-          child: _DispersionBlob(
-            color: AppTheme.amberGold,
-            radius: 380,
-            opacity: opacity * 0.7,
-          ),
-        ),
-        
-        // 右下 - 深邃紫/蓝 (神秘) - 使用 theme 中的颜色变体
-        Positioned(
-          bottom: 100,
-          right: -60,
-          child: _DispersionBlob(
-            color: isDark ? const Color(0xFF6366F1) : const Color(0xFFA5B4FC), // Indigo
-            radius: 300,
-            opacity: opacity * 0.6,
-          ),
-        ),
-
-        // 全局高斯模糊 - 融合色块
+        // 4. 全局模糊滤镜，营造“仙气”
         BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+          filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60), // 增加模糊度
           child: Container(color: Colors.transparent),
         ),
       ],
     );
   }
-}
 
-class _DispersionBlob extends StatelessWidget {
-  final Color color;
-  final double radius;
-  final double opacity;
-
-  const _DispersionBlob({
-    required this.color,
-    required this.radius,
-    required this.opacity,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: radius * 2,
-      height: radius * 2,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color.withOpacity(opacity),
-            color.withOpacity(0),
-          ],
-          stops: const [0.0, 1.0],
-        ),
-      ),
+  Widget _buildBlurBlob(Alignment alignment, Color color, double size) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        // 让色块随动画微调位置
+        final offset = Offset(
+          0.1 * (0.5 - _controller.value),
+          0.1 * (0.5 - _controller.value),
+        );
+        return Align(
+          alignment: alignment + Alignment(offset.dx, offset.dy),
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.45),
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+      },
     );
   }
 }
+
+// 模拟气韵流动的线条
+class _WaveLinePainter extends CustomPainter {
+  final Color color;
+  _WaveLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final path = Path();
+    
+    // 第一条气韵
+    path.moveTo(0, size.height * 0.7);
+    path.cubicTo(
+      size.width * 0.3, size.height * 0.6, 
+      size.width * 0.7, size.height * 0.8,
+      size.width, size.height * 0.6
+    );
+
+    // 第二条气韵 (反向)
+    final path2 = Path();
+    path2.moveTo(size.width, size.height * 0.3);
+    path2.cubicTo(
+      size.width * 0.6, size.height * 0.4, 
+      size.width * 0.4, size.height * 0.2,
+      0, size.height * 0.4
+    );
+
+    canvas.drawPath(path, paint);
+    canvas.drawPath(path2, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+--- 旧代码结束 */
 
 class _StarDustPainter extends StatelessWidget {
   const _StarDustPainter();
@@ -660,23 +728,36 @@ class _LuckyColorDot extends StatelessWidget {
 class _HeroAvatar extends StatelessWidget {
   const _HeroAvatar();
 
-  static const String _defaultHeroAsset = 'assets/images/back-1.png';
+  static const String _defaultHeroAsset = 'assets/images/spirit-stone-egg.png';
 
   @override
   Widget build(BuildContext context) {
-    final currentRoute =
-        ModalRoute.of(context)?.settings.name ?? AppRoutes.home;
+    // 监听主题变化
+    context.watch<ThemeService>();
+    
     return SizedBox(
       width: 320,
       height: 400,
       child: Stack(
         alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
+          // Layer 1: 2.5D 水波 (底层，角色脚下)
           Positioned(
-            top: 0,
-            child: _HaloRing(),
+            left: -80,
+            right: -80,
+            bottom: -20,
+            child: WuxingWaterRipple(
+              key: ValueKey('water_${AppTheme.isDark}'), // 主题变化时强制重建
+              element: WuxingElement.water,
+              height: 220,
+              center: const Offset(0.5, 0.5), // 中心点在组件中部
+              blendMode: BlendMode.srcOver,
+            ),
           ),
+          // Layer 2: 角色图像 (顶层，在水波之上)
           Positioned.fill(
+            top: -100,
             child: Image.asset(
               _defaultHeroAsset,
               fit: BoxFit.contain,

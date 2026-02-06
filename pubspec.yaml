@@ -54,6 +54,9 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   
+  # Rive 动画引擎
+  rive: ^0.14.2
+
   # UI组件
   flutter_svg: ^2.0.10+1
   cached_network_image: ^3.4.1
@@ -100,6 +103,20 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # 五行 GLSL Fragment Shaders (水/火/木/金/土)
+  shaders:
+    - shaders/wuxing_water.frag
+    - shaders/wuxing_fire.frag
+    - shaders/wuxing_wood.frag
+    - shaders/wuxing_metal.frag
+    - shaders/wuxing_earth.frag
+    - shaders/wuxing_aura_ring.frag
+    - shaders/wuxing_3d_vortex.frag
+    - shaders/wuxing_wave.frag
+    - shaders/wuxing_water_ripple.frag
+    - shaders/wuxing_water_aura.frag
+    - shaders/wuxing_theme_bg.frag
 
   # To add assets to your application, add an assets section, like this:
   assets:
