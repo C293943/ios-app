@@ -55,7 +55,7 @@ dependencies:
   hive_flutter: ^1.1.0
   
   # Rive 动画引擎
-  rive: ^0.14.2
+  rive: ^0.13.20
 
   # UI组件
   flutter_svg: ^2.0.10+1
@@ -117,6 +117,7 @@ flutter:
     - shaders/wuxing_water_ripple.frag
     - shaders/wuxing_water_aura.frag
     - shaders/wuxing_theme_bg.frag
+    - shaders/wuxing_mystic_void.frag
 
   # To add assets to your application, add an assets section, like this:
   assets:

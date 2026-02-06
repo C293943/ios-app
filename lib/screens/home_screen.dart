@@ -10,6 +10,7 @@ import 'package:primordial_spirit/widgets/home_drawer.dart';
 import 'package:primordial_spirit/widgets/app_bottom_nav_bar.dart';
 import 'package:primordial_spirit/widgets/common/liquid_glass_container.dart';
 import 'package:primordial_spirit/widgets/common/wuxing_shader_background.dart';
+import 'package:primordial_spirit/widgets/common/wuxing_mystic_background.dart';
 import 'package:primordial_spirit/widgets/common/wuxing_aura_ring.dart';
 import 'package:primordial_spirit/widgets/common/wuxing_3d_vortex.dart';
 import 'package:primordial_spirit/widgets/common/wuxing_water_ripple.dart';
@@ -88,17 +89,8 @@ class _DecorLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     // 监听主题变化，确保背景颜色更新
     context.watch<ThemeService>();
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // 1. 五行 GLSL 着色器背景 (Fragment Shader 驱动)
-        WuxingShaderBackground(
-          key: ValueKey(AppTheme.isDark), // 主题变化时强制重建
-          element: WuxingElement.water,
-        ),
-        // 2. 星尘点缀
-        const _StarDustPainter(),
-      ],
+    return WuxingMysticBackground(
+      key: ValueKey('mystic_${AppTheme.isDark}'), // 主题变化时强制重建
     );
   }
 }
