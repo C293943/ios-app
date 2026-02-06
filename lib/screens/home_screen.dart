@@ -728,7 +728,7 @@ class _HeroAvatar extends StatelessWidget {
     context.watch<ThemeService>();
     
     return SizedBox(
-      width: 320,
+      width: 300,
       height: 400,
       child: Stack(
         alignment: Alignment.center,
@@ -738,18 +738,21 @@ class _HeroAvatar extends StatelessWidget {
           Positioned(
             left: -80,
             right: -80,
-            bottom: -20,
+            bottom: 40,
             child: WuxingWaterRipple(
               key: ValueKey('water_${AppTheme.isDark}'), // 主题变化时强制重建
               element: WuxingElement.water,
-              height: 220,
+              height: 320,
               center: const Offset(0.5, 0.5), // 中心点在组件中部
               blendMode: BlendMode.srcOver,
             ),
           ),
           // Layer 2: 角色图像 (顶层，在水波之上)
-          Positioned.fill(
+          Positioned(
             top: -100,
+            left: 50,
+            right: 50,
+            bottom: 60,
             child: Image.asset(
               _defaultHeroAsset,
               fit: BoxFit.contain,
