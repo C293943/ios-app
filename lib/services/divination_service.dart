@@ -7,6 +7,19 @@ import 'package:primordial_spirit/models/fortune_models.dart';
 import 'package:primordial_spirit/services/fortune_api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// 单次掷币结果
+class CoinCastResult {
+  final List<bool> coinResults; // 三枚铜钱结果：true=阳（字面），false=阴（花面）
+  final Yao yao;
+  final int yaoIndex; // 0-5，初爻到上爻
+
+  CoinCastResult({
+    required this.coinResults,
+    required this.yao,
+    required this.yaoIndex,
+  });
+}
+
 /// 问卜服务
 /// 负责六爻卦象生成、解读获取和历史记录管理
 class DivinationService {
@@ -21,12 +34,41 @@ class DivinationService {
   static const String _historyKey = 'divination_history';
   static const int _maxHistoryCount = 50;
 
-  /// 生成六爻卦象
-  /// 模拟传统的铜钱摇卦法：每爻投掷三枚铜钱
-  Future<DivinationResult> generateHexagram(String question) async {
-    // 模拟摇卦延迟
-    await Future.delayed(const Duration(milliseconds: 2000));
+  /// 流式生成六爻卦象
+  /// 每次掷币返回一爻，配合动画同步显示
+  Stream<CoinCastResult> generateHexagramStream(String question) async* {
+    for (int i = 0; i < 6; i++) {
+      // 模拟后端请求延迟
+      if (i == 0) {
+        // 首次短延迟，让UI准备好
+        await Future.delayed(const Duration(milliseconds: 100));
+      } else {
+        // 后续等待动画完成：掷币动画2000ms + 爻显示动画600ms + 缓冲400ms
+        await Future.delayed(const Duration(milliseconds: 3000));
+      }
+      
+      // 生成三枚铜钱的结果
+      final coinResults = <bool>[];
+      int sum = 0;
+      for (int j = 0; j < 3; j++) {
+        final isYang = _random.nextBool();
+        coinResults.add(isYang);
+        sum += isYang ? 3 : 2; // 字面（阳）为3，花面（阴）为2
+      }
+      
+      // 根据铜钱总数确定爻
+      final yao = _sumToYao(sum);
+      
+      yield CoinCastResult(
+        coinResults: coinResults,
+        yao: yao,
+        yaoIndex: i,
+      );
+    }
+  }
 
+  /// 生成六爻卦象（一次性返回，用于历史恢复等场景）
+  Future<DivinationResult> generateHexagram(String question) async {
     // 生成六个爻
     final lines = <Yao>[];
     for (int i = 0; i < 6; i++) {
@@ -34,6 +76,15 @@ class DivinationService {
       lines.add(yao);
     }
 
+    return _buildResultFromLines(question, lines);
+  }
+
+  /// 从已生成的爻列表构建结果
+  DivinationResult buildResultFromLines(String question, List<Yao> lines) {
+    return _buildResultFromLines(question, lines);
+  }
+
+  DivinationResult _buildResultFromLines(String question, List<Yao> lines) {
     // 根据爻象确定卦名
     final linesKey = lines.map((y) => y.isYang ? '1' : '0').join();
     final hexagramName = HexagramData.nameByLines[linesKey] ?? '未知';
@@ -60,16 +111,8 @@ class DivinationService {
     );
   }
 
-  /// 模拟铜钱法生成单爻
-  /// 三枚铜钱：字面（阴）为2，花面（阳）为3
-  /// 三枚相加：6=老阴（变爻）、7=少阳、8=少阴、9=老阳（变爻）
-  Yao _castYao() {
-    int sum = 0;
-    for (int i = 0; i < 3; i++) {
-      // 模拟铜钱：50%字面(2)，50%花面(3)
-      sum += _random.nextBool() ? 2 : 3;
-    }
-
+  /// 根据铜钱总数确定爻
+  Yao _sumToYao(int sum) {
     switch (sum) {
       case 6: // 老阴 - 阴爻且为动爻
         return const Yao(isYang: false, isChanging: true);
@@ -82,6 +125,15 @@ class DivinationService {
       default:
         return const Yao(isYang: true, isChanging: false);
     }
+  }
+
+  /// 模拟铜钱法生成单爻（兼容旧代码）
+  Yao _castYao() {
+    int sum = 0;
+    for (int i = 0; i < 3; i++) {
+      sum += _random.nextBool() ? 3 : 2;
+    }
+    return _sumToYao(sum);
   }
 
   /// 获取卦象解读（流式返回）

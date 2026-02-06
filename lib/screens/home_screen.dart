@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: AnimatedContainer(
         duration: AppTheme.animStandard,
         decoration: BoxDecoration(
-          gradient: AppTheme.voidGradient,
+          color: AppTheme.voidBackground,
         ),
         child: Stack(
           fit: StackFit.expand,
@@ -81,7 +81,110 @@ class _DecorLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _StarDustPainter();
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 1. 多色弥散背景
+        const _MetaphysicalDispersion(),
+        // 2. 星尘点缀
+        const _StarDustPainter(),
+      ],
+    );
+  }
+}
+
+class _MetaphysicalDispersion extends StatelessWidget {
+  const _MetaphysicalDispersion();
+
+  @override
+  Widget build(BuildContext context) {
+    // 根据主题模式调整透明度
+    final isDark = AppTheme.isDark;
+    final opacity = isDark ? 0.35 : 0.25;
+
+    return Stack(
+      children: [
+        // 左上 - 翡翠绿 (木/生机)
+        Positioned(
+          top: -120,
+          left: -80,
+          child: _DispersionBlob(
+            color: AppTheme.jadeGreen,
+            radius: 400,
+            opacity: opacity * 0.9,
+          ),
+        ),
+        
+        // 右中 - 荧光青 (水/灵性)
+        Positioned(
+          top: 200,
+          right: -100,
+          child: _DispersionBlob(
+            color: AppTheme.fluorescentCyan,
+            radius: 350,
+            opacity: opacity * 0.8,
+          ),
+        ),
+        
+        // 左下 - 琥珀金 (土/财富)
+        Positioned(
+          bottom: -50,
+          left: -50,
+          child: _DispersionBlob(
+            color: AppTheme.amberGold,
+            radius: 380,
+            opacity: opacity * 0.7,
+          ),
+        ),
+        
+        // 右下 - 深邃紫/蓝 (神秘) - 使用 theme 中的颜色变体
+        Positioned(
+          bottom: 100,
+          right: -60,
+          child: _DispersionBlob(
+            color: isDark ? const Color(0xFF6366F1) : const Color(0xFFA5B4FC), // Indigo
+            radius: 300,
+            opacity: opacity * 0.6,
+          ),
+        ),
+
+        // 全局高斯模糊 - 融合色块
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+          child: Container(color: Colors.transparent),
+        ),
+      ],
+    );
+  }
+}
+
+class _DispersionBlob extends StatelessWidget {
+  final Color color;
+  final double radius;
+  final double opacity;
+
+  const _DispersionBlob({
+    required this.color,
+    required this.radius,
+    required this.opacity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withOpacity(opacity),
+            color.withOpacity(0),
+          ],
+          stops: const [0.0, 1.0],
+        ),
+      ),
+    );
   }
 }
 

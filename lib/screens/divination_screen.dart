@@ -44,8 +44,17 @@ class _DivinationScreenState extends State<DivinationScreen>
   DivinationState _state = DivinationState.welcome;
   DivinationSession? _currentSession;
   StreamSubscription<String>? _interpretationSubscription;
+  StreamSubscription<CoinCastResult>? _castingSubscription;
   String _currentInterpretation = '';
   bool _isTyping = false;
+  
+  // 掷卦动画状态
+  String _currentQuestion = '';
+  int _currentYaoIndex = 0;
+  List<Yao> _generatedLines = [];
+  List<bool>? _currentCoinResults;
+  bool _isCasting = false;
+  String? _hexagramName;
 
   late AnimationController _welcomeAnimController;
   late Animation<double> _welcomeFadeAnimation;
@@ -78,6 +87,7 @@ class _DivinationScreenState extends State<DivinationScreen>
     _inputController.dispose();
     _scrollController.dispose();
     _interpretationSubscription?.cancel();
+    _castingSubscription?.cancel();
     if (_currentSession != null) {
       _divinationService.cancelInterpretation(_currentSession!.result.id);
     }
@@ -323,10 +333,36 @@ class _DivinationScreenState extends State<DivinationScreen>
   /// 摇卦中内容
   Widget _buildCastingContent() {
     return Center(
-      child: ThreeCoinsAnimation(
-        text: '摇卦中，请稍候...',
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(vertical: AppTheme.spacingXl),
+        child: DivinationCastingWidget(
+          currentYaoIndex: _currentYaoIndex,
+          lines: _generatedLines,
+          hexagramName: _hexagramName,
+          currentCoinResults: _currentCoinResults,
+          isCasting: _isCasting,
+          onCastComplete: _onCoinCastComplete,
+          text: _getCastingText(),
+        ),
       ),
     );
+  }
+
+  String _getCastingText() {
+    if (_generatedLines.length == 6) {
+      return '卦象已成，正在解读...';
+    }
+    const yaoNames = ['初', '二', '三', '四', '五', '上'];
+    if (_currentYaoIndex < 6) {
+      return '掷第${yaoNames[_currentYaoIndex]}爻...';
+    }
+    return '摇卦中...';
+  }
+
+  void _onCoinCastComplete() {
+    // 掷币动画完成的回调
+    // 现在由服务端的数据流控制节奏，这里只做日志记录
+    debugPrint('掷币动画完成，当前爻数: ${_generatedLines.length}');
   }
 
   /// 聊天内容（包含卦象显示和对话）
@@ -704,25 +740,71 @@ class _DivinationScreenState extends State<DivinationScreen>
   Future<void> _startDivination(String question) async {
     setState(() {
       _state = DivinationState.casting;
+      _currentQuestion = question;
+      _currentYaoIndex = 0;
+      _generatedLines = [];
+      _currentCoinResults = null;
+      _hexagramName = null;
+      _isCasting = false; // 等待第一个数据到达后再开始动画
     });
 
     try {
-      // 生成卦象
-      final result = await _divinationService.generateHexagram(question);
-
-      // 创建会话
-      _currentSession = DivinationSession(
-        id: result.id,
-        result: result,
+      // 流式生成卦象
+      _castingSubscription?.cancel();
+      _castingSubscription = _divinationService
+          .generateHexagramStream(question)
+          .listen(
+        (castResult) {
+          if (!mounted) return;
+          
+          // 保存当前爻的索引，用于显示文本
+          final yaoIndex = castResult.yaoIndex;
+          
+          setState(() {
+            // 更新铜钱结果
+            _currentCoinResults = castResult.coinResults;
+            // 更新当前爻索引（用于显示 "掷第X爻..."）
+            _currentYaoIndex = yaoIndex;
+            // 触发掷币动画（从 false 变为 true）
+            _isCasting = true;
+          });
+          
+          // 等待掷币动画完成（2000ms），再更新爻列表
+          Future.delayed(const Duration(milliseconds: 2000), () {
+            if (!mounted) return;
+            setState(() {
+              // 添加爻到列表
+              _generatedLines = [..._generatedLines, castResult.yao];
+              // 重置掷币状态，为下一次准备
+              _isCasting = false;
+              
+              // 检查是否完成六爻
+              if (_generatedLines.length == 6) {
+                // 计算卦名
+                final linesKey = _generatedLines.map((y) => y.isYang ? '1' : '0').join();
+                _hexagramName = HexagramData.nameByLines[linesKey] ?? '未知';
+              }
+            });
+          });
+        },
+        onDone: () {
+          if (!mounted) return;
+          // 等待最后一个动画完成后再进入下一阶段
+          Future.delayed(const Duration(milliseconds: 2500), () {
+            if (mounted) {
+              _onHexagramComplete();
+            }
+          });
+        },
+        onError: (error) {
+          if (!mounted) return;
+          debugPrint('问卜失败: $error');
+          setState(() {
+            _state = DivinationState.welcome;
+          });
+          _showError('问卜失败，请重试');
+        },
       );
-
-      setState(() {
-        _state = DivinationState.showHexagram;
-      });
-
-      // 延迟后开始解读
-      await Future.delayed(const Duration(milliseconds: 1500));
-      _startInterpretation();
     } catch (e) {
       debugPrint('问卜失败: $e');
       setState(() {
@@ -730,6 +812,32 @@ class _DivinationScreenState extends State<DivinationScreen>
       });
       _showError('问卜失败，请重试');
     }
+  }
+
+  /// 卦象生成完成
+  void _onHexagramComplete() {
+    // 构建结果
+    final result = _divinationService.buildResultFromLines(
+      _currentQuestion,
+      _generatedLines,
+    );
+
+    // 创建会话
+    _currentSession = DivinationSession(
+      id: result.id,
+      result: result,
+    );
+
+    setState(() {
+      _state = DivinationState.showHexagram;
+    });
+
+    // 延迟后开始解读
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        _startInterpretation();
+      }
+    });
   }
 
   /// 开始解读
